@@ -23,7 +23,7 @@ cd connectedhomeip/src/platform/
 
 ln -s ../../../ambd_sdk_with_chip/chip/AmebaD
 
-# Patch for mb
+# Patch for Mbedtls
 cd connectedhomeip/third_party/mbedtls/repo
 
 git am ../../../../ambd_sdk_with_chip/chip/0001-Change-config-setting-and-add-hw-entropy.patch

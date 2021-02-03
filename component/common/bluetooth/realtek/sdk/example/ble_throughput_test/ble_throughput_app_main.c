@@ -15,6 +15,8 @@
   */
 
 /** Add Includes here **/
+#include <platform_opts_bt.h>
+#if defined(CONFIG_BT_THROUGHPUT_TEST) && CONFIG_BT_THROUGHPUT_TEST
 #include <string.h>
 #include "os_sched.h"
 #include "ble_throughput_app_task.h"
@@ -26,7 +28,6 @@
 #include <bte.h>
 #include <wifi_constants.h>
 #include "FreeRTOS.h"
-
 
 #if F_BT_LE_GATT_CLIENT_SUPPORT
 #include "profile_client.h"
@@ -128,6 +129,7 @@ static uint8_t adv_data[] =
 void ble_throughput_bt_stack_config_init(void)
 {
     gap_config_max_le_link_num(APP_MAX_LINKS);
+    gap_config_max_le_paired_device(APP_MAX_LINKS);
 }
 /**
   * @brief  Initiate GAP parameters, these params will affect the local device's behavior.
@@ -336,4 +338,4 @@ void ble_throughput_app_deinit(void)
 	}
 #endif
 }
-
+#endif

@@ -41,7 +41,7 @@ static int usb_stor_msg_common(struct us_data *us, int timeout)
 	unsigned long expire;
 	/* don't submit URBs during abort processing */
 	if (test_bit(US_FLIDX_ABORTING, &us->dflags))
-		return -EIO;
+		return -USB_EIO;
 
 	/* set up data structures for the wakeup system */
 	rtw_init_sema(&urb_done, 0);
@@ -184,7 +184,7 @@ US_ENTER;
 			res = USB_STOR_XFER_GOOD;
 			break;
 		/* stalled */
-		case -EPIPE:
+		case -USB_EPIPE:
 			/* for control endpoints, (used by CB[I]) a stall indicates
 			 * a failed command */
 			if (usb_pipecontrol(pipe)) {
@@ -202,22 +202,22 @@ US_ENTER;
 			res = USB_STOR_XFER_STALLED;
 			break;
 		/* babble - the device tried to send more than we wanted to read */
-		case -EOVERFLOW:
+		case -USB_EOVERFLOW:
 			US_ERR("The device tried to send more than we wanted to read\n");
 			res = USB_STOR_XFER_LONG;
 			break;
 		/* the transfer was cancelled by abort, disconnect, or timeout */
-		case -ECONNRESET:
+		case -USB_ECONNRESET:
 			US_ERR("Transfer cancelled\n");
 			res = USB_STOR_XFER_ERROR;
 			break;
 		/* short scatter-gather read transfer */
-		case -EREMOTEIO:
+		case -USB_EREMOTEIO:
 			US_ERR("Short read transfer\n");
 			res = USB_STOR_XFER_SHORT;
 			break;
 		/* abort or disconnect in progress */
-		case -EIO:
+		case -USB_EIO:
 			US_ERR("Abort or disconnect in progress\n");
 			res = USB_STOR_XFER_ERROR;
 			break;
@@ -911,7 +911,7 @@ static int usb_stor_reset_common(struct us_data *us,
 
 	if (test_bit(US_FLIDX_DISCONNECTING, &us->dflags)) {
 		US_ERR("No reset during disconnect\n");
-		return -EIO;
+		return -USB_EIO;
 	}
 
 	result = usb_stor_control_msg(us, us->send_ctrl_pipe,
@@ -930,7 +930,7 @@ static int usb_stor_reset_common(struct us_data *us,
 //			SCSI_HZ*6);
 	if (test_bit(US_FLIDX_DISCONNECTING, &us->dflags)) {
 		US_ERR("Reset interrupted by disconnect\n");
-		return -EIO;
+		return -USB_EIO;
 	} else {
         udelay(SCSI_HZ*6);
     }
@@ -990,7 +990,7 @@ int usb_stor_port_reset(struct us_data *us)
 
 	/*for these devices we must use the class specific method */
 	if (us->pusb_dev->quirks & USB_QUIRK_RESET)  // The device can not be reset
-		return -EPERM;
+		return -USB_EPERM;
 #if 0
 	result = usb_lock_device_for_reset(us->pusb_dev, us->pusb_intf);
 	if (result < 0)
@@ -999,7 +999,7 @@ int usb_stor_port_reset(struct us_data *us)
 	else {
 		/* Were we disconnected while waiting for the lock? */
 		if (test_bit(US_FLIDX_DISCONNECTING, &us->dflags)) {
-			result = -EIO;
+			result = -USB_EIO;
 			USB_US_PRINTF("No reset during disconnect\n");
 		} else {
 			result = usb_reset_device(us->pusb_dev);

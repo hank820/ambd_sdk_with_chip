@@ -170,6 +170,8 @@ static bool is_health_server_has_fault(const mesh_model_info_p pmodel_info)
  */
 static int32_t health_server_publish(mesh_model_info_p pmodel_info, bool retrans)
 {
+    /* avoid gcc compile warning */
+    (void)retrans;
     health_info_p phealth_info = pmodel_info->pargs;
 
     health_curt_stat(pmodel_info, phealth_info->recently_test_id, phealth_info->company_id,

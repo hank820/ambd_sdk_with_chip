@@ -55,13 +55,13 @@ int usb_stor_ucr61s2b_init(struct us_data *us)
 	res = usb_stor_bulk_transfer_buf(us, us->send_bulk_pipe, bcb,
 			US_BULK_CB_WRAP_LEN, &partial);
 	if (res)
-		return -EIO;
+		return -USB_EIO;
 
 	US_INFO("Getting status packet...\n");
 	res = usb_stor_bulk_transfer_buf(us, us->recv_bulk_pipe, bcs,
 			US_BULK_CS_WRAP_LEN, &partial);
 	if (res)
-		return -EIO;
+		return -USB_EIO;
 
 	return 0;
 }

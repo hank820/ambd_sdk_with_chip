@@ -15,6 +15,26 @@ IFLAGS				 += -I$(BASEDIR)/component/common/application/linkkit/v1.3.0/include/e
 IFLAGS				 += -I$(BASEDIR)/component/common/application/linkkit/v1.3.0/include/platform
 endif
 
+ifeq ($(CONFIG_USB_DEVICE_EN),y)
+IFLAGS += -I$(TARGETDIR)/fwlib/usb_otg/device/inc
+IFLAGS += -I$(BASEDIR)/component/common/drivers/usb/device/audio/inc
+IFLAGS += -I$(BASEDIR)/component/common/drivers/usb/device/cdc_acm/inc
+IFLAGS += -I$(BASEDIR)/component/common/drivers/usb/device/msc/inc
+IFLAGS += -I$(BASEDIR)/component/common/drivers/usb/device/vendor/inc
+endif
+ifeq ($(CONFIG_USB_HOST_EN),y)
+IFLAGS += -I$(TARGETDIR)/fwlib/usb_otg/host/inc
+IFLAGS += -I$(BASEDIR)/component/common/drivers/usb/host/msc/inc
+IFLAGS += -I$(BASEDIR)/component/common/drivers/usb/host/uvc/inc
+IFLAGS += -I$(BASEDIR)/component/common/drivers/usb/host/vendor/inc
+IFLAGS += -I$(BASEDIR)/component/common/drivers/usb/host/cdc_acm/inc
+ifeq ($(CONFIG_USBH_UVC),y)
+IFLAGS += -I$(BASEDIR)/component/common/video/v4l2/inc
+IFLAGS += -I$(BASEDIR)/component/common/media/rtp_codec
+IFLAGS += -I$(BASEDIR)/component/common/media/mmfv2
+endif
+endif
+
 .PHONY: all clean
 
 #*****************************************************************************#
@@ -49,6 +69,7 @@ CSRC += $(DIR)/tcp_keepalive/example_tcp_keepalive.c
 CSRC += $(DIR)/uart_atcmd/example_uart_atcmd.c
 CSRC += $(DIR)/wifi_mac_monitor/example_wifi_mac_monitor.c
 CSRC += $(DIR)/wlan_fast_connect/example_wlan_fast_connect.c
+CSRC += $(DIR)/wlan_repeater/example_wlan_repeater.c
 CSRC += $(DIR)/wlan_scenario/example_wlan_scenario.c
 CSRC += $(DIR)/websocket_client/example_wsclient.c
 CSRC += $(DIR)/websocket_server/example_ws_server.c
@@ -66,6 +87,7 @@ CSRC += $(DIR)/dct/example_dct.c
 CSRC += $(DIR)/wifi_manager/example_wifi_manager.c
 CSRC += $(DIR)/wifi_roaming/example_wifi_roaming.c
 #CSRC += $(DIR)/wifi_roaming_plus/example_wifi_roaming_plus.c
+CSRC += $(DIR)/wifi_connection_priority/example_wifi_conn_pri_cond.c
 CSRC += $(DIR)/uart_firmware_update/example_uart_update.c
 CSRC += $(DIR)/ipv6/example_ipv6.c
 CSRC += $(DIR)/cJSON/example_cJSON.c
@@ -108,6 +130,9 @@ CSRC += $(DIR)/dct/example_dct.c
 
 ifeq ($(CONFIG_AUDIO_EN),y)
 IFLAGS += -I$(BASEDIR)/component/common/audio/libav
+IFLAGS += -I$(BASEDIR)/component/common/audio/a52dec/src
+IFLAGS += -I$(BASEDIR)/component/common/audio/a52dec/include
+IFLAGS += -I$(BASEDIR)/component/common/audio/a52dec/libao
 CSRC += $(DIR)/audio_sport/audio_amr/example_audio_amr.c
 CSRC += $(DIR)/audio_sport/audio_mp3/example_audio_mp3.c
 CSRC += $(DIR)/audio_sport/audio_helix_aac/example_audio_helix_aac.c
@@ -116,8 +141,9 @@ CSRC += $(DIR)/audio_sport/audio_m4a_selfparse/example_audio_m4a_selfparse.c
 #CSRC += $(DIR)/audio_sport/audio_m4a/example_audio_m4a.c
 #CSRC += $(DIR)/audio_sport/audio_pcm_upload/example_audio_pcm_upload.c
 #CSRC += $(DIR)/audio_sport/audio_hls/example_audio_hls.c
-CSRC +=	$(DIR)/audio_sport/audio_flac/example_audio_flac.c
+CSRC += $(DIR)/audio_sport/audio_flac/example_audio_flac.c
 CSRC += $(DIR)/audio_sport/audio_ac3/example_audio_ac3.c
+CSRC += $(DIR)/audio_sport/audio_ac3/a52dec.c
 CSRC += $(DIR)/audio_sport/audio_recorder/example_audio_recorder.c
 CSRC += $(DIR)/audio_sport/audio_amr_flash/example_audio_amr_flash.c
 CSRC += $(DIR)/audio_sport/audio_amr_flash/audio_play.c
@@ -126,13 +152,21 @@ CSRC += $(DIR)/audio_sport/audio_signal_generate/example_audio_signal_generate.c
 #CSRC += $(DIR)/audio_sport/audio_tts_cybron/example_audio_tts_cyberon.c
 endif
 
+ifeq ($(CONFIG_USB_OTG_EN),y)
+ifeq ($(CONFIG_USB_DEVICE_EN),y)
 CSRC += $(DIR)/usbd_audio/example_usbd_audio_sp.c
 CSRC += $(DIR)/usbd_audio/example_usbd_audio.c
 CSRC += $(DIR)/usbd_msc/example_usbd_msc.c
 CSRC += $(DIR)/usbd_cdc_acm/example_usbd_cdc_acm.c
 CSRC += $(DIR)/usbd_vendor/example_usbd_vendor.c
+endif
+ifeq ($(CONFIG_USB_HOST_EN),y)
 CSRC += $(DIR)/usbh_msc/example_usbh_msc.c
+CSRC += $(DIR)/usbh_uvc/example_usbh_uvc.c
 CSRC += $(DIR)/usbh_vendor/example_usbh_vendor.c
+CSRC += $(DIR)/usbh_cdc_acm/example_usbh_cdc_acm.c
+endif
+endif
 
 ifeq ($(CONFIG_LINKKIT_AWSS), y)
 #linkkit

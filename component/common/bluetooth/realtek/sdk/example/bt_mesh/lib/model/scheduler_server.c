@@ -16,6 +16,16 @@
 #include "delay_msg_rsp.h"
 #endif
 
+#if 0
+typedef struct
+{
+    uint8_t tid;
+#if MODEL_ENABLE_DELAY_MSG_RSP
+    uint32_t delay_pub_time;
+#endif
+} scheduler_info_t;
+#endif
+
 static mesh_msg_send_cause_t scheduler_server_send(mesh_model_info_p pmodel_info,
                                                    uint16_t dst, void *pmsg, uint16_t msg_len, uint16_t app_key_index,
                                                    uint32_t delay_time)
@@ -131,6 +141,8 @@ static bool scheduler_server_receive(mesh_msg_p pmesh_msg)
 
 static int32_t scheduler_server_publish(mesh_model_info_p pmodel_info, bool retrans)
 {
+    /* avoid gcc compile warning */
+    (void)retrans;
     scheduler_server_get_action_t get_data;
     scheduler_server_get_action_t get_data_zero;
     memset(&get_data_zero, 0, sizeof(scheduler_server_get_action_t));
@@ -152,6 +164,24 @@ static int32_t scheduler_server_publish(mesh_model_info_p pmodel_info, bool retr
     return 0;
 }
 
+#if MESH_MODEL_ENABLE_DEINIT
+static void scheduler_server_deinit(mesh_model_info_t *pmodel_info)
+{
+    if (pmodel_info->model_receive == scheduler_server_receive)
+    {
+#if 0
+        /* now we can remove */
+        if (NULL != pmodel_info->pargs)
+        {
+            plt_free(pmodel_info->pargs, RAM_TYPE_DATA_ON);
+            pmodel_info->pargs = NULL;
+        }
+#endif
+        pmodel_info->model_receive = NULL;
+    }
+}
+#endif
+
 bool scheduler_server_reg(uint8_t element_index, mesh_model_info_p pmodel_info)
 {
     if (NULL == pmodel_info)
@@ -162,11 +192,24 @@ bool scheduler_server_reg(uint8_t element_index, mesh_model_info_p pmodel_info)
     pmodel_info->model_id = MESH_MODEL_SCHEDULER_SERVER;
     if (NULL == pmodel_info->model_receive)
     {
+#if 0
+		pmodel_info->pargs = plt_malloc(sizeof(scheduler_info_t), RAM_TYPE_DATA_ON);
+        if (NULL == pmodel_info->pargs)
+        {
+            printe("scheduler_server_reg: fail to allocate memory for the new model extension data!");
+            return FALSE;
+        }
+        memset(pmodel_info->pargs, 0, sizeof(scheduler_info_t));
+#endif
         pmodel_info->model_receive = scheduler_server_receive;
         if (NULL == pmodel_info->model_data_cb)
         {
             printw("scheduler_server_reg: missing model data process callback!");
         }
+
+#if MESH_MODEL_ENABLE_DEINIT
+		pmodel_info->model_deinit = scheduler_server_deinit;
+#endif
     }
 
     if (NULL == pmodel_info->model_pub_cb)

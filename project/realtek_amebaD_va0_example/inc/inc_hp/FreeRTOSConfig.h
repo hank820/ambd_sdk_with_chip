@@ -89,6 +89,7 @@ extern uint32_t SystemCoreClock;
 #else
 #define configTOTAL_HEAP_SIZE						( ( size_t ) ( 40 * 1024 ) )
 #endif
+#define  CONFIG_DYNAMIC_HEAP_SIZE                       0
 
 #define secureconfigTOTAL_SRAM_HEAP_SIZE			( ( ( size_t ) ( 6 * 1024 ) ) )
 #define secureconfigTOTAL_PSRAM_HEAP_SIZE			( ( ( size_t ) ( 128 * 1024 ) ) )

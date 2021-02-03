@@ -107,6 +107,10 @@ bool tp_control_receive(mesh_msg_p pmesh_msg)
 
 void tp_send_cb(mesh_model_info_p pmodel_info, mesh_msg_send_stat_t stat, uint32_t access_opcode)
 {
+    /* avoid gcc compile warning */
+    (void)pmodel_info;
+    (void)access_opcode;
+
     if (stat == MESH_MSG_SEND_STAT_SENT || stat == MESH_MSG_SEND_STAT_ACKED ||
         stat == MESH_MSG_SEND_STAT_ACKED_OBO)
     {

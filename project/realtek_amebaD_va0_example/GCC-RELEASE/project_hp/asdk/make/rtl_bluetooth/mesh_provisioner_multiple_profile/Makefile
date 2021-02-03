@@ -11,7 +11,7 @@ MESH_USER_API_DIR = $(MESH_DIR)/api
 MESH_PROV_RTK_DEMO_DIR = $(SDK_DIR)/example/bt_mesh_provisioner_rtk_demo
 CENTRAL_DIR = $(SDK_DIR)/example/ble_central
 PERIPHERAL_DIR = $(SDK_DIR)/example/ble_peripheral
-CATTERNET_DIR = $(SDK_DIR)/example/ble_scatternet
+SCATTERNET_DIR = $(SDK_DIR)/example/ble_scatternet
 
 #*****************************************************************************#
 #                        INCLUDE FILES                                        #
@@ -46,7 +46,7 @@ MODULE_IFLAGS += \
    -I$(PERIPHERAL_DIR)
 else ifeq ($(CONFIG_BT_MESH_SCATTERNET),y)
 MODULE_IFLAGS += \
-   -I$(CATTERNET_DIR)
+   -I$(SCATTERNET_DIR)
 endif
 
 #*****************************************************************************#
@@ -54,7 +54,7 @@ endif
 #*****************************************************************************#
 CSRC += \
     $(MESH_DIR)/lib/cmd/mesh_data_uart.c \
-	$(MESH_DIR)/lib/cmd/mesh_user_cmd_parse.c \
+    $(MESH_DIR)/lib/cmd/mesh_user_cmd_parse.c \
     $(MESH_DIR)/lib/profile/datatrans_service.c \
     $(MESH_DIR)/lib/profile/datatrans_client.c \
     $(MESH_DIR)/lib/model/configuration_client.c \
@@ -62,7 +62,7 @@ CSRC += \
     $(MESH_DIR)/lib/model/realtek/ping_control.c \
     $(MESH_DIR)/lib/model/realtek/tp_control.c \
     $(MESH_DIR)/lib/model/realtek/light_cwrgb_client.c \
-    $(MESH_DIR)/lib/model/realtek/datatrans_model_client.c \
+    $(MESH_DIR)/lib/model/realtek/datatrans_model.c \
     $(MESH_DIR)/lib/model/generic_on_off_client.c \
     $(MESH_DIR)/lib/model/generic_default_transition_time_client.c \
     $(MESH_DIR)/lib/model/generic_level_client.c \
@@ -79,12 +79,13 @@ CSRC += \
     $(MESH_DIR)/lib/model/scene_client.c \
     $(MESH_DIR)/lib/model/sensor_client.c \
     $(MESH_DIR)/lib/model/scheduler_client.c \
+    $(MESH_DIR)/lib/model/delay_msg_rsp.c \
     $(MESH_MULTIPLE_PROFILE_DIR)/provisioner_multiple_profile/bt_mesh_provisioner_multiple_profile_app_task.c \
     $(MESH_MULTIPLE_PROFILE_DIR)/provisioner_multiple_profile/provisioner_multiple_profile_app.c \
     $(MESH_DIR)/lib/common/ping_app.c \
     $(MESH_DIR)/lib/common/generic_client_app.c \
     $(MESH_DIR)/lib/common/light_client_app.c \
-    $(MESH_DIR)/lib/common/datatrans_client_app.c \
+    $(MESH_DIR)/lib/common/datatrans_app.c \
     $(MESH_DIR)/lib/cmd/mesh_cmd.c \
     $(MESH_DIR)/lib/cmd/client_cmd.c \
     $(MESH_DIR)/lib/cmd/test_cmd.c \
@@ -96,17 +97,16 @@ CSRC += \
 
 ifeq ($(CONFIG_BT_MESH_CENTRAL),y)
 CSRC += \
-	$(CENTRAL_DIR)/ble_central_link_mgr.c \
+    $(CENTRAL_DIR)/ble_central_link_mgr.c \
     $(CENTRAL_DIR)/ble_central_at_cmd.c
 else ifeq ($(CONFIG_BT_MESH_PERIPHERAL),y)
 CSRC += \
-	$(PERIPHERAL_DIR)/ble_peripheral_at_cmd.c
+    $(PERIPHERAL_DIR)/ble_peripheral_at_cmd.c
 else ifeq ($(CONFIG_BT_MESH_SCATTERNET),y)
 CSRC += \
-	$(CENTRAL_DIR)/ble_central_at_cmd.c \
-	$(PERIPHERAL_DIR)/ble_peripheral_at_cmd.c \
-	$(CATTERNET_DIR)/ble_scatternet_link_mgr.c \
-	$(CATTERNET_DIR)/ble_scatternet_user_cmd.c
+    $(CENTRAL_DIR)/ble_central_at_cmd.c \
+    $(PERIPHERAL_DIR)/ble_peripheral_at_cmd.c \
+    $(SCATTERNET_DIR)/ble_scatternet_link_mgr.c
 endif
 
 OBJS = $(CSRC:.c=.o)

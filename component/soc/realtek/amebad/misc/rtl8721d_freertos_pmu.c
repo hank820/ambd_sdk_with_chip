@@ -202,7 +202,6 @@ void freertos_pre_sleep_processing(unsigned int *expected_idle_time)
 		sleep_param.dlps_enable = ENABLE;
 	} else {
 		sleep_param.sleep_time = max_sleep_time;//*expected_idle_time;
-		max_sleep_time = 0;
 		sleep_param.dlps_enable = DISABLE;
 	}
 	sleep_param.sleep_type = sleep_type;
@@ -367,11 +366,7 @@ void vPortSuppressTicksAndSleep( TickType_t xExpectedIdleTime )
 	
 	/* Enter a critical section but don't use the taskENTER_CRITICAL()
 	method as that will mask interrupts that should exit sleep mode. */
-#if defined (ARM_CORE_CM0)
 	taskENTER_CRITICAL();
-#else
-	__asm volatile( "cpsid i" );
-#endif
 
 	eSleepStatus = eTaskConfirmSleepModeStatus();
 	
@@ -409,11 +404,7 @@ void vPortSuppressTicksAndSleep( TickType_t xExpectedIdleTime )
 #endif
 	/* Re-enable interrupts - see comments above the cpsid instruction()
 	above. */
-#if defined (ARM_CORE_CM0)
 	taskEXIT_CRITICAL();
-#else
-	__asm volatile( "cpsie i" );
-#endif
 		
 	SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk;
 

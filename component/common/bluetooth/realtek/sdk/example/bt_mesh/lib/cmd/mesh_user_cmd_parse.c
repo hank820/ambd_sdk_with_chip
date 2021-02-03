@@ -167,6 +167,8 @@ static void user_cmd_send_result(user_cmd_parse_result_t result)
 static user_cmd_parse_result_t user_cmd_list(user_cmd_parse_value_t *pparse_value,
                                              const user_cmd_table_entry_t *pcmd_table)
 {
+    /* avoid gcc compile warning */
+    (void)pparse_value;
     int32_t              i = 0;
     user_cmd_parse_result_t  Result = USER_CMD_RESULT_CMD_NOT_FOUND;
 
@@ -570,8 +572,9 @@ void mesh_user_cmd_init(char *s)
 void mesh_user_cmd_deinit(char *s)
 {
     if (puser_cmd_if) {
-        printf(">> Goodbye %s <<\r\n", s);
+        data_uart_debug(">> Goodbye %s <<\r\n", s);
         plt_free(puser_cmd_if, RAM_TYPE_DATA_OFF);
+        puser_cmd_if = NULL;
     }
 }
 

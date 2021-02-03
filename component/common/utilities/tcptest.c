@@ -320,7 +320,7 @@ int tcp_server_func(struct iperf_data_t iperf_data)
 		end_time = xTaskGetTickCount();
 		total_size+=recv_size;
 		report_size+=recv_size;
-		if( (iperf_data.report_interval != DEFAULT_REPORT_INTERVAL) && ((end_time - report_start_time) >= (configTICK_RATE_HZ * iperf_data.report_interval)) && ((end_time - report_start_time) <= (configTICK_RATE_HZ * (iperf_data.report_interval + 1)))) {
+		if((iperf_data.report_interval != DEFAULT_REPORT_INTERVAL) && ((end_time - report_start_time) >= (configTICK_RATE_HZ * iperf_data.report_interval))) {
 			printf("\n\r%s: Receive %d KBytes in %d ms, %d Kbits/sec",__func__, (uint32_t) (report_size/KB),(uint32_t) (end_time-report_start_time),((uint32_t) (report_size*8)/(end_time - report_start_time)));
 			report_start_time = end_time;
 			report_size = 0;

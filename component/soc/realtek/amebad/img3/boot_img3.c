@@ -120,12 +120,25 @@ NS_ENTRY void load_psram_image_s(void)
 		vPortFree(buf);
 
 	} else if (RdpStatus == 0) {  /* MP image*/
+		u32 OTF_Enable = HAL_READ32(SYSTEM_CTRL_BASE_LP, REG_SYS_EFUSE_SYSCFG3) & BIT_SYS_FLASH_ENCRYPT_EN;
+
 		IMAGE_HEADER *Img3SecureHdr = (IMAGE_HEADER *)RDPPsramStartAddr;
+
+		/* RSIP mask to prevent psram IMG3 from being decrypted. If customers use RDP+RSIP function, IMG3 only need
+			RDP encryption, and don't need RSIP encryption. */
+		if(OTF_Enable) {
+			RSIP_OTF_Mask(3, (u32)Img3SecureHdr, 1, ENABLE);
+			RSIP_OTF_Mask(3, (u32)Img3SecureHdr, (((Img3SecureHdr->image_size) - 1) >> 12) + 1, ENABLE);
+		}
 
 		if((Img3SecureHdr->signature[0] == 0x35393138) && (Img3SecureHdr->signature[1] == 0x31313738)) {			
 			DBG_PRINTF(MODULE_BOOT, LEVEL_INFO,"IMG3 PSRAM_S:[0x%x:%d:0x%x]\n", Img3SecureHdr->image_addr, Img3SecureHdr->image_size, (void*)(Img3SecureHdr+1));
 			_memcpy((void*)Img3SecureHdr->image_addr, (void*)(Img3SecureHdr+1), Img3SecureHdr->image_size);
 		}
+
+		/* Relase temporary-used RSIP Mask entry */
+		if(OTF_Enable)
+			RSIP_OTF_Mask(3, 0, 0, DISABLE);
 	}
 }
 

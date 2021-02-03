@@ -62,7 +62,7 @@ SECTIONS
 		end = .;
 		*(.heap.stdlib*)
 		. = . + 4096;
-	
+		__bfsram_end__ = .;
 	} > BD_RAM_NS
 
 	.xip_image2.text : 
@@ -154,3 +154,5 @@ SECTIONS
 		*(.psram.heap*)
 	} > PSRAM_NS
 }
+
+__sram_end__ = ORIGIN(BD_RAM_NS) + LENGTH(BD_RAM_NS);

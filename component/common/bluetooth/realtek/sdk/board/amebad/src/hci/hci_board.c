@@ -322,7 +322,7 @@ uint8_t *hci_find_patch_address(void)
     else
     {
         hci_board_debug("\nWe use BT ROM OTA1 PATCH ADDRESS:0x%x\n", MERGE_PATCH_ADDRESS_OTA1);
-        HCI_PRINT_INFO1("\nWe use BT ROM OTA1 PATCH ADDRESS:0x%x\n", MERGE_PATCH_ADDRESS_OTA2);
+        HCI_PRINT_INFO1("\nWe use BT ROM OTA1 PATCH ADDRESS:0x%x\n", MERGE_PATCH_ADDRESS_OTA1);
         return (uint8_t *)MERGE_PATCH_ADDRESS_OTA1;
     }
 }
@@ -381,7 +381,7 @@ uint16_t fix_config_len(void)
 }
 
 
-bool hci_rtk_find_patch(void)
+bool hci_rtk_find_patch(uint8_t bt_hci_chip_id)
 {
     extern unsigned int  rtlbt_fw_len;
     extern unsigned char rtlbt_config[];
@@ -433,7 +433,7 @@ bool hci_rtk_find_patch(void)
                 hci_flash_stream_read(p_merge_addr+0x0e + 2*i ,2, (uint8_t *)&fw_chip_id);
                // LE_ARRAY_TO_UINT16(fw_chip_id, p_merge_addr+0x0e + 2*i);
 
-                if(fw_chip_id == SYSCFG_CUTVersion())
+                if(fw_chip_id == bt_hci_chip_id)
                 {
                     hci_flash_stream_read(p_merge_addr+0x0e +2*mp_num_of_patch + 2*i ,2, (uint8_t *)&fw_len);
                     //LE_ARRAY_TO_UINT16(fw_len, p_merge_addr+0x0e +2*mp_num_of_patch + 2*i);
@@ -641,12 +641,6 @@ bool hci_board_init()
     hci_board_debug("\r\nBT BUILD Date: %s \r\n",UTS_VERSION);
     bt_read_efuse();
 
-    ret = hci_rtk_find_patch();
-    if(ret == false)
-    {
-        hci_board_debug("\r\n%s: error operate\r\n",__FUNCTION__);
-        return false;
-    }
     return true;
 }
 

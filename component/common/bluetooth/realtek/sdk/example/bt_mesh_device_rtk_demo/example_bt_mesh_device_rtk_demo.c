@@ -14,12 +14,22 @@
 #if defined(CONFIG_BT_MESH_DEVICE_RTK_DEMO) && CONFIG_BT_MESH_DEVICE_RTK_DEMO
 
 //media
-extern void amebacam_broadcast_demo_thread();
+extern void amebacam_broadcast_demo_thread(void);
 //httpd
-extern void httpd_demo_init_thread();
+extern void httpd_demo_init_thread(void);
+#if defined(CONFIG_BT_MESH_DEVICE) && CONFIG_BT_MESH_DEVICE
+extern int bt_mesh_device_app_main(void);
+#elif defined(CONFIG_BT_MESH_DEVICE_MULTIPLE_PROFILE) && CONFIG_BT_MESH_DEVICE_MULTIPLE_PROFILE
+extern int bt_mesh_device_multiple_profile_app_main(void);
+#endif
+extern void bt_coex_init(void);
+extern uint8_t bt_mesh_device_api_init(void);
+extern void wifi_btcoex_set_bt_on(void);
 
 void bt_mesh_example_init_thread(void *param)
 {
+    /* avoid gcc compile warning */
+    (void)param;
 	T_GAP_DEV_STATE new_state;
 
 	/*Wait WIFI init complete*/

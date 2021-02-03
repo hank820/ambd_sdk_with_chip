@@ -65,31 +65,14 @@
 void *bt_mesh_provisioner_multiple_profile_app_task_handle;   //!< APP Task handle
 void *bt_mesh_provisioner_multiple_profile_evt_queue_handle;  //!< Event queue handle
 void *bt_mesh_provisioner_multiple_profile_io_queue_handle;   //!< IO queue handle
+#if defined(CONFIG_BT_MESH_USER_API) && CONFIG_BT_MESH_USER_API
+void *bt_mesh_provisioner_multiple_profile_user_cmd_io_queue_handle;   //!< user cmd queue handle
+#endif
 
 /*============================================================================*
  *                              Functions
  *============================================================================*/
 void bt_mesh_provisioner_multiple_profile_app_main_task(void *p_param);
-
-#if defined(CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET
-void bt_mesh_scatternet_send_msg(uint16_t sub_type)
-{
-    uint8_t event = EVENT_IO_TO_APP;
-
-    T_IO_MSG io_msg;
-
-    io_msg.type = IO_MSG_TYPE_QDECODE;
-    io_msg.subtype = sub_type;
-
-    if (bt_mesh_provisioner_multiple_profile_evt_queue_handle != NULL && bt_mesh_provisioner_multiple_profile_io_queue_handle != NULL) {
-        if (os_msg_send(bt_mesh_provisioner_multiple_profile_io_queue_handle, &io_msg, 0) == false) {
-            data_uart_print("ble scatternet send msg fail: subtype 0x%x", io_msg.subtype);
-        } else if (os_msg_send(bt_mesh_provisioner_multiple_profile_evt_queue_handle, &event, 0) == false) {
-            data_uart_print("ble scatternet send event fail: subtype 0x%x", io_msg.subtype);
-        }
-    }
-}
-#endif
 
 void app_send_uart_msg(uint8_t data)
 {
@@ -106,7 +89,7 @@ void app_send_uart_msg(uint8_t data)
 }
 
 #if defined(CONFIG_BT_MESH_USER_API) && CONFIG_BT_MESH_USER_API
-void bt_mesh_send_io_msg(T_IO_MSG *p_io_msg)
+int bt_mesh_send_io_msg(T_IO_MSG *p_io_msg)
 {
     uint8_t event = EVENT_USER_API_REQ;
     CMD_ITEM_S *pmeshCmdItem_s = NULL;
@@ -114,21 +97,20 @@ void bt_mesh_send_io_msg(T_IO_MSG *p_io_msg)
     
     pmeshCmdItem_s = (CMD_ITEM_S *)p_io_msg->u.buf;
     puserItem = (PUSER_ITEM)pmeshCmdItem_s->pmeshCmdItem->userData;
-    if (os_msg_send(bt_mesh_provisioner_multiple_profile_io_queue_handle, p_io_msg, 0) == false)
+    if (os_msg_send(bt_mesh_provisioner_multiple_profile_user_cmd_io_queue_handle, p_io_msg, 0) == false)
     {
-        if (pmeshCmdItem_s->userApiMode == USER_API_ASYNCH) {
-            bt_mesh_free_hdl(puserItem);
-            bt_mesh_cmdunreg(pmeshCmdItem_s);
-        }
         pmeshCmdItem_s->msgRecvFlag = 1;
-        printf("[BT_MESH] Send io_msg to bt_mesh_provisioner_io_queue_handle fail!\r\n");
-        return;
+        printf("[BT_MESH] Send io_msg to bt_mesh_provisioner_multiple_profile_user_cmd_io_queue_handle fail!\r\n");
+        return 1;
     }
     else if (os_msg_send(bt_mesh_provisioner_multiple_profile_evt_queue_handle, &event, 0) == false)
     {
         pmeshCmdItem_s->msgRecvFlag = 1;
-        printf("[BT_MESH] Send io_msg to bt_mesh_provisioner_evt_queue_handle fail!\r\n");
+        printf("[BT_MESH] Send io_msg to bt_mesh_provisioner_multiple_profile_evt_queue_handle fail!\r\n");
+        return 1;
     }
+
+    return 0;
 }
 #endif
 
@@ -149,10 +131,15 @@ void bt_mesh_provisioner_multiple_profile_app_task_init()
  */
 void bt_mesh_provisioner_multiple_profile_app_main_task(void *p_param)
 {
+    /* avoid gcc compile warning */
+    (void)p_param;
     uint8_t event;
 
     os_msg_queue_create(&bt_mesh_provisioner_multiple_profile_io_queue_handle, MAX_NUMBER_OF_IO_MESSAGE, sizeof(T_IO_MSG));
     os_msg_queue_create(&bt_mesh_provisioner_multiple_profile_evt_queue_handle, MAX_NUMBER_OF_EVENT_MESSAGE, sizeof(uint8_t));
+#if defined(CONFIG_BT_MESH_USER_API) && CONFIG_BT_MESH_USER_API
+    os_msg_queue_create(&bt_mesh_provisioner_multiple_profile_user_cmd_io_queue_handle, MAX_NUMBER_OF_IO_MESSAGE, sizeof(T_IO_MSG));
+#endif
     gap_start_bt_stack(bt_mesh_provisioner_multiple_profile_evt_queue_handle, bt_mesh_provisioner_multiple_profile_io_queue_handle, MAX_NUMBER_OF_GAP_MESSAGE);
 
     mesh_start(EVENT_MESH, EVENT_IO_TO_APP, bt_mesh_provisioner_multiple_profile_evt_queue_handle, bt_mesh_provisioner_multiple_profile_io_queue_handle);
@@ -175,7 +162,7 @@ void bt_mesh_provisioner_multiple_profile_app_main_task(void *p_param)
 #if defined(CONFIG_BT_MESH_USER_API) && CONFIG_BT_MESH_USER_API
             else if (event == EVENT_USER_API_REQ) {
                 T_IO_MSG io_msg;
-                if (os_msg_recv(bt_mesh_provisioner_multiple_profile_io_queue_handle, &io_msg, 0) == true)
+                if (os_msg_recv(bt_mesh_provisioner_multiple_profile_user_cmd_io_queue_handle, &io_msg, 0) == true)
                 {
                     bt_mesh_io_msg_handler(io_msg);
                 }
@@ -223,6 +210,12 @@ void bt_mesh_provisioner_multiple_profile_app_task_deinit(void)
 	if (bt_mesh_provisioner_multiple_profile_app_task_handle) {
 		os_task_delete(bt_mesh_provisioner_multiple_profile_app_task_handle);
 	}
+#if defined(CONFIG_BT_MESH_USER_API) && CONFIG_BT_MESH_USER_API
+    if (bt_mesh_provisioner_multiple_profile_user_cmd_io_queue_handle) {
+        os_msg_queue_delete(bt_mesh_provisioner_multiple_profile_user_cmd_io_queue_handle);
+    }
+    bt_mesh_provisioner_multiple_profile_user_cmd_io_queue_handle = NULL;
+#endif
 	bt_mesh_provisioner_multiple_profile_io_queue_handle = NULL;
 	bt_mesh_provisioner_multiple_profile_evt_queue_handle = NULL;
 	bt_mesh_provisioner_multiple_profile_app_task_handle = NULL;

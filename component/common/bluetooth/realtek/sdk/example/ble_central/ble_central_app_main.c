@@ -16,6 +16,8 @@
 /*============================================================================*
  *                              Header Files
  *============================================================================*/
+#include <platform_opts_bt.h>
+#if defined(CONFIG_BT_CENTRAL) && CONFIG_BT_CENTRAL
 #include <os_sched.h>
 #include <string.h>
 #include <ble_central_app_task.h>
@@ -38,6 +40,7 @@
 #include "rtk_coex.h"
 #include <stdio.h>
 #include <gap_adv.h>
+
 extern bool bt_trace_uninit(void);
 
 /** @defgroup  CENTRAL_CLIENT_DEMO_MAIN Central Client Main
@@ -66,6 +69,7 @@ extern bool bt_trace_uninit(void);
 void ble_central_bt_stack_config_init(void)
 {
     gap_config_max_le_link_num(BLE_CENTRAL_APP_MAX_LINKS);
+    gap_config_max_le_paired_device(BLE_CENTRAL_APP_MAX_LINKS);
 }
 
 /**
@@ -257,4 +261,5 @@ void ble_central_app_deinit(void)
 	}
 #endif
 }
+#endif
 /** @} */ /* End of group CENTRAL_CLIENT_DEMO_MAIN */

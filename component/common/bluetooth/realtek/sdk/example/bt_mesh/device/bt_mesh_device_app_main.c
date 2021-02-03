@@ -40,12 +40,16 @@
 #include "device_app.h"
 #include "health.h"
 #include "generic_on_off.h"
+#include "light_server_app.h"
+#include "time_server_app.h"
+#include "scheduler_server_app.h"
+#include "scene_server_app.h"
 #include "ping.h"
 #include "ping_app.h"
 #include "tp.h"
 #include "datatrans_server.h"
 #include "health.h"
-#include "datatrans_server_app.h"
+#include "datatrans_app.h"
 #include "bt_mesh_device_app_flags.h"
 #include "vendor_cmd.h"
 #include "vendor_cmd_bt.h"
@@ -59,12 +63,16 @@
 #include "wifi_constants.h"
 #include "FreeRTOS.h"
 
-#if defined(CONFIG_BT_MESH_DEVICE_RTK_DEMO) && CONFIG_BT_MESH_DEVICE_RTK_DEMO
+#if defined(CONFIG_BT_MESH_USER_API) && CONFIG_BT_MESH_USER_API
 #include "bt_mesh_device_api.h"
 #endif
 
 #if defined(CONFIG_BT_MESH_DEVICE_RTK_DEMO) && CONFIG_BT_MESH_DEVICE_RTK_DEMO
+#if defined(CONFIG_PLATFORM_8721D)
+#define GPIO_LED_PIN      PA_25
+#elif defined(CONFIG_PLATFORM_8710C)
 #define GPIO_LED_PIN      PA_19
+#endif
 #define GPIO_IRQ_PIN      PA_13
 #endif
 #define COMPANY_ID        0x005D
@@ -72,11 +80,10 @@
 #define VERSION_ID        0x0000
 
 #if defined(CONFIG_BT_MESH_DEVICE_RTK_DEMO) && CONFIG_BT_MESH_DEVICE_RTK_DEMO
-_timer device_publish_timer = {0};
+plt_timer_t device_publish_timer = NULL;
 #endif
 mesh_model_info_t health_server_model;
 mesh_model_info_t generic_on_off_server_model;
-
 #if defined(CONFIG_BT_MESH_DEVICE_RTK_DEMO) && CONFIG_BT_MESH_DEVICE_RTK_DEMO
 gpio_t     gpio_led;
 gpio_irq_t gpio_btn;
@@ -107,12 +114,22 @@ void device_publish_api(generic_on_off_t on_off)
 
 void device_publish_timer_handler(void *FunctionContext)
 {
+    /* avoid gcc compile warning */
+    (void)FunctionContext;
     device_publish_api(current_on_off);
 }
 #endif
 
+#if defined(CONFIG_BT_MESH_DEVICE_RTK_DEMO) && CONFIG_BT_MESH_DEVICE_RTK_DEMO
+extern void	rtw_set_timer(_timer *ptimer,u32 delay_time);
+extern void	rtw_init_timer(_timer *ptimer, void *adapter, TIMER_FUN pfunc,void* cntx, const char *name);
+#endif
+
 static int32_t generic_on_off_server_data(const mesh_model_info_p pmodel_info, uint32_t type, void *pargs)
 {
+    /* avoid gcc compile warning */
+    (void)pmodel_info;
+    
     switch (type)
     {
         case GENERIC_ON_OFF_SERVER_GET:
@@ -136,7 +153,7 @@ static int32_t generic_on_off_server_data(const mesh_model_info_p pmodel_info, u
                             printf("Provisioner turn light OFF!\r\n");
 #if defined(CONFIG_BT_MESH_DEVICE_RTK_DEMO) && CONFIG_BT_MESH_DEVICE_RTK_DEMO
                             gpio_write(&gpio_led, 0);
-                            rtw_set_timer(&device_publish_timer, 200);
+                            plt_timer_change_period(device_publish_timer, 200, 0xFFFFFFFF);
 #endif
                         }
                         else if (current_on_off == GENERIC_ON)
@@ -144,7 +161,7 @@ static int32_t generic_on_off_server_data(const mesh_model_info_p pmodel_info, u
                             printf("Provisioner turn light ON!\r\n");
 #if defined(CONFIG_BT_MESH_DEVICE_RTK_DEMO) && CONFIG_BT_MESH_DEVICE_RTK_DEMO
                             gpio_write(&gpio_led, 1);
-                            rtw_set_timer(&device_publish_timer, 200);
+                            plt_timer_change_period(device_publish_timer, 200, 0xFFFFFFFF);
 #endif        
                         }
                     }
@@ -165,11 +182,14 @@ void generic_on_off_server_model_init(void)
 }
 
 #if defined(CONFIG_BT_MESH_DEVICE_RTK_DEMO) && CONFIG_BT_MESH_DEVICE_RTK_DEMO
+#if 0
 void push_button_handler(uint32_t id, gpio_irq_event event)
 {
+    /* avoid gcc compile warning */
+    (void)event;
     gpio_t *gpio_led = (gpio_t *)id;
     uint32_t current_time = rtw_get_current_time();
-    mesh_model_info_t pmodel_info = generic_on_off_server_model;
+    //mesh_model_info_t pmodel_info = generic_on_off_server_model;
 
     gpio_irq_disable(&gpio_btn);
 
@@ -190,6 +210,7 @@ void push_button_handler(uint32_t id, gpio_irq_event event)
     last_push_button_time = current_time;
     gpio_irq_enable(&gpio_btn);
 }
+#endif
 
 void light_button_init(void)
 {
@@ -197,9 +218,11 @@ void light_button_init(void)
     gpio_dir(&gpio_led, PIN_OUTPUT);
     gpio_mode(&gpio_led, PullNone);
 
+#if 0
     gpio_irq_init(&gpio_btn, GPIO_IRQ_PIN, push_button_handler, (uint32_t)(&gpio_led));
     gpio_irq_set(&gpio_btn, IRQ_FALL, 1);
     gpio_irq_enable(&gpio_btn);
+#endif
 
     if (current_on_off == GENERIC_OFF)
         gpio_write(&gpio_led, 0);
@@ -272,15 +295,16 @@ void bt_mesh_device_stack_init(void)
         .vir_addr_num = 3,
         .rpl_num = 20,
         .sub_addr_num = 10,
-        .proxy_num = 1
+        .proxy_num = 1,
+        .prov_interval = 1,
+        .proxy_interval = 5
     };
     mesh_node_cfg(features, &node_cfg);
-#if defined(CONFIG_BT_MESH_DEVICE_RTK_DEMO) && CONFIG_BT_MESH_DEVICE_RTK_DEMO
-    mesh_node.net_trans_count = 5;
+    //proxy_server_support_prov_on_proxy(true);
+    mesh_node.net_trans_count = 6;
     mesh_node.relay_retrans_count = 2;
     mesh_node.trans_retrans_count = 4;
     mesh_node.ttl = 5;
-#endif
 
     /** create elements and register models */
     mesh_element_create(GATT_NS_DESC_UNKNOWN);
@@ -290,13 +314,20 @@ void bt_mesh_device_stack_init(void)
     ping_control_reg(ping_app_ping_cb, pong_receive);
     trans_ping_pong_init(ping_app_ping_cb, pong_receive);
     tp_control_reg(tp_reveive);
-    datatrans_server_model_init();
+    datatrans_model_init();
+    light_server_models_init();
+	time_server_models_init();
+	scene_server_model_init();
+	scheduler_server_model_init();
 #endif
     generic_on_off_server_model_init();
 #if defined(CONFIG_BT_MESH_DEVICE_RTK_DEMO) && CONFIG_BT_MESH_DEVICE_RTK_DEMO
     light_button_init();
-    rtw_init_timer(&device_publish_timer, NULL, device_publish_timer_handler, NULL, "device_publish_timer");
-    datatrans_server_model_init();
+    device_publish_timer = plt_timer_create("device_publish_timer", 0xFFFFFFFF, FALSE, NULL, device_publish_timer_handler);
+    if (!device_publish_timer) {
+        printf("[BT Mesh Device] Create device publish timer failed\n\r");
+    }
+    datatrans_model_init();
 #endif
     compo_data_page0_header_t compo_data_page0_header = {COMPANY_ID, PRODUCT_ID, VERSION_ID};
     compo_data_page0_gen(&compo_data_page0_header);
@@ -325,6 +356,12 @@ void bt_mesh_device_app_le_gap_init(void)
     uint8_t  auth_sec_req_enable = false;
     uint16_t auth_sec_req_flags = GAP_AUTHEN_BIT_BONDING_FLAG;
 
+    uint16_t scan_window = 0x100; /* 160ms */
+    uint16_t scan_interval = 0x120; /* 180ms */
+    gap_sched_params_set(GAP_SCHED_PARAMS_INTERWAVE_SCAN_WINDOW, &scan_window, sizeof(scan_window));
+    gap_sched_params_set(GAP_SCHED_PARAMS_INTERWAVE_SCAN_INTERVAL, &scan_interval, sizeof(scan_interval));
+    gap_sched_params_set(GAP_SCHED_PARAMS_SCAN_WINDOW, &scan_window, sizeof(scan_window));
+    gap_sched_params_set(GAP_SCHED_PARAMS_SCAN_INTERVAL, &scan_interval, sizeof(scan_interval));
     /* Setup the GAP Bond Manager */
     gap_set_param(GAP_PARAM_BOND_PAIRING_MODE, sizeof(auth_pair_mode), &auth_pair_mode);
     gap_set_param(GAP_PARAM_BOND_AUTHEN_REQUIREMENTS_FLAGS, sizeof(auth_flags), &auth_flags);
@@ -424,6 +461,7 @@ void bt_mesh_device_task_deinit(void)
 void bt_mesh_device_stack_config_init(void)
 {
     gap_config_max_le_link_num(APP_MAX_LINKS);
+    gap_config_max_le_paired_device(APP_MAX_LINKS);
 }
 
 /**
@@ -447,9 +485,13 @@ int bt_mesh_device_app_main(void)
     return 0;
 }
 
+extern int wifi_is_up(rtw_interface_t interface);
+extern void bt_coex_init(void);
+extern void wifi_btcoex_set_bt_on(void);
+
 int bt_mesh_device_app_init(void)
 {
-	int bt_stack_already_on = 0;
+	//int bt_stack_already_on = 0;
 	T_GAP_DEV_STATE new_state;
 
 	/*Wait WIFI init complete*/
@@ -460,7 +502,7 @@ int bt_mesh_device_app_init(void)
 	//judge BLE central is already on
 	le_get_gap_param(GAP_PARAM_DEV_STATE , &new_state);
 	if (new_state.gap_init_state == GAP_INIT_STATE_STACK_READY) {
-		bt_stack_already_on = 1;
+		//bt_stack_already_on = 1;
 		printf("[BT Mesh Device]BT Stack already on\n\r");
 		return 0;
 	}
@@ -500,6 +542,8 @@ void bt_mesh_device_app_deinit(void)
     le_get_gap_param(GAP_PARAM_DEV_STATE , &new_state);
 	if (new_state.gap_init_state != GAP_INIT_STATE_STACK_READY) {
 		printf("[BT Mesh Device] BT Stack is not running\n\r");
+        mesh_initial_state = FALSE;
+        return;
 	}
 #if F_BT_DEINIT
 	else {

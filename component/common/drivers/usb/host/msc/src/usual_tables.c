@@ -83,7 +83,7 @@ int usb_usual_ignore_device(struct usb_interface *intf)
 	for (p = ignore_ids; p->vid; ++p) {
 		if (p->vid == vid && p->pid == pid &&
 				p->bcdmin <= bcd && p->bcdmax >= bcd)
-			return -ENXIO;
+			return -USB_ENXIO;
 	}
 	return 0;
 }

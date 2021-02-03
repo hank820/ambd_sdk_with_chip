@@ -16,6 +16,8 @@
 /*============================================================================*
  *                              Header Files
  *============================================================================*/
+#include <platform_opts_bt.h>
+#if defined(CONFIG_BT_PERIPHERAL) && CONFIG_BT_PERIPHERAL
 #include <stdio.h>
 #include <trace_app.h>
 #include <string.h>
@@ -84,10 +86,10 @@ void app_handle_io_msg(T_IO_MSG io_msg)
         break;
     case IO_MSG_TYPE_QDECODE:
         {
-            if (io_msg.subtype == 1) {
-                le_adv_start();
-            } else if (io_msg.subtype == 0) {
+            if (io_msg.subtype == 0) {
                 le_adv_stop();
+            } else if (io_msg.subtype == 1) {
+                le_adv_start();
             }
         }
         break;
@@ -611,3 +613,4 @@ T_APP_RESULT app_profile_callback(T_SERVER_ID service_id, void *p_data)
 
 /** @} */ /* End of group PERIPH_SEVER_CALLBACK */
 /** @} */ /* End of group PERIPH_APP */
+#endif

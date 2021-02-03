@@ -184,6 +184,10 @@
 #include <wlan_scenario/example_wlan_scenario.h>
 #endif
 
+#if defined(CONFIG_EXAMPLE_WLAN_REPEATER) && CONFIG_EXAMPLE_WLAN_REPEATER
+#include <wlan_repeater/example_wlan_repeater.h>
+#endif
+
 #if defined(CONFIG_EXAMPLE_BCAST) && CONFIG_EXAMPLE_BCAST
 #include <bcast/example_bcast.h>
 #endif
@@ -280,6 +284,10 @@
 #include <wifi_roaming_plus/example_wifi_roaming_plus.h>
 #endif
 
+#if defined(CONFIG_EXAMPLE_CONN_PRI_COND) && CONFIG_EXAMPLE_CONN_PRI_COND
+#include "wifi_connection_priority/example_wifi_conn_pri_cond.h"
+#endif
+
 #if defined(CONFIG_EXAMPLE_FLASH_MP3) && CONFIG_EXAMPLE_FLASH_MP3
 #include <flash_mp3/example_flash_mp3.h>
 #endif
@@ -360,8 +368,16 @@
 #include <usbh_msc/example_usbh_msc.h>
 #endif
 
+#if defined(CONFIG_EXAMPLE_USBH_UVC) && CONFIG_EXAMPLE_USBH_UVC
+#include <usbh_uvc/example_usbh_uvc.h>
+#endif
+
 #if defined(CONFIG_EXAMPLE_USBH_VENDOR) && CONFIG_EXAMPLE_USBH_VENDOR
 #include <usbh_vendor/example_usbh_vendor.h>
+#endif
+
+#if defined(CONFIG_EXAMPLE_USBH_CDC_ACM) && CONFIG_EXAMPLE_USBH_CDC_ACM
+#include <usbh_cdc_acm/example_usbh_cdc_acm.h>
 #endif
 
 #if (CONFIG_EXAMPLE_AMAZON_FREERTOS)
@@ -426,6 +442,10 @@ void pre_example_entry(void)
 
 }
 
+#if ((defined CONFIG_BT_MESH_PROVISIONER_RTK_DEMO && CONFIG_BT_MESH_PROVISIONER_RTK_DEMO) || (defined CONFIG_BT_MESH_DEVICE_RTK_DEMO && CONFIG_BT_MESH_DEVICE_RTK_DEMO))
+extern void example_bt_mesh(void);
+#endif
+
 /*
   	All of the examples are disabled by default for code size consideration
    	The configuration is enabled in platform_opts.h
@@ -443,7 +463,6 @@ void example_entry(void)
 #if CONFIG_EXAMPLE_MCAST
 	example_mcast();
 #endif
-
 #if CONFIG_EXAMPLE_XML
 	example_xml();
 #endif
@@ -627,6 +646,10 @@ void example_entry(void)
 	example_wlan_scenario("S");
 #endif
 	
+#if defined(CONFIG_EXAMPLE_WLAN_REPEATER) && CONFIG_EXAMPLE_WLAN_REPEATER
+	example_wlan_repeater();
+#endif
+
 #if defined(CONFIG_EXAMPLE_BCAST) && CONFIG_EXAMPLE_BCAST
 	example_bcast();
 #endif
@@ -767,6 +790,10 @@ example_hilink();
 	example_wifi_roaming_plus();
 #endif
 
+#if defined(CONFIG_EXAMPLE_CONN_PRI_COND) && CONFIG_EXAMPLE_CONN_PRI_COND
+	example_init_conn_pri_cond();
+#endif
+
 #if defined(CONFIG_EXAMPLE_FLASH_MP3) && CONFIG_EXAMPLE_FLASH_MP3
 	example_flash_mp3();
 #endif
@@ -846,8 +873,16 @@ example_hilink();
 	example_usbh_msc();
 #endif
 
+#if defined(CONFIG_EXAMPLE_USBH_UVC) && CONFIG_EXAMPLE_USBH_UVC	        
+	example_usbh_uvc();
+#endif
+
 #if defined(CONFIG_EXAMPLE_USBH_VENDOR) && CONFIG_EXAMPLE_USBH_VENDOR	        
 	example_usbh_vendor();
+#endif
+
+#if defined(CONFIG_EXAMPLE_USBH_CDC_ACM) && CONFIG_EXAMPLE_USBH_CDC_ACM
+	example_usbh_cdc_acm();
 #endif
 
 #if defined(CONFIG_EXAMPLE_COMPETITIVE_HEADPHONES) && CONFIG_EXAMPLE_COMPETITIVE_HEADPHONES

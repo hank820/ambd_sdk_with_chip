@@ -1,3 +1,5 @@
+#include <platform_opts_bt.h>
+#if (defined(CONFIG_BT_CONFIG) && CONFIG_BT_CONFIG) || (defined(CONFIG_BT_AIRSYNC_CONFIG) && CONFIG_BT_AIRSYNC_CONFIG)
 #include "platform_stdlib.h"
 #if defined(CONFIG_PLATFORM_8721D)
 #include "ameba_soc.h"
@@ -242,10 +244,6 @@ void BC_status_monitor(void)
 {
 	T_GAP_CONN_STATE gap_conn_state;
 
-#if defined(configENABLE_TRUSTZONE) && (configENABLE_TRUSTZONE == 1)
-	rtw_create_secure_context(configMINIMAL_SECURE_STACK_SIZE);
-#endif
-
 	while (1)
 	{
 		rtw_msleep_os(500);
@@ -357,3 +355,4 @@ void bt_config_wifi_deinit(void)
 	}
 	airsync_specific = 0;
 }
+#endif

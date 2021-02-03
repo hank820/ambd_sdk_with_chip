@@ -206,6 +206,8 @@ static int32_t light_xyl_trans_step_change(const mesh_model_info_p pmodel_info,
                                            generic_transition_time_t total_time,
                                            generic_transition_time_t remaining_time)
 {
+    /* avoid gcc compile warning */
+    (void)type;
     int32_t ret = MODEL_SUCCESS;
     light_xyl_server_set_t set_data;
     light_xyl_info_t *pxyl_info = pmodel_info->pargs;
@@ -554,6 +556,8 @@ static bool light_xyl_server_receive(mesh_msg_p pmesh_msg)
 
 static int32_t light_xyl_server_publish(mesh_model_info_p pmodel_info, bool retrans)
 {
+    /* avoid gcc compile warning */
+    (void)retrans;
     generic_transition_time_t remaining_time;
     light_xyl_status(pmodel_info, 0, 0, get_present_xyl(pmodel_info), FALSE,
                      remaining_time, 0);

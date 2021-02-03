@@ -45,6 +45,7 @@ extern "C" {
 #define AES_ENABLED        0x0004
 #define WSEC_SWFLAG        0x0008
 #define AES_CMAC_ENABLED        0x0010
+#define ENTERPRISE_ENABLED			0x0020
 
 #define SHARED_ENABLED  0x00008000
 #define WPA_SECURITY    0x00200000
@@ -138,6 +139,8 @@ enum {
     RTW_SECURITY_WPA2_MIXED_PSK = ( WPA2_SECURITY | AES_ENABLED | TKIP_ENABLED ),   /**< WPA2 Security with AES & TKIP           */
     RTW_SECURITY_WPA_WPA2_MIXED = ( WPA_SECURITY  | WPA2_SECURITY ),                /**< WPA/WPA2 Security                       */
     RTW_SECURITY_WPA2_AES_CMAC = ( WPA2_SECURITY | AES_CMAC_ENABLED),                /**< WPA2 Security with AES and Management Frame Protection                 */
+    RTW_SECURITY_WPA2_ENTERPRISE = ( WPA2_SECURITY | ENTERPRISE_ENABLED ),				/**< WPA2 Security with 802.1X authentication>*/
+    RTW_SECURITY_WPA_WPA2_ENTERPRISE = ( WPA_SECURITY | WPA2_SECURITY | ENTERPRISE_ENABLED),	/**<WPA/WPA2 Security with 802.1X authentication>*/
 
     RTW_SECURITY_WPS_OPEN       = WPS_ENABLED,                                      /**< WPS with open security                  */
     RTW_SECURITY_WPS_SECURE     = (WPS_ENABLED | AES_ENABLED),                      /**< WPS with AES security                   */
@@ -393,6 +396,17 @@ enum {
 typedef unsigned long rtw_adaptivity_mode_t;
 
 /**
+  * @brief  The enumeration lists the trp_tis types.
+  */
+enum {
+	RTW_TRP_TIS_DISABLE = 0,
+	RTW_TRP_TIS_NORMAL,
+	RTW_TRP_TIS_DYNAMIC				// enable dynamic mechanism
+};
+typedef unsigned long rtw_trp_tis_mode_t;
+
+
+/**
   * @brief  The enumeration lists the supported operation mode by WIFI driver,
   *			including station and AP mode.
   */
@@ -572,35 +586,14 @@ enum _WIFI_EVENT_INDICATE{
 	WIFI_EVENT_IP_CHANGED = 16,
 	WIFI_EVENT_ICV_ERROR = 17,
 	WIFI_EVENT_CHALLENGE_FAIL = 18,
+	WIFI_EVENT_SOFTAP_START = 19,
+	WIFI_EVENT_SOFTAP_STOP = 20,
 	WIFI_EVENT_MAX,
 };
 typedef unsigned long rtw_event_indicate_t;
 #ifdef	__cplusplus
 }
 #endif
-
-/**
-  * @brief  The enumeration is coex state indicated from wlan driver.
-  */
-enum {
-	COEX_STATE_BT_OFF = 0,
-	COEX_STATE_BT_ON = 0x01,
-	COEX_STATE_BLE_SCAN =0x02,
-	COEX_STATE_BT_MAX
-};
-typedef unsigned char rtw_coex_state_bt_t;
-
-enum {
-	COEX_STATE_WIFI_OFF = 0,
-	COEX_STATE_WIFI_STA_UNCONNECTED = 0x01,
-	COEX_STATE_WIFI_STA_SCAN = 0x02,
-	COEX_STATE_WIFI_STA_CONNECTING = 0x03,
-	COEX_STATE_WIFI_STA_CONNECTED=0x04,
-	COEX_STATE_WIFI_AP_IDLE=0x05,
-	COEX_STATE_WIFI_OTHER_MODE=0x06,
-	COEX_STATE_WIFI_MAX
-};
-typedef unsigned char rtw_coex_state_wifi_t;
 
 /*\@}*/
 

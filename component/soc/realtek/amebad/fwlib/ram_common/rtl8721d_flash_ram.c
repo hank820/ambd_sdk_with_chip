@@ -121,7 +121,7 @@ void FLASH_Write_Unlock(void)
 		u32 hp_sleep_state;
 		if(km4_status_on()) {
 			while(1) {
-				hp_sleep_state = HAL_READ32(SYSTEM_CTRL_BASE_LP, REG_HS_PLATFORM_PARA);	/*get KM4 sleep status*/
+				hp_sleep_state = HAL_READ32(SYSTEM_CTRL_BASE_HP, REG_HS_PLATFORM_PARA);	/*get KM4 sleep status*/
 				if(!(hp_sleep_state & BIT_KM4_SLEEP_STATUS)) {
 					break;
 				}

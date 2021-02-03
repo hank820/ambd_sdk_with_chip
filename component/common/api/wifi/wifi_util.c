@@ -570,6 +570,40 @@ int wext_set_lps_thresh(const char *ifname, u8 low_thresh) {
 	return ret;
 }
 
+#ifdef LONG_PERIOD_TICKLESS
+int wext_set_lps_smartps(const char *ifname, __u8 smartps) {
+	struct iwreq iwr;
+	int ret = 0;
+	__u16 pindex = 0;
+	__u8 *para = NULL;
+	int cmd_len = 0;
+
+	memset(&iwr, 0, sizeof(iwr));
+	cmd_len = sizeof("pm_set");
+
+	// Encode parameters as TLV (type, length, value) format
+	para = rtw_malloc( 7 + (1+1+1) );
+	
+	snprintf((char*)para, cmd_len, "pm_set");
+	pindex = 7;
+
+	para[pindex++] = 9; // type 9 smartps
+	para[pindex++] = 1; // len
+	para[pindex++] = smartps;
+
+	iwr.u.data.pointer = para;
+	iwr.u.data.length = pindex;
+
+	if (iw_ioctl(ifname, SIOCDEVPRIVATE, &iwr) < 0) {
+		RTW_API_INFO("\n\rioctl[SIOCSIWPRIVPMSET] error");
+		ret = -1;
+	}
+
+	rtw_free(para);
+	return ret;
+
+}
+#endif
 int wext_set_beacon_mode(const char *ifname, __u8 mode) {
 	struct iwreq iwr;
 	int ret = 0;
@@ -1074,7 +1108,11 @@ void wext_wlan_indicate(unsigned int cmd, union iwreq_data *wrqu, char *extra)
 					wifi_indication(WIFI_EVENT_STA_DISASSOC, wrqu->addr.sa_data, sizeof(null_mac), 0);
 				else if(!memcmp(IW_EVT_STR_SEND_ACTION_DONE, extra, strlen(IW_EVT_STR_SEND_ACTION_DONE)))
 					wifi_indication(WIFI_EVENT_SEND_ACTION_DONE, NULL, 0, wrqu->data.flags);
-#endif				
+				else if(!memcmp(IW_EVT_STR_SOFTAP_START, extra, strlen(IW_EVT_STR_SOFTAP_START)))
+					wifi_indication(WIFI_EVENT_SOFTAP_START, extra, strlen(IW_EVT_STR_SOFTAP_START), 0);
+				else if(!memcmp(IW_EVT_STR_SOFTAP_STOP, extra, strlen(IW_EVT_STR_SOFTAP_STOP)))
+					wifi_indication(WIFI_EVENT_SOFTAP_STOP, extra, strlen(IW_EVT_STR_SOFTAP_STOP), 0);
+#endif
 			}
 			break;
 		case SIOCGIWSCAN:
@@ -1422,7 +1460,7 @@ int wext_set_trp_tis(__u8 enable)
 	extern u8 rtw_powersave_en;
 #endif
 	
-	if(enable == ENABLE){
+	if(enable != RTW_TRP_TIS_DISABLE){
 		//close the tx power limit and pwr by rate incase the efficiency of Antenna is not good enough.
 		rtw_tx_pwr_lmt_enable = 2;//set 0 to disable, set 2 to use efuse value
 		rtw_tx_pwr_by_rate = 2;//set 0 to disable, set 2 to use efuse value
@@ -1430,10 +1468,27 @@ int wext_set_trp_tis(__u8 enable)
 #ifdef CONFIG_POWER_SAVING
 		rtw_powersave_en = 0;
 #endif
-		//disable some dynamic mechanism
-		rtw_trp_tis_cert_en = 1;
+		if(enable == RTW_TRP_TIS_NORMAL){
+			//disable some dynamic mechanism
+			rtw_trp_tis_cert_en = 1;
+		}else{
+			rtw_trp_tis_cert_en = 2;
+		}
 		//you can change autoreconnct mode to RTW_AUTORECONNECT_INFINITE in init_thread function
 	}
+	return 0;
+}
+
+int wext_set_anti_interference(__u8 enable)
+{
+	extern u8 rtw_anti_interference_en;
+
+	if(enable == ENABLE){
+		rtw_anti_interference_en = 1;
+	}else{
+		rtw_anti_interference_en = 0;
+	}
+
 	return 0;
 }
 
@@ -1550,6 +1605,20 @@ void wext_set_indicate_mgnt(int enable)
 	rtw_set_indicate_mgnt(enable);
 	return;
 }
+
+#ifdef CONFIG_AP_MODE
+extern void rltk_suspend_softap(const char *ifname);
+extern void rltk_suspend_softap_beacon(const char *ifname);
+void wext_suspend_softap(const char *ifname)
+{
+	rltk_suspend_softap(ifname);
+}
+
+void wext_suspend_softap_beacon(const char *ifname)
+{
+	rltk_suspend_softap_beacon(ifname);
+}
+#endif
 
 #ifdef CONFIG_SW_MAILBOX_EN
 int wext_mailbox_to_wifi(const char *ifname, char *buf, __u16 buf_len)
@@ -1668,5 +1737,18 @@ int wext_wlan_redl_fw(const char *ifname){
 	rtw_free(para);
 
 	return ret;
+}
+#endif
+
+#ifdef CONFIG_POWER_SAVING
+extern u8 rtw_power_mgnt;
+void wext_set_powersave_mode(__u8 ps_mode){
+	
+	if((ps_mode!=1)&&(ps_mode!=2)){
+		printf("\n\rSet powersave mode fail! Wrong powersave mode value, input value can only be 1(min mode) or 2(max mode)");
+		return;
+	}
+	rtw_power_mgnt = ps_mode;
+	return;
 }
 #endif

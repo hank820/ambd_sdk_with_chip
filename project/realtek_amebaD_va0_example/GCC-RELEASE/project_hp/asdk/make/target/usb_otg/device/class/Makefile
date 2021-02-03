@@ -21,6 +21,7 @@ endif
 ifeq ($(CONFIG_USBD_VENDOR),y)
 DIR = $(DIR_CLASS)/vendor/src
 endif
+IFLAGS += -I$(DIR)/../inc
 IFLAGS += -I$(DIR_OTG)/inc
 
 vpath %.c $(DIR)

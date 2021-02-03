@@ -15,6 +15,8 @@
 /*============================================================================*
  *                              Header Files
  *============================================================================*/
+#include <platform_opts_bt.h>
+#if defined(CONFIG_BT_THROUGHPUT_TEST) && CONFIG_BT_THROUGHPUT_TEST
 #include <ble_throughput_link_mgr.h>
 #include <trace_app.h>
 #include <string.h>
@@ -135,3 +137,4 @@ uint32_t app_load_static_random_address(T_APP_STATIC_RANDOM_ADDR *p_addr)
 #endif
 /** @} */
 /** @} */
+#endif

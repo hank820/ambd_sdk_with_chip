@@ -40,12 +40,16 @@
 #include "device_multiple_profile_app.h"
 #include "health.h"
 #include "generic_on_off.h"
+#include "light_server_app.h"
+#include "time_server_app.h"
+#include "scheduler_server_app.h"
+#include "scene_server_app.h"
 #include "ping.h"
 #include "ping_app.h"
 #include "tp.h"
 #include "datatrans_server.h"
 #include "health.h"
-#include "datatrans_server_app.h"
+#include "datatrans_app.h"
 #include "bt_mesh_device_multiple_profile_app_flags.h"
 #include "vendor_cmd.h"
 #include "vendor_cmd_bt.h"
@@ -59,7 +63,7 @@
 #include "wifi_constants.h"
 #include "FreeRTOS.h"
 
-#if defined(CONFIG_BT_MESH_DEVICE_RTK_DEMO) && CONFIG_BT_MESH_DEVICE_RTK_DEMO
+#if defined(CONFIG_BT_MESH_USER_API) && CONFIG_BT_MESH_USER_API
 #include "bt_mesh_device_api.h"
 #endif
 
@@ -70,6 +74,7 @@
 #include <wifi/wifi_conf.h>
 #include "task.h"
 #include "rtk_coex.h"
+#include "bas.h"
 #endif
 
 #if defined(CONFIG_BT_MESH_CENTRAL) && CONFIG_BT_MESH_CENTRAL
@@ -92,18 +97,7 @@
 #include "task.h"
 #include "rtk_coex.h"
 #include <simple_ble_service.h>
-#if defined(CONFIG_BT_CENTRAL_CONFIG) && CONFIG_BT_CENTRAL_CONFIG
-#include <gap_conn_le.h>
-#include <bt_flags.h>
-#include "bt_config_app_main.h"
-#include "bt_config_wifi.h"
-#include "bt_config_service.h"
-#include "bt_config_app_flags.h"
-#include "bt_config_app_task.h"
-#include "bt_config_peripheral_app.h"
-#include "bt_config_config.h"
-#include "lwip_netconf.h"
-#endif
+#include "bas.h"
 #endif
 
 /*============================================================================*
@@ -123,7 +117,6 @@
 #define DEFAULT_SCAN_INTERVAL     0x520
 /** @brief Default scan window (units of 0.625ms, 0x520=820ms) */
 #define DEFAULT_SCAN_WINDOW       0x520
-extern int bt_mesh_multiple_profile_scan_state;
 #endif
 
 /*============================================================================*
@@ -139,20 +132,18 @@ static const uint8_t scan_rsp_data[] =
     LO_WORD(GAP_GATT_APPEARANCE_UNKNOWN),
     HI_WORD(GAP_GATT_APPEARANCE_UNKNOWN),
 };
-_timer bt_mesh_multiple_profile_peripheral_adv_timer = {0};
+plt_timer_t bt_mesh_multiple_profile_peripheral_adv_timer = NULL;
 uint8_t le_adv_start_enable = 0;
-uint8_t bt_mesh_peripheral_adv_interval = 168;
+uint16_t bt_mesh_peripheral_adv_interval = 352;
 extern int array_count_of_adv_data;
-#if defined(CONFIG_BT_CENTRAL_CONFIG) && CONFIG_BT_CENTRAL_CONFIG
-extern uint8_t bt_config_conn_id;
-extern T_GAP_CONN_STATE bt_config_gap_conn_state;
-extern uint8_t airsync_specific;
-extern void bt_config_app_set_adv_data(void);
-#endif
 #endif
 
 #if defined(CONFIG_BT_MESH_DEVICE_RTK_DEMO) && CONFIG_BT_MESH_DEVICE_RTK_DEMO
+#if defined(CONFIG_PLATFORM_8721D)
+#define GPIO_LED_PIN      PA_25
+#elif defined(CONFIG_PLATFORM_8710C)
 #define GPIO_LED_PIN      PA_19
+#endif
 #define GPIO_IRQ_PIN      PA_13
 #endif
 #define COMPANY_ID        0x005D
@@ -160,7 +151,7 @@ extern void bt_config_app_set_adv_data(void);
 #define VERSION_ID        0x0000
 
 #if defined(CONFIG_BT_MESH_DEVICE_RTK_DEMO) && CONFIG_BT_MESH_DEVICE_RTK_DEMO
-_timer device_publish_timer = {0};
+plt_timer_t device_publish_timer = NULL;
 #endif
 
 mesh_model_info_t health_server_model;
@@ -196,9 +187,14 @@ void device_publish_api(generic_on_off_t on_off)
 
 void device_publish_timer_handler(void *FunctionContext)
 {
+    /* avoid gcc compile warning */
+    (void)FunctionContext;
     device_publish_api(current_on_off);
 }
 #endif
+
+extern void	rtw_set_timer(_timer *ptimer,u32 delay_time);
+extern void	rtw_init_timer(_timer *ptimer, void *adapter, TIMER_FUN pfunc,void* cntx, const char *name);
 
 #if ((defined(CONFIG_BT_MESH_PERIPHERAL) && CONFIG_BT_MESH_PERIPHERAL) || \
     (defined(CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET))
@@ -207,8 +203,11 @@ extern void *bt_mesh_device_multiple_profile_io_queue_handle;   //!< IO queue ha
 
 void bt_mesh_multiple_profile_peripheral_adv_timer_handler(void *FunctionContext)
 {
+    /* avoid gcc compile warning */
+    (void)FunctionContext;
     uint8_t event = EVENT_IO_TO_APP;
     T_IO_MSG io_msg;
+    uint16_t adv_interval = bt_mesh_peripheral_adv_interval * 625 / 1000;
 
     io_msg.type = IO_MSG_TYPE_ADV;
     if (os_msg_send(bt_mesh_device_multiple_profile_io_queue_handle, &io_msg, 0) == false)
@@ -218,14 +217,16 @@ void bt_mesh_multiple_profile_peripheral_adv_timer_handler(void *FunctionContext
     {
     }
     if (le_adv_start_enable) {
-        rtw_set_timer(&bt_mesh_multiple_profile_peripheral_adv_timer, bt_mesh_peripheral_adv_interval);
+        plt_timer_change_period(bt_mesh_multiple_profile_peripheral_adv_timer, adv_interval, 0xFFFFFFFF);
     }
 }
 
 void mesh_le_adv_start(void)
 {
+    uint16_t adv_interval = bt_mesh_peripheral_adv_interval * 625 / 1000;
+
     le_adv_start_enable = 1;
-    rtw_set_timer(&bt_mesh_multiple_profile_peripheral_adv_timer, bt_mesh_peripheral_adv_interval);
+    plt_timer_change_period(bt_mesh_multiple_profile_peripheral_adv_timer, adv_interval, 0xFFFFFFFF);
 }
 
 void mesh_le_adv_stop(void)
@@ -236,6 +237,9 @@ void mesh_le_adv_stop(void)
 
 static int32_t generic_on_off_server_data(const mesh_model_info_p pmodel_info, uint32_t type, void *pargs)
 {
+    /* avoid gcc compile warning */
+    (void)pmodel_info;
+    
     switch (type)
     {
         case GENERIC_ON_OFF_SERVER_GET:
@@ -259,7 +263,7 @@ static int32_t generic_on_off_server_data(const mesh_model_info_p pmodel_info, u
                             printf("Provisioner turn light OFF!\r\n");
 #if defined(CONFIG_BT_MESH_DEVICE_RTK_DEMO) && CONFIG_BT_MESH_DEVICE_RTK_DEMO
                             gpio_write(&gpio_led, 0);
-                            rtw_set_timer(&device_publish_timer, 200);
+                            plt_timer_change_period(device_publish_timer, 200, 0xFFFFFFFF);
 #endif
                         }
                         else if (current_on_off == GENERIC_ON)
@@ -267,7 +271,7 @@ static int32_t generic_on_off_server_data(const mesh_model_info_p pmodel_info, u
                             printf("Provisioner turn light ON!\r\n");
 #if defined(CONFIG_BT_MESH_DEVICE_RTK_DEMO) && CONFIG_BT_MESH_DEVICE_RTK_DEMO
                             gpio_write(&gpio_led, 1);
-                            rtw_set_timer(&device_publish_timer, 200);
+                            plt_timer_change_period(device_publish_timer, 200, 0xFFFFFFFF);
 #endif        
                         }
                     }
@@ -288,11 +292,14 @@ void generic_on_off_server_model_init(void)
 }
 
 #if defined(CONFIG_BT_MESH_DEVICE_RTK_DEMO) && CONFIG_BT_MESH_DEVICE_RTK_DEMO
+#if 0
 void push_button_handler(uint32_t id, gpio_irq_event event)
 {
+    /* avoid gcc compile warning */
+    (void)event;
     gpio_t *gpio_led = (gpio_t *)id;
     uint32_t current_time = rtw_get_current_time();
-    mesh_model_info_t pmodel_info = generic_on_off_server_model;
+    //mesh_model_info_t pmodel_info = generic_on_off_server_model;
 
     gpio_irq_disable(&gpio_btn);
 
@@ -313,6 +320,7 @@ void push_button_handler(uint32_t id, gpio_irq_event event)
     last_push_button_time = current_time;
     gpio_irq_enable(&gpio_btn);
 }
+#endif
 
 void light_button_init(void)
 {
@@ -320,9 +328,11 @@ void light_button_init(void)
     gpio_dir(&gpio_led, PIN_OUTPUT);
     gpio_mode(&gpio_led, PullNone);
 
+#if 0
     gpio_irq_init(&gpio_btn, GPIO_IRQ_PIN, push_button_handler, (uint32_t)(&gpio_led));
     gpio_irq_set(&gpio_btn, IRQ_FALL, 1);
     gpio_irq_enable(&gpio_btn);
+#endif
 
     if (current_on_off == GENERIC_OFF)
         gpio_write(&gpio_led, 0);
@@ -355,8 +365,8 @@ void bt_mesh_device_multiple_profile_stack_init(void)
     /** set device name and appearance */
     char *dev_name = "Mesh Device";
     uint16_t appearance = GAP_GATT_APPEARANCE_UNKNOWN;
-    gap_sched_params_set(GAP_SCHED_PARAMS_DEVICE_NAME, dev_name, GAP_DEVICE_NAME_LEN);
-    gap_sched_params_set(GAP_SCHED_PARAMS_APPEARANCE, &appearance, sizeof(appearance));
+    //gap_sched_params_set(GAP_SCHED_PARAMS_DEVICE_NAME, dev_name, GAP_DEVICE_NAME_LEN);
+    //gap_sched_params_set(GAP_SCHED_PARAMS_APPEARANCE, &appearance, sizeof(appearance));
 
     /** configure provisioning parameters */
     prov_capabilities_t prov_capabilities =
@@ -395,17 +405,16 @@ void bt_mesh_device_multiple_profile_stack_init(void)
         .vir_addr_num = 3,
         .rpl_num = 20,
         .sub_addr_num = 10,
-        .proxy_num = 1
+        .proxy_num = 1,
+        .prov_interval = 1,
+        .proxy_interval = 5
     };
     mesh_node_cfg(features, &node_cfg);
-#if (defined(CONFIG_BT_MESH_DEVICE_RTK_DEMO) && CONFIG_BT_MESH_DEVICE_RTK_DEMO || \
-    defined(CONFIG_BT_MESH_CENTRAL) && CONFIG_BT_MESH_CENTRAL)
-    mesh_node.net_trans_count = 5;
+	//proxy_server_support_prov_on_proxy(true);
+	mesh_node.net_trans_count = 6;
     mesh_node.relay_retrans_count = 2;
     mesh_node.trans_retrans_count = 4;
     mesh_node.ttl = 5;
-#endif
-
     /** create elements and register models */
     mesh_element_create(GATT_NS_DESC_UNKNOWN);
 #if !defined(CONFIG_BT_MESH_DEVICE_RTK_DEMO) || (!CONFIG_BT_MESH_DEVICE_RTK_DEMO)
@@ -414,18 +423,28 @@ void bt_mesh_device_multiple_profile_stack_init(void)
     ping_control_reg(ping_app_ping_cb, pong_receive);
     trans_ping_pong_init(ping_app_ping_cb, pong_receive);
     tp_control_reg(tp_reveive);
-    datatrans_server_model_init();
+    datatrans_model_init();
+    light_server_models_init();
+	time_server_models_init();
+	scene_server_model_init();
+	scheduler_server_model_init();
 #endif
     generic_on_off_server_model_init();
 #if defined(CONFIG_BT_MESH_DEVICE_RTK_DEMO) && CONFIG_BT_MESH_DEVICE_RTK_DEMO
     light_button_init();
-    rtw_init_timer(&device_publish_timer, NULL, device_publish_timer_handler, NULL, "device_publish_timer");
-    datatrans_server_model_init();
+    device_publish_timer = plt_timer_create("device_publish_timer", 0xFFFFFFFF, FALSE, NULL, device_publish_timer_handler);
+    if (!device_publish_timer) {
+        printf("[BT Mesh Device] Create device publish timer failed\n\r");
+    }
+    datatrans_model_init();
 #endif
 
 #if ((defined(CONFIG_BT_MESH_PERIPHERAL) && CONFIG_BT_MESH_PERIPHERAL) || \
     (defined(CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET))
-    rtw_init_timer(&bt_mesh_multiple_profile_peripheral_adv_timer, NULL, bt_mesh_multiple_profile_peripheral_adv_timer_handler, NULL, "bt_mesh_multiple_profile_peripheral_adv_timer");
+    bt_mesh_multiple_profile_peripheral_adv_timer = plt_timer_create("bt_mesh_multiple_profile_peripheral_adv_timer", 0xFFFFFFFF, FALSE, NULL, bt_mesh_multiple_profile_peripheral_adv_timer_handler);
+    if (!bt_mesh_multiple_profile_peripheral_adv_timer) {
+        printf("[BT Mesh Device] Create adv timer failed\n\r");
+    }
 #endif
 
     compo_data_page0_header_t compo_data_page0_header = {COMPANY_ID, PRODUCT_ID, VERSION_ID};
@@ -455,6 +474,16 @@ void bt_mesh_device_multiple_profile_app_le_gap_init(void)
     uint8_t  auth_sec_req_enable = false;
     uint16_t auth_sec_req_flags = GAP_AUTHEN_BIT_BONDING_FLAG;
 
+    uint16_t scan_window = 0x100; /* 160ms */
+    uint16_t scan_interval = 0x120; /* 180ms */
+
+    char *dev_name = "Mesh Device";
+    uint16_t appearance = GAP_GATT_APPEARANCE_UNKNOWN;
+
+    gap_sched_params_set(GAP_SCHED_PARAMS_INTERWAVE_SCAN_WINDOW, &scan_window, sizeof(scan_window));
+    gap_sched_params_set(GAP_SCHED_PARAMS_INTERWAVE_SCAN_INTERVAL, &scan_interval, sizeof(scan_interval));
+    gap_sched_params_set(GAP_SCHED_PARAMS_SCAN_WINDOW, &scan_window, sizeof(scan_window));
+    gap_sched_params_set(GAP_SCHED_PARAMS_SCAN_INTERVAL, &scan_interval, sizeof(scan_interval));
     /* Setup the GAP Bond Manager */
     gap_set_param(GAP_PARAM_BOND_PAIRING_MODE, sizeof(auth_pair_mode), &auth_pair_mode);
     gap_set_param(GAP_PARAM_BOND_AUTHEN_REQUIREMENTS_FLAGS, sizeof(auth_flags), &auth_flags);
@@ -479,6 +508,9 @@ void bt_mesh_device_multiple_profile_app_le_gap_init(void)
     le_set_gap_param(GAP_PARAM_DEFAULT_TX_PHYS_PREFER, sizeof(tx_phys_prefer), &tx_phys_prefer);
     le_set_gap_param(GAP_PARAM_DEFAULT_RX_PHYS_PREFER, sizeof(rx_phys_prefer), &rx_phys_prefer);
 #endif
+
+    gap_sched_params_set(GAP_SCHED_PARAMS_DEVICE_NAME, dev_name, GAP_DEVICE_NAME_LEN);
+    gap_sched_params_set(GAP_SCHED_PARAMS_APPEARANCE, &appearance, sizeof(appearance));
 
 #if defined(CONFIG_BT_MESH_PERIPHERAL) && CONFIG_BT_MESH_PERIPHERAL
     {
@@ -551,11 +583,11 @@ void bt_mesh_device_multiple_profile_app_le_gap_init(void)
         uint16_t appearance = GAP_GATT_APPEARANCE_UNKNOWN;
 
         /* Scan parameters */
-        uint8_t  scan_mode = GAP_SCAN_MODE_ACTIVE;
-        uint16_t scan_interval = DEFAULT_SCAN_INTERVAL;
-        uint16_t scan_window = DEFAULT_SCAN_WINDOW;
-        uint8_t  scan_filter_policy = GAP_SCAN_FILTER_ANY;
-        uint8_t  scan_filter_duplicate = GAP_SCAN_FILTER_DUPLICATE_ENABLE;
+        //uint8_t  scan_mode = GAP_SCAN_MODE_ACTIVE;
+        //uint16_t scan_interval = DEFAULT_SCAN_INTERVAL;
+        //uint16_t scan_window = DEFAULT_SCAN_WINDOW;
+        //uint8_t  scan_filter_policy = GAP_SCAN_FILTER_ANY;
+        //uint8_t  scan_filter_duplicate = GAP_SCAN_FILTER_DUPLICATE_ENABLE;
 
         /* GAP Bond Manager parameters */
         uint8_t  auth_pair_mode = GAP_PAIRING_MODE_PAIRABLE;
@@ -636,22 +668,15 @@ void bt_mesh_device_multiple_profile_app_le_gap_init(void)
     	le_set_gap_param(GAP_PARAM_DEFAULT_TX_PHYS_PREFER, sizeof(tx_phys_prefer), &tx_phys_prefer);
     	le_set_gap_param(GAP_PARAM_DEFAULT_RX_PHYS_PREFER, sizeof(rx_phys_prefer), &rx_phys_prefer);
 #endif
-        bt_mesh_multiple_profile_scan_state = 0;
     }
 #endif
 
 #if defined(CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET
     {
-#if defined(CONFIG_BT_CENTRAL_CONFIG) && CONFIG_BT_CENTRAL_CONFIG 
-        /* Device name and device appearance */
-        uint8_t  device_name[GAP_DEVICE_NAME_LEN] = "Ameba_xxyyzz";
-        uint16_t appearance = GAP_GATT_APPEARANCE_UNKNOWN;
-        uint8_t  slave_init_mtu_req = true;
-#else        
         /* Device name and device appearance */
         uint8_t  device_name[GAP_DEVICE_NAME_LEN] = "BLE_SCATTERNET";
         uint16_t appearance = GAP_GATT_APPEARANCE_UNKNOWN;
-#endif
+
         /* Advertising parameters */
         uint8_t  adv_evt_type = GAP_ADTYPE_ADV_IND;
         uint8_t  adv_direct_type = GAP_REMOTE_ADDR_LE_PUBLIC;
@@ -662,11 +687,11 @@ void bt_mesh_device_multiple_profile_app_le_gap_init(void)
         uint16_t adv_int_max = DEFAULT_ADVERTISING_INTERVAL_MAX;
 
         /* Scan parameters */
-        uint8_t  scan_mode = GAP_SCAN_MODE_ACTIVE;
-        uint16_t scan_interval = DEFAULT_SCAN_INTERVAL;
-        uint16_t scan_window = DEFAULT_SCAN_WINDOW;
-        uint8_t  scan_filter_policy = GAP_SCAN_FILTER_ANY;
-        uint8_t  scan_filter_duplicate = GAP_SCAN_FILTER_DUPLICATE_ENABLE;
+        //uint8_t  scan_mode = GAP_SCAN_MODE_ACTIVE;
+        //uint16_t scan_interval = DEFAULT_SCAN_INTERVAL;
+        //uint16_t scan_window = DEFAULT_SCAN_WINDOW;
+        //uint8_t  scan_filter_policy = GAP_SCAN_FILTER_ANY;
+        //uint8_t  scan_filter_duplicate = GAP_SCAN_FILTER_DUPLICATE_ENABLE;
 
         /* GAP Bond Manager parameters */
         uint8_t  auth_pair_mode = GAP_PAIRING_MODE_PAIRABLE;
@@ -683,10 +708,7 @@ void bt_mesh_device_multiple_profile_app_le_gap_init(void)
         /* Set device name and device appearance */
         le_set_gap_param(GAP_PARAM_DEVICE_NAME, GAP_DEVICE_NAME_LEN, device_name);
         le_set_gap_param(GAP_PARAM_APPEARANCE, sizeof(appearance), &appearance);
-#if defined(CONFIG_BT_CENTRAL_CONFIG) && CONFIG_BT_CENTRAL_CONFIG 
-        le_set_gap_param(GAP_PARAM_SLAVE_INIT_GATT_MTU_REQ, sizeof(slave_init_mtu_req),
-                         &slave_init_mtu_req);
-#endif
+
         /* Set advertising parameters */
         le_adv_set_param(GAP_PARAM_ADV_EVENT_TYPE, sizeof(adv_evt_type), &adv_evt_type);
         le_adv_set_param(GAP_PARAM_ADV_DIRECT_ADDR_TYPE, sizeof(adv_direct_type), &adv_direct_type);
@@ -808,12 +830,8 @@ void bt_mesh_device_multiple_profile_app_le_profile_init(void)
     
 #if ((defined(CONFIG_BT_MESH_PERIPHERAL) && CONFIG_BT_MESH_PERIPHERAL) || \
     (defined(CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET))
-#if defined(CONFIG_BT_CENTRAL_CONFIG) && CONFIG_BT_CENTRAL_CONFIG
-    bt_config_srv_id = bt_config_service_add_service((void *)bt_config_app_profile_callback);
-#else
     bt_mesh_simp_srv_id = simp_ble_service_add_service((void *)bt_mesh_device_multiple_profile_app_profile_callback);
     bt_mesh_bas_srv_id  = bas_add_service((void *)bt_mesh_device_multiple_profile_app_profile_callback);
-#endif    
 #endif
 #if defined(CONFIG_BT_MESH_CENTRAL) && CONFIG_BT_MESH_CENTRAL
     bt_mesh_central_gcs_client_id = gcs_add_client(bt_mesh_central_gcs_client_callback, BLE_CENTRAL_APP_MAX_LINKS, BLE_CENTRAL_APP_MAX_DISCOV_TABLE_NUM);
@@ -861,11 +879,6 @@ void bt_mesh_device_multiple_profile_pwr_mgr_init(void)
 void bt_mesh_device_multiple_profile_task_init(void)
 {
     bt_mesh_device_multiple_profile_app_task_init();
-#if ((defined(CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET) && \
-    (defined(CONFIG_BT_CENTRAL_CONFIG) && CONFIG_BT_CENTRAL_CONFIG))
-    airsync_specific = 0;
-    bt_config_wifi_init();
-#endif
 }
 
 void bt_mesh_device_multiple_profile_task_deinit(void)
@@ -877,13 +890,13 @@ void bt_mesh_device_multiple_profile_stack_config_init(void)
 {
 #if defined(CONFIG_BT_MESH_CENTRAL) && CONFIG_BT_MESH_CENTRAL 
     gap_config_max_le_link_num(BLE_CENTRAL_APP_MAX_LINKS);
+    gap_config_max_le_paired_device(BLE_CENTRAL_APP_MAX_LINKS);
 #elif defined(CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET
     gap_config_max_le_link_num(BLE_SCATTERNET_APP_MAX_LINKS);
+    gap_config_max_le_paired_device(BLE_SCATTERNET_APP_MAX_LINKS);
 #else
     gap_config_max_le_link_num(APP_MAX_LINKS);
-#endif
-#if defined(CONFIG_BT_MESH_PERIPHERAL) && CONFIG_BT_MESH_PERIPHERAL
-    gap_config_hci_task_secure_context (280);
+    gap_config_max_le_paired_device(APP_MAX_LINKS);
 #endif
 }
 
@@ -904,7 +917,7 @@ int bt_mesh_device_multiple_profile_app_main(void)
     bt_mesh_device_multiple_profile_driver_init();
 #if defined(CONFIG_BT_MESH_CENTRAL) && CONFIG_BT_MESH_CENTRAL 
     le_gap_init(BLE_CENTRAL_APP_MAX_LINKS);
-#elif defined(CONFIG_BT_MESH_PERIPHERAL) && CONFG_BT_MESH_PERIPHERAL
+#elif defined(CONFIG_BT_MESH_PERIPHERAL) && CONFIG_BT_MESH_PERIPHERAL
     le_gap_init(APP_MAX_LINKS);
 #elif defined(CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET
     le_gap_init(BLE_SCATTERNET_APP_MAX_LINKS);
@@ -920,55 +933,11 @@ int bt_mesh_device_multiple_profile_app_main(void)
     return 0;
 }
 
-#if defined(CONFIG_BT_CENTRAL_CONFIG) && CONFIG_BT_CENTRAL_CONFIG
-int bt_mesh_scatternet_config_at_cmd_config(void)
-{
-	T_GAP_CONN_INFO conn_info;
-	T_GAP_DEV_STATE new_state;
-
-	while(!(wifi_is_up(RTW_STA_INTERFACE) || wifi_is_up(RTW_AP_INTERFACE))) {
-		vTaskDelay(1000 / portTICK_RATE_MS);
-	}
-	
-	set_bt_config_state(BC_DEV_INIT); // BT Config on
-	
-#if CONFIG_AUTO_RECONNECT
-	/* disable auto reconnect */
-	wifi_set_autoreconnect(0);
-#endif
-
-	wifi_disconnect();
-
-#if CONFIG_LWIP_LAYER
-	LwIP_ReleaseIP(WLAN0_IDX);
-#endif
-
-	le_get_conn_info(bt_config_conn_id, &conn_info);
-	bt_config_gap_conn_state = conn_info.conn_state;
-
-	le_get_gap_param(GAP_PARAM_DEV_STATE , &new_state);
-	if (new_state.gap_init_state == GAP_INIT_STATE_STACK_READY) {
-		printf("[BLE Scatternet]BT Stack already on\n\r");
-		airsync_specific = 0;
-		bt_config_wifi_init();
-		bt_config_app_set_adv_data();
-		bt_mesh_scatternet_send_msg(1); //Start ADV
-		set_bt_config_state(BC_DEV_IDLE); // BT Config Ready
-		BC_printf("BT Config Wifi ready\n\r");
-	}
-	else{
-		printf("[BLE Scatternet]BT Stack not ready \n\r");
-	}
-	return 0;
-}
-#endif
+extern void wifi_btcoex_set_bt_on(void);
 
 int bt_mesh_device_multiple_profile_app_init(void)
 {
-#if defined(CONFIG_BT_CENTRAL_CONFIG) && CONFIG_BT_CENTRAL_CONFIG
-    T_GAP_CONN_INFO conn_info;
-#endif
-    int bt_stack_already_on = 0;
+    //int bt_stack_already_on = 0;
 	T_GAP_DEV_STATE new_state;
 
 	/*Wait WIFI init complete*/
@@ -976,28 +945,10 @@ int bt_mesh_device_multiple_profile_app_init(void)
 		vTaskDelay(1000 / portTICK_RATE_MS);
 	}
 
-#if defined(CONFIG_BT_CENTRAL_CONFIG) && CONFIG_BT_CENTRAL_CONFIG 
-    set_bt_config_state(BC_DEV_INIT); // BT Config on
-
-#if CONFIG_AUTO_RECONNECT
-    /* disable auto reconnect */
-    wifi_set_autoreconnect(0);
-#endif
-
-    wifi_disconnect();
-
-#if CONFIG_LWIP_LAYER
-    LwIP_ReleaseIP(WLAN0_IDX);
-#endif
-
-    le_get_conn_info(bt_config_conn_id, &conn_info);
-    bt_config_gap_conn_state = conn_info.conn_state;
-#endif
-
 	//judge BLE central is already on
 	le_get_gap_param(GAP_PARAM_DEV_STATE , &new_state);
 	if (new_state.gap_init_state == GAP_INIT_STATE_STACK_READY) {
-		bt_stack_already_on = 1;
+		//bt_stack_already_on = 1;
 		printf("[BT Mesh Device]BT Stack already on\n\r");
 		return 0;
 	}
@@ -1021,41 +972,35 @@ int bt_mesh_device_multiple_profile_app_init(void)
     }
 #endif
 
-#if defined(CONFIG_BT_CENTRAL_CONFIG) && CONFIG_BT_CENTRAL_CONFIG
-    if (bt_stack_already_on) {
-    	bt_config_app_set_adv_data();
-    	bt_mesh_scatternet_send_msg(1); //Start ADV
-    	set_bt_config_state(BC_DEV_IDLE); // BT Config Ready
-    }
-#endif
-
 	return 0;
-
 }
 
 extern void mesh_deinit(void);
 extern bool mesh_initial_state;
 extern bool bt_trace_uninit(void);
+#if ((defined(CONFIG_BT_MESH_CENTRAL) && CONFIG_BT_MESH_CENTRAL) || \
+    (defined(CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET)) 
+extern void gcs_delete_client(void);
+#endif
+
+extern T_GAP_DEV_STATE bt_mesh_device_multiple_profile_gap_dev_state;
 
 void bt_mesh_device_multiple_profile_app_deinit(void)
 {
     T_GAP_DEV_STATE new_state;
 
-#if ((defined(CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET) && \
-    (defined(CONFIG_BT_CENTRAL_CONFIG) && CONFIG_BT_CENTRAL_CONFIG))
-    set_bt_config_state(BC_DEV_DEINIT);
-    bt_config_wifi_deinit();
-    set_bt_config_state(BC_DEV_DISABLED);
-#endif
-
     bt_mesh_device_multiple_profile_task_deinit();
     le_get_gap_param(GAP_PARAM_DEV_STATE , &new_state);
 	if (new_state.gap_init_state != GAP_INIT_STATE_STACK_READY) {
 		printf("[BT Mesh Device] BT Stack is not running\n\r");
+        mesh_initial_state = FALSE;
+        bt_mesh_device_multiple_profile_gap_dev_state.gap_init_state = GAP_INIT_STATE_INIT;
+        return;
 	}
 #if F_BT_DEINIT
 	else {
-#if defined(CONFIG_BT_MESH_CENTRAL) && CONFIG_BT_MESH_CENTRAL 
+#if ((defined(CONFIG_BT_MESH_CENTRAL) && CONFIG_BT_MESH_CENTRAL) || \
+    (defined(CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET))
         gcs_delete_client();
 #endif
 		bte_deinit();
@@ -1067,16 +1012,14 @@ void bt_mesh_device_multiple_profile_app_deinit(void)
 #if defined(CONFIG_BT_MESH_USER_API) && CONFIG_BT_MESH_USER_API
     bt_mesh_device_api_deinit();
 #endif
-#if ((defined(CONFIG_BT_MESH_PERIPHERAL) && CONFIG_BT_MESH_PERIPHERAL) || \
-    (defined(CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET))
-    rtw_timerDelete(bt_mesh_multiple_profile_peripheral_adv_timer.timer_hdl, TIMER_MAX_DELAY);
-#endif
 
 #if ((defined(CONFIG_BT_MESH_PERIPHERAL) && CONFIG_BT_MESH_PERIPHERAL) || \
     (defined(CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET))
-    rtw_timerDelete(bt_mesh_multiple_profile_peripheral_adv_timer.timer_hdl, TIMER_MAX_DELAY);
+    plt_timer_delete(bt_mesh_multiple_profile_peripheral_adv_timer, 0xFFFFFFFF);
+	bt_mesh_multiple_profile_peripheral_adv_timer = NULL;
 #endif
     mesh_initial_state = FALSE;
+	bt_mesh_device_multiple_profile_gap_dev_state.gap_init_state = GAP_INIT_STATE_INIT;
 }
 
 

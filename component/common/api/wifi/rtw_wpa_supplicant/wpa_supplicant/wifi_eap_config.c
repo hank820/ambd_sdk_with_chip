@@ -607,9 +607,13 @@ int eap_cert_setup(struct eap_tls *tls_context)
 	if(eap_client_cert != NULL && eap_client_key != NULL){
 		if(mbedtls_x509_crt_parse(_cli_crt, eap_client_cert, strlen(eap_client_cert)+1) != 0)
 			return -1;
-	
-		if(mbedtls_pk_parse_key(_clikey_rsa, eap_client_key, strlen(eap_client_key)+1, eap_client_key_pwd, strlen(eap_client_key_pwd)+1) != 0)
-			return -1;
+		if(eap_client_key_pwd){
+			if(mbedtls_pk_parse_key(_clikey_rsa, eap_client_key, strlen(eap_client_key)+1, eap_client_key_pwd, strlen(eap_client_key_pwd)+1) != 0)
+				return -1;
+		}else{
+			if(mbedtls_pk_parse_key(_clikey_rsa, eap_client_key, strlen(eap_client_key)+1, eap_client_key_pwd, 1) != 0)
+				return -1;
+		}
 
 		mbedtls_ssl_conf_own_cert(tls_context->conf, _cli_crt, _clikey_rsa);
 	}

@@ -269,7 +269,11 @@
   #if defined(CONFIG_PLATFORM_8195A) || defined(CONFIG_PLATFORM_8195BHP) || defined(CONFIG_PLATFORM_8710C)
     #define CONFIG_RUNTIME_PORT_SWITCH
   #endif
-  #define NET_IF_NUM ((CONFIG_ETHERNET) + (CONFIG_WLAN) + 1)
+  #ifdef CONFIG_BRIDGE
+    #define NET_IF_NUM ((CONFIG_ETHERNET) + (CONFIG_BRIDGE) + (CONFIG_WLAN) + 1)
+  #else
+    #define NET_IF_NUM ((CONFIG_ETHERNET) + (CONFIG_WLAN) + 1)
+  #endif
 #else
   #define NET_IF_NUM ((CONFIG_ETHERNET) + (CONFIG_WLAN))
 #endif
@@ -526,6 +530,9 @@ extern unsigned int g_ap_sta_num;
 			#undef CONFIG_CONCURRENT_MODE
 			#undef CONFIG_AUTO_RECONNECT
 		#endif
+	#define CONFIG_WLAN_SWITCH_MODE         //save memory while switching mode without driver re-init
+	//#define LOW_POWER_WIFI_CONNECT
+	//#define LONG_PERIOD_TICKLESS
 	#endif
 	#if defined(CONFIG_PLATFORM_8195BHP)
 		#define CONFIG_RTL8195B
@@ -638,6 +645,7 @@ extern unsigned int g_ap_sta_num;
 		#if defined(CONFIG_MAC_LOOPBACK_DRIVER_RTL8710C) && (CONFIG_MAC_LOOPBACK_DRIVER_RTL8710C == 3)
 		#define CONFIG_MAC_LOOPBACK_DRIVER_AMEBA
 		#endif
+		#define CONFIG_WLAN_SWITCH_MODE         //save memory while switching mode without driver re-init
 	#endif
 #elif defined(CONFIG_HARDWARE_8188F)
 #define CONFIG_RTL8188F

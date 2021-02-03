@@ -16,6 +16,8 @@
 /*============================================================================*
  *                              Header Files
  *============================================================================*/
+#include <platform_opts_bt.h>
+#if defined(CONFIG_BT_BEACON) && CONFIG_BT_BEACON
 #include <os_msg.h>
 #include <os_task.h>
 #include <gap.h>
@@ -25,8 +27,6 @@
 #include "bt_beacon_app.h"
 #include <stdio.h>
 #include <gap_msg.h>
-
-
 
 /** @defgroup  PERIPH_APP_TASK Peripheral App Task
     * @brief This file handles the implementation of application task related functions.
@@ -127,5 +127,5 @@ void bt_beacon_app_task_deinit(void)
 
 
 /** @} */ /* End of group PERIPH_APP_TASK */
-
+#endif
 

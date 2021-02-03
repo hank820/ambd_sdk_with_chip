@@ -38,6 +38,14 @@ if [ "$2" != "" ]; then
 	fi
 fi
 
+if [ "$3" != "" ]; then
+	if [ "$COMPILEOS" == "GNU/Linux" ]; then
+		BUILD_TYPE=$3
+	else
+		BUILD_TYPE=$(realpath --relative-to=$(pwd) $3)
+	fi
+fi
+
 if [ "$COMPILEOS" == "GNU/Linux" ]; then
 	ENCTOOL=./EncTool
 else
@@ -56,7 +64,7 @@ fi
 if [ "$IMAGE_FILENAME" == "km4_boot_all.bin" ]; then
 	if [ $SBOOT_ENABLE == 1 ]; then
 		IMAGE_NAME_SB="${IMAGE_FULLNAME%.*}"'-sb.'"${IMAGE_FULLNAME##*.}"
-		$ENCTOOL sboot $IMAGE_FULLNAME $IMAGE_NAME_SB key_pair.txt $SBOOT_SEED
+		$ENCTOOL sboot $IMAGE_FULLNAME $IMAGE_NAME_SB key_pair.txt $SBOOT_SEED 1
 		mv $IMAGE_NAME_SB $IMAGE_FULLNAME
 	fi
 	
@@ -75,6 +83,14 @@ fi
 if [ "$IMAGE_FILENAME" == "km4_image3_psram.bin" ]; then
 	if [ $RDP_ENABLE == 1 ]; then
 		$ENCTOOL rdp $IMAGE_FULLNAME $IMAGE_NAME_EN $RDP_KEY
+	fi
+fi
+
+if [ "$IMAGE_FILENAME" == "psram_2_prepend.bin" ]; then
+	if [ $SIMG2_ENABLE == 1 ]; then
+		IMAGE_NAME_SB="${IMAGE_FULLNAME%.*}"'-sb.'"${IMAGE_FULLNAME##*.}"
+		$ENCTOOL sboot $IMAGE_FULLNAME $IMAGE_NAME_SB key_pair.txt $SBOOT_SEED 0
+		cp $IMAGE_NAME_SB $IMAGE_FULLNAME
 	fi
 fi
 
@@ -98,8 +114,13 @@ if [ "$IMAGE_FILENAME" == "km4_image2_all.bin" ]; then
 	
 	if [ $RDP_ENABLE == 1 ]; then
 		if [ -f "$CURR_PATH/km4_image3_all-en.bin" ]; then
+			if [ $BUILD_TYPE == "MFG" ]; then
+				cat $CURR_PATH/km0_km4_image2_tmp.bin $CURR_PATH/km4_image3_all.bin $CURR_PATH/km4_image3_psram.bin > $CURR_PATH/km0_km4_image2.bin
+				rm $CURR_PATH/km0_km4_image2_tmp.bin
+			else
 			cat $CURR_PATH/km0_km4_image2_tmp.bin $CURR_PATH/km4_image3_all-en.bin $CURR_PATH/km4_image3_psram-en.bin > $CURR_PATH/km0_km4_image2.bin
 			rm $CURR_PATH/km0_km4_image2_tmp.bin
+			fi
 		else
 			mv $CURR_PATH/km0_km4_image2_tmp.bin $CURR_PATH/km0_km4_image2.bin
 		fi

@@ -294,7 +294,7 @@ OBJS = $(CSRC:.c=.o)
 #*****************************************************************************#
 #                        RULES TO GENERATE TARGETS                            #
 #*****************************************************************************#
-all: CORE_TARGETS COPY_RAM_OBJS
+all: CORE_TARGETS
 	$(AR) rvs lib_aliiot.a $(OBJS)
 	$(MOVE) -f lib_aliiot.a $(ROOTDIR)/lib/application
 #*****************************************************************************#

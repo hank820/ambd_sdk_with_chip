@@ -37,7 +37,6 @@
 #include "provision_client.h"
 #include "proxy_client.h"
 #include "bt_flags.h"
-#include "bt_mesh_provisioner_app_flags.h"
 #include "platform_opts.h"
 #include "vendor_cmd.h"
 #include "vendor_cmd_bt.h"
@@ -75,13 +74,6 @@
 #include <simple_ble_service.h>
 #include <bas.h>
 #include <gcs_client.h>
-#if defined(CONFIG_BT_CENTRAL_CONFIG) && CONFIG_BT_CENTRAL_CONFIG
-#include <wifi_conf.h>
-#include <wifi_util.h>
-#include <bt_config_wifi.h>
-#include "bt_config_config.h"
-#include "bt_config_service.h"
-#endif
 #endif
 
 #if ((defined(CONFIG_BT_MESH_CENTRAL) && CONFIG_BT_MESH_CENTRAL) || \
@@ -96,13 +88,6 @@ int bt_mesh_multiple_profile_scan_state = 0;
 int bt_mesh_scatternet_peripheral_app_max_links = 0;
 int bt_mesh_scatternet_central_app_max_links = 0;
 T_CLIENT_ID bt_mesh_scatternet_gcs_client_id;         /**< General Common Services client client id*/
-#if defined(CONFIG_BT_CENTRAL_CONFIG) && CONFIG_BT_CENTRAL_CONFIG
-extern T_SERVER_ID bt_config_srv_id; 
-extern T_GAP_CONN_STATE bt_config_gap_conn_state;
-extern uint8_t bt_config_conn_id;
-extern void bt_config_app_set_adv_data(void);
-extern void set_bt_config_state(uint8_t state);
-#endif
 #endif
 
 #if defined(CONFIG_EXAMPLE_BT_MESH_DEMO) && CONFIG_EXAMPLE_BT_MESH_DEMO
@@ -129,24 +114,6 @@ typedef struct
 
 #if ((defined(CONFIG_BT_MESH_PERIPHERAL) && CONFIG_BT_MESH_PERIPHERAL) || \
     (defined(CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET))
-#if defined(CONFIG_BT_CENTRAL_CONFIG) && CONFIG_BT_CENTRAL_CONFIG  
-const uint8_t adv_data[] =
-{
-    /* Flags */
-    0x02,             /* length */
-    GAP_ADTYPE_FLAGS, /* type="Flags" */
-    GAP_ADTYPE_FLAGS_GENERAL | GAP_ADTYPE_FLAGS_BREDR_NOT_SUPPORTED,
-    /* Service */
-    0x03,             /* length */
-    GAP_ADTYPE_16BIT_COMPLETE,
-    LO_WORD(GATT_UUID_BT_CONFIG_PROFILE),
-    HI_WORD(GATT_UUID_BT_CONFIG_PROFILE),
-    /* Local name */
-    0x0D,             /* length */
-    GAP_ADTYPE_LOCAL_NAME_COMPLETE,
-    'A', 'm', 'e', 'b', 'a', '_', 'x', 'x', 'y', 'y', 'z', 'z',
-};
-#else
 /** @brief  GAP - Advertisement data (max size = 31 bytes, best kept short to conserve power) */
 const uint8_t adv_data[] =
 {
@@ -164,7 +131,6 @@ const uint8_t adv_data[] =
     GAP_ADTYPE_LOCAL_NAME_COMPLETE,
     'B', 'L', 'E', '_', 'P', 'E', 'R', 'I', 'P', 'H', 'E', 'R', 'A', 'L',
 };
-#endif
 int array_count_of_adv_data = sizeof(adv_data) / sizeof(adv_data[0]);
 T_SERVER_ID bt_mesh_simp_srv_id; /**< Simple ble service id*/
 T_SERVER_ID bt_mesh_bas_srv_id;  /**< Battery service id */
@@ -173,6 +139,8 @@ T_SERVER_ID bt_mesh_bas_srv_id;  /**< Battery service id */
 T_GAP_DEV_STATE bt_mesh_provisioner_multiple_profile_gap_dev_state = {0, 0, 0, 0, 0};                 /**< GAP device state */
 #if defined(CONFIG_BT_MESH_CENTRAL) && CONFIG_BT_MESH_CENTRAL
 T_APP_LINK bt_mesh_multiple_profile_app_link_table[BLE_CENTRAL_APP_MAX_LINKS];
+#elif defined(CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET
+T_APP_LINK bt_mesh_multiple_profile_app_link_table[BLE_SCATTERNET_APP_MAX_LINKS];
 #else
 T_APP_LINK bt_mesh_multiple_profile_app_link_table[APP_MAX_LINKS];
 #endif
@@ -219,8 +187,6 @@ void bt_mesh_provisioner_multiple_profile_app_handle_io_msg(T_IO_MSG io_msg)
             ping_app_handle_timeout();
         }
         break;
-#if ((defined(CONFIG_BT_MESH_PERIPHERAL) && CONFIG_BT_MESH_PERIPHERAL) || \
-    (defined(CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET))
     case IO_MSG_TYPE_AT_CMD:
         {
             uint16_t subtype = io_msg.subtype;
@@ -229,47 +195,42 @@ void bt_mesh_provisioner_multiple_profile_app_handle_io_msg(T_IO_MSG io_msg)
             if (ble_central_app_handle_at_cmd(subtype, arg) != 1) {
                 ble_peripheral_app_handle_at_cmd(subtype, arg);
             }  
-#else
+#elif defined(CONFIG_BT_MESH_CENTRAL) && CONFIG_BT_MESH_CENTRAL
+            ble_central_app_handle_at_cmd(subtype, arg);
+#elif defined(CONFIG_BT_MESH_PERIPHERAL) && CONFIG_BT_MESH_PERIPHERAL
             ble_peripheral_app_handle_at_cmd(subtype, arg);
 #endif
         }
         break;
     case IO_MSG_TYPE_QDECODE:
         {
-            if (io_msg.subtype == 1) {
-                mesh_le_adv_start();
-            } else if (io_msg.subtype == 0) {
-                mesh_le_adv_stop();
+            if (io_msg.subtype == 2) {
+                gap_sched_scan(false);
+            } else if (io_msg.subtype == 3) {
+                gap_sched_scan(true);
             }
         }
         break;
+#if ((defined(CONFIG_BT_MESH_PERIPHERAL) && CONFIG_BT_MESH_PERIPHERAL) || \
+    (defined (CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET))
     case IO_MSG_TYPE_ADV:
-    {
-        uint8_t *padv_data = gap_sched_task_get();
-
-        if (NULL == padv_data)
         {
-            printf("[BT Mesh Device] bt_mesh_multiple_profile_peripheral_adv_timer_handler allocate padv_data fail ! \n\r");
-            break;
-        }
+            uint8_t *padv_data = gap_sched_task_get();
 
-        gap_sched_task_p ptask = CONTAINER_OF(padv_data, gap_sched_task_t, adv_data);
+            if (NULL == padv_data)
+            {
+                printf("[BT Mesh Provisioner] bt_mesh_multiple_profile_peripheral_adv_timer_handler allocate padv_data fail ! \n\r");
+                break;
+            }
 
-        rtw_memcpy(padv_data, adv_data, sizeof(adv_data));    
-        
-        ptask->adv_len += 23;
-        ptask->adv_type = GAP_SCHED_ADV_TYPE_IND;
+            gap_sched_task_p ptask = CONTAINER_OF(padv_data, gap_sched_task_t, adv_data);
 
-        gap_sched_try(ptask); 
-    }
-    break;
-#endif
-#if defined(CONFIG_BT_MESH_CENTRAL) && CONFIG_BT_MESH_CENTRAL
-    case IO_MSG_TYPE_AT_CMD:
-        {
-            uint16_t subtype = io_msg.subtype;
-            void *arg = io_msg.u.buf;
-            ble_central_app_handle_at_cmd(subtype, arg);
+            rtw_memcpy(padv_data, (uint8_t *)adv_data, sizeof(adv_data));
+
+            ptask->adv_len += 23;
+            ptask->adv_type = GAP_SCHED_ADV_TYPE_IND;
+
+            gap_sched_try(ptask); 
         }
         break;
 #endif
@@ -286,43 +247,45 @@ void bt_mesh_provisioner_multiple_profile_app_handle_io_msg(T_IO_MSG io_msg)
  * @param[in] cause GAP device state change cause
  * @return   void
  */
-#if defined(CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET
-extern void sw_bt_info_update(u8 is_scan);
-#endif
-
 void bt_mesh_provisioner_multiple_profile_app_handle_dev_state_evt(T_GAP_DEV_STATE new_state, uint16_t cause)
 {
     APP_PRINT_INFO4("bt_mesh_provisioner_multiple_profile_app_handle_dev_state_evt: init state  %d, adv state %d, scan state %d, cause 0x%x",
                     new_state.gap_init_state, new_state.gap_adv_state,
                     new_state.gap_scan_state, cause);
-#if ((defined(CONFIG_BT_MESH_PERIPHERAL) && CONFIG_BT_MESH_PERIPHERAL) || \
-    (defined(CONFIG_BT_MESH_CENTRAL) && CONFIG_BT_MESH_CENTRAL) || \
-    (defined(CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET))
     if (bt_mesh_provisioner_multiple_profile_gap_dev_state.gap_init_state != new_state.gap_init_state)
     {
         if (new_state.gap_init_state == GAP_INIT_STATE_STACK_READY)
         {
             APP_PRINT_INFO0("GAP stack ready");
             uint8_t bt_addr[6];
+            uint8_t net_key[16] = MESH_NET_KEY;
+            uint8_t net_key1[16] = MESH_NET_KEY1;
+            uint8_t app_key[16] = MESH_APP_KEY;
+            uint8_t app_key1[16] = MESH_APP_KEY1;
             gap_get_param(GAP_PARAM_BD_ADDR, bt_addr);
             data_uart_debug("bt addr: 0x%02x%02x%02x%02x%02x%02x\r\n>",
                             bt_addr[5], bt_addr[4], bt_addr[3],
                             bt_addr[2], bt_addr[1], bt_addr[0]);
+
+            /** configure provisioner */
+            mesh_node.node_state = PROV_NODE;
+            mesh_node.unicast_addr = bt_addr[0] % 99 + 1;
+            memcpy(&net_key[10], bt_addr, sizeof(bt_addr));
+            memcpy(&net_key1[10], bt_addr, sizeof(bt_addr));
+            memcpy(&app_key[10], bt_addr, sizeof(bt_addr));
+            memcpy(&app_key1[10], bt_addr, sizeof(bt_addr));
+            uint16_t net_key_index = net_key_add(0, net_key);
+            app_key_add(net_key_index, 0, app_key);
+            uint8_t net_key_index1 = net_key_add(1, net_key1);
+            app_key_add(net_key_index1, 1, app_key1);
+        	mesh_model_bind_all_key();
 #if ((defined(CONFIG_BT_MESH_PERIPHERAL) && CONFIG_BT_MESH_PERIPHERAL) || \
     (defined(CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET))
-#if defined(CONFIG_BT_CENTRAL_CONFIG) && CONFIG_BT_CENTRAL_CONFIG
-            bt_config_app_set_adv_data();
-            mesh_le_adv_start();
-			set_bt_config_state(BC_DEV_IDLE); // BT Config Ready
-			BC_printf("BT Config Wifi ready\n\r");
-#else
             /*stack ready*/
             mesh_le_adv_start();
 #endif
-#endif
         }
     }
-#endif
 
 #if ((defined(CONFIG_BT_MESH_PERIPHERAL) && CONFIG_BT_MESH_PERIPHERAL) || \
     (defined(CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET))
@@ -435,29 +398,23 @@ void bt_mesh_provisioner_multiple_profile_app_handle_conn_state_evt(uint8_t conn
             }
 #endif
 next:
-            memset(&bt_mesh_multiple_profile_app_link_table[conn_id], 0, sizeof(T_APP_LINK));
-#if ((defined(CONFIG_BT_MESH_PERIPHERAL) && CONFIG_BT_MESH_PERIPHERAL) || \
-    (defined(CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET))
-#if defined(CONFIG_BT_CENTRAL_CONFIG) && CONFIG_BT_CENTRAL_CONFIG
-            BC_printf("Bluetooth Connection Disconnected\n\r");
-			if (wifi_is_ready_to_transceive(RTW_STA_INTERFACE) != RTW_SUCCESS) {
-				bt_config_app_set_adv_data();
-				mesh_le_adv_start();
-				set_bt_config_state(BC_DEV_IDLE); // BT Config Ready
-			}
-#else
-            /*stack ready*/
+#if defined(CONFIG_BT_MESH_PERIPHERAL) && CONFIG_BT_MESH_PERIPHERAL
             mesh_le_adv_start();
-#endif
+#elif defined(CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET
+            if (bt_mesh_multiple_profile_app_link_table[conn_id].role == 2) {
+                /*stack ready*/
+                mesh_le_adv_start();
+            }
 #endif 
 
 #if defined(CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET
-            if (ble_scatternet_app_link_table[conn_id].role == 1) {
+            if (bt_mesh_multiple_profile_app_link_table[conn_id].role == 1) {
 				bt_mesh_scatternet_central_app_max_links --;
 			} else {
 				bt_mesh_scatternet_peripheral_app_max_links --;
 			}
 #endif
+            memset(&bt_mesh_multiple_profile_app_link_table[conn_id], 0, sizeof(T_APP_LINK));
         }
         break;
 
@@ -484,51 +441,13 @@ next:
 #if defined(CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET
             //get device role
             if (le_get_conn_info(conn_id, &conn_info)){
-				ble_scatternet_app_link_table[conn_id].role = conn_info.role;
-				if (ble_scatternet_app_link_table[conn_id].role == 1)
+				bt_mesh_multiple_profile_app_link_table[conn_id].role = conn_info.role;
+				if (bt_mesh_multiple_profile_app_link_table[conn_id].role == 1)
 					bt_mesh_scatternet_central_app_max_links ++;
 				else
 					bt_mesh_scatternet_peripheral_app_max_links ++;
             }
-#if defined(CONFIG_BT_CENTRAL_CONFIG) && CONFIG_BT_CENTRAL_CONFIG
-           	uint8_t  remote_bd[6];
-          	T_GAP_REMOTE_ADDR_TYPE remote_bd_type;
-			
-           	T_GAP_CAUSE cause; 
-				
-           	uint16_t conn_interval_min = 12; // 15ms
-         	uint16_t conn_interval_max = 24; // 30ms
-           	uint16_t supervision_timeout = 500; 
-           	uint16_t ce_length_min = 2 * (conn_interval_min - 1); 
-          	uint16_t ce_length_max = 2 * (conn_interval_max - 1); 
 
-           	le_get_conn_param(GAP_PARAM_CONN_INTERVAL, &conn_interval, conn_id);
-          	le_get_conn_param(GAP_PARAM_CONN_LATENCY, &conn_latency, conn_id);
-           	le_get_conn_param(GAP_PARAM_CONN_TIMEOUT, &conn_supervision_timeout, conn_id);
-           	le_get_conn_addr(conn_id, remote_bd,  (void *)&remote_bd_type);
-			
-           	conn_latency = 0;
-          	cause = le_update_conn_param(conn_id, 
-                                 	conn_interval_min, 
-                                   	conn_interval_max, 
-                                  	conn_latency, 
-                                   	supervision_timeout, 
-                                  	ce_length_min, 
-                                   	ce_length_max 
-                                 	); 
-            if (cause == GAP_CAUSE_NON_CONN) {
-              	BC_printf("No Bluetooth Connection\n\r");
-               	break;
-            	}
-			//update_connection_time
-           	APP_PRINT_INFO5("GAP_CONN_STATE_CONNECTED:remote_bd %s, remote_addr_type %d, conn_interval 0x%x, conn_latency 0x%x, conn_supervision_timeout 0x%x",
-                          	TRACE_BDADDR(remote_bd), remote_bd_type,
-                           	conn_interval, conn_latency, conn_supervision_timeout);
-
-			BC_printf("Bluetooth Connection Established\n\r");
-			bt_config_conn_id = conn_id;
-			set_bt_config_state(BC_DEV_BT_CONNECTED); // BT Config Bluetooth Connected
-#else
 		    ////print bt address type
 			uint8_t local_bd_type;
             //uint8_t features[8];
@@ -537,10 +456,10 @@ next:
             le_get_conn_param(GAP_PARAM_CONN_BD_ADDR_TYPE, &remote_bd_type, conn_id);
             APP_PRINT_INFO3("GAP_CONN_STATE_CONNECTED: conn_id %d, local_bd_type %d, remote_bd_type %d\n",
                             conn_id, local_bd_type, remote_bd_type);
-			data_uart_print("GAP_CONN_STATE_CONNECTED: conn_id %d, local_bd_type %d, remote_bd_type %d\n",
+			data_uart_debug("GAP_CONN_STATE_CONNECTED: conn_id %d, local_bd_type %d, remote_bd_type %d\n",
                             conn_id, local_bd_type, remote_bd_type);
 #endif
-#endif
+
 #if F_BT_LE_5_0_SET_PHY_SUPPORT
             {
                 uint8_t tx_phy;
@@ -554,6 +473,13 @@ next:
 #if F_BT_LE_4_2_DATA_LEN_EXT_SUPPORT
             le_set_data_len(conn_id, 251, 2120);
 #endif
+#if defined(CONFIG_BT_MESH_PERIPHERAL) && CONFIG_BT_MESH_PERIPHERAL
+            mesh_le_adv_stop();
+#elif defined(CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET
+            if (bt_mesh_multiple_profile_app_link_table[conn_id].role == 2) {
+                mesh_le_adv_stop();
+            }
+#endif       
         }
         break;
 
@@ -562,9 +488,6 @@ next:
 
     }
 
-#if defined(CONFIG_BT_CENTRAL_CONFIG) && CONFIG_BT_CENTRAL_CONFIG
-	bt_config_gap_conn_state = new_state;
-#endif
 }
 
 /**
@@ -647,6 +570,8 @@ void bt_mesh_provisioner_multiple_profile_app_handle_conn_param_update_evt(uint8
             le_get_conn_param(GAP_PARAM_CONN_TIMEOUT, &conn_supervision_timeout, conn_id);
             APP_PRINT_INFO4("bt_mesh_provisioner_multiple_profile_app_handle_conn_param_update_evt update success:conn_id %d, conn_interval 0x%x, conn_slave_latency 0x%x, conn_supervision_timeout 0x%x",
                             conn_id, conn_interval, conn_slave_latency, conn_supervision_timeout);
+            data_uart_debug("\n\rbt_mesh_provisioner_multiple_profile_app_handle_conn_param_update_evt update success:conn_id %d, conn_interval 0x%x, conn_slave_latency 0x%x, conn_supervision_timeout 0x%x \r\n",
+                            conn_id, conn_interval, conn_slave_latency, conn_supervision_timeout);
         }
         break;
 
@@ -654,12 +579,15 @@ void bt_mesh_provisioner_multiple_profile_app_handle_conn_param_update_evt(uint8
         {
             APP_PRINT_ERROR2("bt_mesh_provisioner_multiple_profile_app_handle_conn_param_update_evt update failed: conn_id %d, cause 0x%x",
                              conn_id, cause);
+            data_uart_debug("\n\rbt_mesh_provisioner_multiple_profile_app_handle_conn_param_update_evt update failed: conn_id %d, cause 0x%x\r\n",
+                             conn_id, cause);
         }
         break;
 
     case GAP_CONN_PARAM_UPDATE_STATUS_PENDING:
         {
             APP_PRINT_INFO1("bt_mesh_provisioner_multiple_profile_app_handle_conn_param_update_evt update pending: conn_id %d", conn_id);
+            data_uart_debug("\n\rbt_mesh_provisioner_multiple_profile_app_handle_conn_param_update_evt update pending: conn_id %d\r\n", conn_id);
         }
         break;
 
@@ -693,7 +621,7 @@ void bt_mesh_provisioner_multiple_profile_app_handle_gap_msg(T_IO_MSG *p_gap_msg
     {
     case GAP_MSG_LE_DEV_STATE_CHANGE:
         {
-            static bool start = FALSE;
+            //static bool start = FALSE;
             if (!mesh_initial_state)
             {
                 mesh_initial_state = TRUE;
@@ -1287,6 +1215,11 @@ T_APP_RESULT bt_mesh_provisioner_multiple_profile_app_gap_callback(uint8_t cb_ty
                         p_data->p_le_phy_update_info->cause,
                         p_data->p_le_phy_update_info->rx_phy,
                         p_data->p_le_phy_update_info->tx_phy);
+        data_uart_print("GAP_MSG_LE_PHY_UPDATE_INFO:conn_id %d, cause 0x%x, rx_phy %d, tx_phy %d\r\n",
+						p_data->p_le_phy_update_info->conn_id,
+						p_data->p_le_phy_update_info->cause,
+						p_data->p_le_phy_update_info->rx_phy,
+						p_data->p_le_phy_update_info->tx_phy);
         break;
 
     case GAP_MSG_LE_REMOTE_FEATS_INFO:
@@ -1400,31 +1333,25 @@ void bt_mesh_scatternet_gcs_handle_discovery_result(uint8_t conn_id, T_GCS_DISCO
                                 i, p_result_table->result_data.srv_uuid16_disc_data.att_handle,
                                 p_result_table->result_data.srv_uuid16_disc_data.end_group_handle,
                                 p_result_table->result_data.srv_uuid16_disc_data.uuid16);
-                /*
-                data_uart_print("ALL SRV UUID16[%d]: service range: 0x%x-0x%x, uuid16 0x%x\n\r",
+                data_uart_debug("ALL SRV UUID16[%d]: service range: 0x%x-0x%x, uuid16 0x%x\n\r",
                				 i, p_result_table->result_data.srv_uuid16_disc_data.att_handle,
                				 p_result_table->result_data.srv_uuid16_disc_data.end_group_handle,
                				 p_result_table->result_data.srv_uuid16_disc_data.uuid16);
-               	*/
                 break;
             case DISC_RESULT_ALL_SRV_UUID128:
                 APP_PRINT_INFO4("ALL SRV UUID128[%d]: service range: 0x%x-0x%x, service=<%b>",
                                 i, p_result_table->result_data.srv_uuid128_disc_data.att_handle,
                                 p_result_table->result_data.srv_uuid128_disc_data.end_group_handle,
                                 TRACE_BINARY(16, p_result_table->result_data.srv_uuid128_disc_data.uuid128));
-                /*
-                data_uart_print("ALL SRV UUID128[%d]: service range: 0x%x-0x%x, service="UUID_128_FORMAT"\n\r",
+                data_uart_debug("ALL SRV UUID128[%d]: service range: 0x%x-0x%x, service="UUID_128_FORMAT"\n\r",
                                 i, p_result_table->result_data.srv_uuid128_disc_data.att_handle,
                                 p_result_table->result_data.srv_uuid128_disc_data.end_group_handle,
                                 UUID_128(p_result_table->result_data.srv_uuid128_disc_data.uuid128));
-                */
                 break;
 
             default:
                 APP_PRINT_ERROR0("Invalid Discovery Result Type!");
-                /*
-				data_uart_print("Invalid Discovery Result Type!\n\r");
-				*/
+				data_uart_debug("Invalid Discovery Result Type!\n\r");
                 break;
             }
         }
@@ -1433,10 +1360,8 @@ void bt_mesh_scatternet_gcs_handle_discovery_result(uint8_t conn_id, T_GCS_DISCO
     case GCS_BY_UUID128_SRV_DISCOV:
         APP_PRINT_INFO2("conn_id %d, GCS_BY_UUID128_SRV_DISCOV, is_success %d",
                         conn_id, discov_result.is_success);
-        /*
-        data_uart_print("conn_id %d, GCS_BY_UUID128_SRV_DISCOV, is_success %d\n\r",
+        data_uart_debug("conn_id %d, GCS_BY_UUID128_SRV_DISCOV, is_success %d\n\r",
                         conn_id, discov_result.is_success);
-        */
 
         for (i = 0; i < discov_result.result_num; i++)
         {
@@ -1447,18 +1372,14 @@ void bt_mesh_scatternet_gcs_handle_discovery_result(uint8_t conn_id, T_GCS_DISCO
                 APP_PRINT_INFO3("SRV DATA[%d]: service range: 0x%x-0x%x",
                                 i, p_result_table->result_data.srv_disc_data.att_handle,
                                 p_result_table->result_data.srv_disc_data.end_group_handle);
-                /*
-                data_uart_print("SRV DATA[%d]: service range: 0x%x-0x%x\n\r",
+                data_uart_debug("SRV DATA[%d]: service range: 0x%x-0x%x\n\r",
                                 i, p_result_table->result_data.srv_disc_data.att_handle,
                                 p_result_table->result_data.srv_disc_data.end_group_handle);
-                */
                 break;
 
             default:
                 APP_PRINT_ERROR0("Invalid Discovery Result Type!");
-                /*
-                data_uart_print("Invalid Discovery Result Type!\n\r");
-                */
+                data_uart_debug("Invalid Discovery Result Type!\n\r");
                 break;
             }
         }
@@ -1467,10 +1388,8 @@ void bt_mesh_scatternet_gcs_handle_discovery_result(uint8_t conn_id, T_GCS_DISCO
     case GCS_BY_UUID_SRV_DISCOV:
         APP_PRINT_INFO2("conn_id %d, GCS_BY_UUID_SRV_DISCOV, is_success %d",
                         conn_id, discov_result.is_success);
-        /*
-        data_uart_print("conn_id %d, GCS_BY_UUID_SRV_DISCOV, is_success %d\n\r",
+        data_uart_debug("conn_id %d, GCS_BY_UUID_SRV_DISCOV, is_success %d\n\r",
                         conn_id, discov_result.is_success);
-        */
         for (i = 0; i < discov_result.result_num; i++)
         {
             p_result_table = &(discov_result.p_result_table[i]);
@@ -1480,18 +1399,14 @@ void bt_mesh_scatternet_gcs_handle_discovery_result(uint8_t conn_id, T_GCS_DISCO
                 APP_PRINT_INFO3("SRV DATA[%d]: service range: 0x%x-0x%x",
                                 i, p_result_table->result_data.srv_disc_data.att_handle,
                                 p_result_table->result_data.srv_disc_data.end_group_handle);
-                /*
-                data_uart_print("SRV DATA[%d]: service range: 0x%x-0x%x\n\r",
+                data_uart_debug("SRV DATA[%d]: service range: 0x%x-0x%x\n\r",
                                 i, p_result_table->result_data.srv_disc_data.att_handle,
                                 p_result_table->result_data.srv_disc_data.end_group_handle);
-                */
                 break;
 
             default:
                 APP_PRINT_ERROR0("Invalid Discovery Result Type!");
-                /*
-                data_uart_print("Invalid Discovery Result Type!\n\r");
-                */
+                data_uart_debug("Invalid Discovery Result Type!\n\r");
                 break;
             }
         }
@@ -1500,10 +1415,8 @@ void bt_mesh_scatternet_gcs_handle_discovery_result(uint8_t conn_id, T_GCS_DISCO
     case GCS_ALL_CHAR_DISCOV:
         APP_PRINT_INFO2("conn_id %d, GCS_ALL_CHAR_DISCOV, is_success %d",
                         conn_id, discov_result.is_success);
-        /*
-        data_uart_print("conn_id %d, GCS_ALL_CHAR_DISCOV, is_success %d\n\r",
+        data_uart_debug("conn_id %d, GCS_ALL_CHAR_DISCOV, is_success %d\n\r",
                         conn_id, discov_result.is_success);
-        */
         for (i = 0; i < discov_result.result_num; i++)
         {
             p_result_table = &(discov_result.p_result_table[i]);
@@ -1522,20 +1435,17 @@ void bt_mesh_scatternet_gcs_handle_discovery_result(uint8_t conn_id, T_GCS_DISCO
                                 properties & GATT_CHAR_PROP_WRITE_NO_RSP,
                                 properties & GATT_CHAR_PROP_WRITE,
                                 properties & GATT_CHAR_PROP_NOTIFY);
-                /*
-                data_uart_print("CHAR UUID16[%d]: decl_handle 0x%x, properties 0x%x, value_handle 0x%x, uuid16 0x%x\n\r",
+                data_uart_debug("CHAR UUID16[%d]: decl_handle 0x%x, properties 0x%x, value_handle 0x%x, uuid16 0x%x\n\r",
                                 i, p_result_table->result_data.char_uuid16_disc_data.decl_handle,
                                 p_result_table->result_data.char_uuid16_disc_data.properties,
                                 p_result_table->result_data.char_uuid16_disc_data.value_handle,
                                 p_result_table->result_data.char_uuid16_disc_data.uuid16);
-                data_uart_print("properties:indicate %d, read %d, write cmd %d, write %d, notify %d\n\r",
+                data_uart_debug("properties:indicate %d, read %d, write cmd %d, write %d, notify %d\n\r",
                                 properties & GATT_CHAR_PROP_INDICATE,
                                 properties & GATT_CHAR_PROP_READ,
                                 properties & GATT_CHAR_PROP_WRITE_NO_RSP,
                                 properties & GATT_CHAR_PROP_WRITE,
                                 properties & GATT_CHAR_PROP_NOTIFY);
-                */
-
                 break;
 
             case DISC_RESULT_CHAR_UUID128:
@@ -1552,26 +1462,22 @@ void bt_mesh_scatternet_gcs_handle_discovery_result(uint8_t conn_id, T_GCS_DISCO
                                 properties & GATT_CHAR_PROP_WRITE,
                                 properties & GATT_CHAR_PROP_NOTIFY
                                );
-                /*
-                data_uart_print("CHAR UUID128[%d]:  decl hndl=0x%x, prop=0x%x, value hndl=0x%x, uuid128="UUID_128_FORMAT"\n\r",
+                data_uart_debug("CHAR UUID128[%d]:  decl hndl=0x%x, prop=0x%x, value hndl=0x%x, uuid128="UUID_128_FORMAT"\n\r",
                                 i, p_result_table->result_data.char_uuid128_disc_data.decl_handle,
                                 p_result_table->result_data.char_uuid128_disc_data.properties,
                                 p_result_table->result_data.char_uuid128_disc_data.value_handle,
                                 UUID_128(p_result_table->result_data.char_uuid128_disc_data.uuid128));
-                data_uart_print("properties:indicate %d, read %d, write cmd %d, write %d, notify %d\n\r",
+                data_uart_debug("properties:indicate %d, read %d, write cmd %d, write %d, notify %d\n\r",
                                 properties & GATT_CHAR_PROP_INDICATE,
                                 properties & GATT_CHAR_PROP_READ,
                                 properties & GATT_CHAR_PROP_WRITE_NO_RSP,
                                 properties & GATT_CHAR_PROP_WRITE,
                                 properties & GATT_CHAR_PROP_NOTIFY
                                );
-                */
                 break;
             default:
                 APP_PRINT_ERROR0("Invalid Discovery Result Type!");
-                /*
-                data_uart_print("Invalid Discovery Result Type!\n\r");
-                */
+                data_uart_debug("Invalid Discovery Result Type!\n\r");
                 break;
             }
         }
@@ -1580,7 +1486,7 @@ void bt_mesh_scatternet_gcs_handle_discovery_result(uint8_t conn_id, T_GCS_DISCO
     case GCS_BY_UUID_CHAR_DISCOV:
         APP_PRINT_INFO2("conn_id %d, GCS_BY_UUID_CHAR_DISCOV, is_success %d",
                         conn_id, discov_result.is_success);
-        data_uart_print("conn_id %d, GCS_BY_UUID_CHAR_DISCOV, is_success %d\n\r",
+        data_uart_debug("conn_id %d, GCS_BY_UUID_CHAR_DISCOV, is_success %d\n\r",
                         conn_id, discov_result.is_success);
 
         for (i = 0; i < discov_result.result_num; i++)
@@ -1602,27 +1508,23 @@ void bt_mesh_scatternet_gcs_handle_discovery_result(uint8_t conn_id, T_GCS_DISCO
                                 properties & GATT_CHAR_PROP_WRITE,
                                 properties & GATT_CHAR_PROP_NOTIFY
                                );
-                /*
-                data_uart_print("UUID16 CHAR[%d]: Characteristics by uuid16, decl hndl=0x%x, prop=0x%x, value hndl=0x%x, uuid16=<0x%x>\n\r",
+                data_uart_debug("UUID16 CHAR[%d]: Characteristics by uuid16, decl hndl=0x%x, prop=0x%x, value hndl=0x%x, uuid16=<0x%x>\n\r",
                                 i, p_result_table->result_data.char_uuid16_disc_data.decl_handle,
                                 p_result_table->result_data.char_uuid16_disc_data.properties,
                                 p_result_table->result_data.char_uuid16_disc_data.value_handle,
                                 p_result_table->result_data.char_uuid16_disc_data.uuid16);
-                data_uart_print("properties:indicate %d, read %d, write cmd %d, write %d, notify %d\n\r",
+                data_uart_debug("properties:indicate %d, read %d, write cmd %d, write %d, notify %d\n\r",
                                 properties & GATT_CHAR_PROP_INDICATE,
                                 properties & GATT_CHAR_PROP_READ,
                                 properties & GATT_CHAR_PROP_WRITE_NO_RSP,
                                 properties & GATT_CHAR_PROP_WRITE,
                                 properties & GATT_CHAR_PROP_NOTIFY
                                );
-                */
                 break;
 
             default:
                 APP_PRINT_ERROR0("Invalid Discovery Result Type!");
-                /*
-                data_uart_print("Invalid Discovery Result Type!");
-                */
+                data_uart_debug("Invalid Discovery Result Type!");
                 break;
             }
         }
@@ -1631,10 +1533,8 @@ void bt_mesh_scatternet_gcs_handle_discovery_result(uint8_t conn_id, T_GCS_DISCO
     case GCS_BY_UUID128_CHAR_DISCOV:
         APP_PRINT_INFO2("conn_id %d, GCS_BY_UUID128_CHAR_DISCOV, is_success %d",
                         conn_id, discov_result.is_success);
-        /*
-        data_uart_print("conn_id %d, GCS_BY_UUID128_CHAR_DISCOV, is_success %d\n\r",
+        data_uart_debug("conn_id %d, GCS_BY_UUID128_CHAR_DISCOV, is_success %d\n\r",
                         conn_id, discov_result.is_success);
-        */
         for (i = 0; i < discov_result.result_num; i++)
         {
             p_result_table = &(discov_result.p_result_table[i]);
@@ -1654,20 +1554,18 @@ void bt_mesh_scatternet_gcs_handle_discovery_result(uint8_t conn_id, T_GCS_DISCO
                                 properties & GATT_CHAR_PROP_WRITE,
                                 properties & GATT_CHAR_PROP_NOTIFY
                                );
-                /*
-                data_uart_print("UUID128 CHAR[%d]: Characteristics by uuid128, decl hndl=0x%x, prop=0x%x, value hndl=0x%x, uuid128="UUID_128_FORMAT"\n\r",
+                data_uart_debug("UUID128 CHAR[%d]: Characteristics by uuid128, decl hndl=0x%x, prop=0x%x, value hndl=0x%x, uuid128="UUID_128_FORMAT"\n\r",
                                 i, p_result_table->result_data.char_uuid128_disc_data.decl_handle,
                                 p_result_table->result_data.char_uuid128_disc_data.properties,
                                 p_result_table->result_data.char_uuid128_disc_data.value_handle,
                                 UUID_128(p_result_table->result_data.char_uuid128_disc_data.uuid128));
-                data_uart_print("properties:indicate %d, read %d, write cmd %d, write %d, notify %d\n\r",
+                data_uart_debug("properties:indicate %d, read %d, write cmd %d, write %d, notify %d\n\r",
                                 properties & GATT_CHAR_PROP_INDICATE,
                                 properties & GATT_CHAR_PROP_READ,
                                 properties & GATT_CHAR_PROP_WRITE_NO_RSP,
                                 properties & GATT_CHAR_PROP_WRITE,
                                 properties & GATT_CHAR_PROP_NOTIFY
                                );
-                */
                 break;
 
             default:
@@ -1681,10 +1579,8 @@ void bt_mesh_scatternet_gcs_handle_discovery_result(uint8_t conn_id, T_GCS_DISCO
     case GCS_ALL_CHAR_DESC_DISCOV:
         APP_PRINT_INFO2("conn_id %d, GCS_ALL_CHAR_DESC_DISCOV, is_success %d\r\n",
                         conn_id, discov_result.is_success);
-        /*
-        data_uart_print("conn_id %d, GCS_ALL_CHAR_DESC_DISCOV, is_success %d\n\r",
+        data_uart_debug("conn_id %d, GCS_ALL_CHAR_DESC_DISCOV, is_success %d\n\r",
                         conn_id, discov_result.is_success);
-        */
         for (i = 0; i < discov_result.result_num; i++)
         {
             p_result_table = &(discov_result.p_result_table[i]);
@@ -1694,28 +1590,22 @@ void bt_mesh_scatternet_gcs_handle_discovery_result(uint8_t conn_id, T_GCS_DISCO
                 APP_PRINT_INFO3("DESC UUID16[%d]: Descriptors handle=0x%x, uuid16=<0x%x>",
                                 i, p_result_table->result_data.char_desc_uuid16_disc_data.handle,
                                 p_result_table->result_data.char_desc_uuid16_disc_data.uuid16);
-                /*
-                data_uart_print("DESC UUID16[%d]: Descriptors handle=0x%x, uuid16=<0x%x>\n\r",
+                data_uart_debug("DESC UUID16[%d]: Descriptors handle=0x%x, uuid16=<0x%x>\n\r",
                                 i, p_result_table->result_data.char_desc_uuid16_disc_data.handle,
                                 p_result_table->result_data.char_desc_uuid16_disc_data.uuid16);
-                */
                 break;
             case DISC_RESULT_CHAR_DESC_UUID128:
                 APP_PRINT_INFO3("DESC UUID128[%d]: Descriptors handle=0x%x, uuid128=<%b>",
                                 i, p_result_table->result_data.char_desc_uuid128_disc_data.handle,
                                 TRACE_BINARY(16, p_result_table->result_data.char_desc_uuid128_disc_data.uuid128));
-                /*
-                data_uart_print("DESC UUID128[%d]: Descriptors handle=0x%x, uuid128="UUID_128_FORMAT"\n\r",
+                data_uart_debug("DESC UUID128[%d]: Descriptors handle=0x%x, uuid128="UUID_128_FORMAT"\n\r",
                                 i, p_result_table->result_data.char_desc_uuid128_disc_data.handle,
                                 UUID_128(p_result_table->result_data.char_desc_uuid128_disc_data.uuid128));
-                */
                 break;
 
             default:
                 APP_PRINT_ERROR0("Invalid Discovery Result Type!");
-                /*
-                data_uart_print("Invalid Discovery Result Type!\n\r");
-                */
+                data_uart_debug("Invalid Discovery Result Type!\n\r");
                 break;
             }
         }
@@ -1724,10 +1614,8 @@ void bt_mesh_scatternet_gcs_handle_discovery_result(uint8_t conn_id, T_GCS_DISCO
     default:
         APP_PRINT_ERROR2("Invalid disc type: conn_id %d, discov_type %d",
                          conn_id, discov_result.discov_type);
-        /*
-        data_uart_print("Invalid disc type: conn_id %d, discov_type %d\n\r",
+        data_uart_debug("Invalid disc type: conn_id %d, discov_type %d\n\r",
                          conn_id, discov_result.discov_type);
-        */
         break;
     }
 }
@@ -1753,40 +1641,35 @@ T_APP_RESULT bt_mesh_scatternet_gcs_client_callback(T_CLIENT_ID client_id, uint8
             bt_mesh_scatternet_gcs_handle_discovery_result(conn_id, p_gcs_cb_data->cb_content.discov_result);
             break;
         case GCS_CLIENT_CB_TYPE_READ_RESULT:
-            APP_PRINT_INFO3("READ RESULT: cause 0x%x, handle 0x%x,  value_len %d",
+            APP_PRINT_INFO3("READ RESULT: cause 0x%x, handle 0x%x, value_len %d",
                             p_gcs_cb_data->cb_content.read_result.cause,
                             p_gcs_cb_data->cb_content.read_result.handle,
                             p_gcs_cb_data->cb_content.read_result.value_size);
-            /*
-            data_uart_print("READ RESULT: cause 0x%x, handle 0x%x,  value_len %d\n\r",
+            data_uart_debug("READ RESULT: cause 0x%x, handle 0x%x, value_len %d\n\r",
                             p_gcs_cb_data->cb_content.read_result.cause,
                             p_gcs_cb_data->cb_content.read_result.handle,
                             p_gcs_cb_data->cb_content.read_result.value_size);
-            */
+
             if (p_gcs_cb_data->cb_content.read_result.cause == GAP_SUCCESS)
             {
                 APP_PRINT_INFO1("READ VALUE: %b",
                                 TRACE_BINARY(p_gcs_cb_data->cb_content.read_result.value_size,
                                              p_gcs_cb_data->cb_content.read_result.p_value));
-                /*
-				data_uart_print("REAR VALUE:");
-				for(int i=0; i< p_gcs_cb_data->cb_content.read_result.value_size; i++)
-					data_uart_print("0x%2X", *(p_gcs_cb_data->cb_content.read_result.p_value + i));
-				data_uart_print("\n\r");
-				*/
+                data_uart_debug("REAR VALUE: ");
+                for(int i=0; i< p_gcs_cb_data->cb_content.read_result.value_size; i++)
+                    data_uart_debug("0x%2x ", *(p_gcs_cb_data->cb_content.read_result.p_value + i));
+                data_uart_debug("\n\r");
             }
             break;
         case GCS_CLIENT_CB_TYPE_WRITE_RESULT:
-            APP_PRINT_INFO3("WRITE RESULT: cause 0x%x ,handle 0x%x, type %d",
+            APP_PRINT_INFO3("WRITE RESULT: cause 0x%x, handle 0x%x, type %d",
                             p_gcs_cb_data->cb_content.write_result.cause,
                             p_gcs_cb_data->cb_content.write_result.handle,
                             p_gcs_cb_data->cb_content.write_result.type);
-            /*
-			data_uart_print("WRITE RESULT: cause 0x%x ,handle 0x%x, type %d",
+            data_uart_debug("WRITE RESULT: cause 0x%x, handle 0x%x, type %d\n\r",
                             p_gcs_cb_data->cb_content.write_result.cause,
                             p_gcs_cb_data->cb_content.write_result.handle,
                             p_gcs_cb_data->cb_content.write_result.type);
-            */
             break;
         case GCS_CLIENT_CB_TYPE_NOTIF_IND:
             if (p_gcs_cb_data->cb_content.notif_ind.notify == false)
@@ -1797,12 +1680,6 @@ T_APP_RESULT bt_mesh_scatternet_gcs_client_callback(T_CLIENT_ID client_id, uint8
                 APP_PRINT_INFO1("INDICATION VALUE: %b",
                                 TRACE_BINARY(p_gcs_cb_data->cb_content.read_result.value_size,
                                              p_gcs_cb_data->cb_content.read_result.p_value));
-				data_uart_print("INDICATION: handle 0x%x, value_size %d",
-                                p_gcs_cb_data->cb_content.notif_ind.handle,
-                                p_gcs_cb_data->cb_content.notif_ind.value_size);
-				data_uart_print("INDICATION VALUE: %b",
-                                TRACE_BINARY(p_gcs_cb_data->cb_content.read_result.value_size,
-                                             p_gcs_cb_data->cb_content.read_result.p_value));
             }
             else
             {
@@ -1810,12 +1687,6 @@ T_APP_RESULT bt_mesh_scatternet_gcs_client_callback(T_CLIENT_ID client_id, uint8
                                 p_gcs_cb_data->cb_content.notif_ind.handle,
                                 p_gcs_cb_data->cb_content.notif_ind.value_size);
                 APP_PRINT_INFO1("NOTIFICATION VALUE: %b",
-                                TRACE_BINARY(p_gcs_cb_data->cb_content.notif_ind.value_size,
-                                             p_gcs_cb_data->cb_content.notif_ind.p_value));
-				data_uart_print("NOTIFICATION: handle 0x%x, value_size %d",
-                                p_gcs_cb_data->cb_content.notif_ind.handle,
-                                p_gcs_cb_data->cb_content.notif_ind.value_size);
-				data_uart_print("NOTIFICATION VALUE: %b",
                                 TRACE_BINARY(p_gcs_cb_data->cb_content.notif_ind.value_size,
                                              p_gcs_cb_data->cb_content.notif_ind.p_value));
             }
@@ -2025,50 +1896,6 @@ T_APP_RESULT bt_mesh_provisioner_multiple_profile_app_profile_callback(T_SERVER_
     }
 #if ((defined(CONFIG_BT_MESH_PERIPHERAL) && CONFIG_BT_MESH_PERIPHERAL) || \
     (defined(CONFIG_BT_MESH_SCATTERNET) && CONFIG_BT_MESH_SCATTERNET))
-#if defined(CONFIG_BT_CENTRAL_CONFIG) && CONFIG_BT_CENTRAL_CONFIG
-    else  if (service_id == bt_config_srv_id)
-    {
-        TBTCONFIG_CALLBACK_DATA *p_simp_cb_data = (TBTCONFIG_CALLBACK_DATA *)p_data;
-        switch (p_simp_cb_data->msg_type)
-        {
-        case SERVICE_CALLBACK_TYPE_READ_CHAR_VALUE:
-            {
-				uint8_t *read_buf = NULL;
-				uint32_t read_buf_len = 0;
-				// Customized command:
-				// Handle your own Read Request here
-				// Prepare your own read_buf & read_buf_len
-				// Otherwise, use BC_handle_read_request to get read response from BT Config
-				BC_handle_read_request(&read_buf, &read_buf_len, p_simp_cb_data->msg_data.read_offset);
-				if(read_buf != NULL) {
-					bt_config_service_set_parameter(BTCONFIG_SERVICE_PARAM_V1_READ_CHAR_VAL, read_buf_len, read_buf);
-				}
-            }
-            break;
-        case SERVICE_CALLBACK_TYPE_WRITE_CHAR_VALUE:
-            {
-                switch (p_simp_cb_data->msg_data.write.opcode)
-                {
-                case BTCONFIG_WRITE_V1:
-                    {
-						// Customized command:
-						// Parse data first. (p_simp_cb_data->msg_data.write.p_value, p_simp_cb_data->msg_data.write.len)
-						// If it's a customized command, handle it here (call customized function to do specific actions)
-						// Otherwise, use BC_send_cmd to send data (BT Config command) to BT Config
-						BC_send_cmd( p_simp_cb_data->msg_data.write.p_value,  p_simp_cb_data->msg_data.write.len);
-                    }
-                    break;
-                default:
-                    break;
-                }
-            }
-            break;
-
-        default:
-            break;
-        }
-    }
-#else
     else  if (service_id == bt_mesh_simp_srv_id)
     {
         TSIMP_CALLBACK_DATA *p_simp_cb_data = (TSIMP_CALLBACK_DATA *)p_data;
@@ -2177,7 +2004,7 @@ T_APP_RESULT bt_mesh_provisioner_multiple_profile_app_profile_callback(T_SERVER_
         }
     }
 #endif
-#endif
+
     return app_result;
 }
 
@@ -2233,6 +2060,7 @@ bool prov_cb(prov_cb_type_t cb_type, prov_cb_data_t cb_data)
         {
         case PB_GENERIC_CB_LINK_OPENED:
             data_uart_debug("PB-ADV Link Opened!\r\n>");
+            send_coex_mailbox_to_wifi_from_BtAPP(0);
 #if defined(CONFIG_EXAMPLE_BT_MESH_DEMO) && CONFIG_EXAMPLE_BT_MESH_DEMO
             if (bt_mesh_lib_priv.connect_device_sema) {
                 bt_mesh_lib_priv.connect_device_flag = 1;
@@ -2247,6 +2075,7 @@ bool prov_cb(prov_cb_type_t cb_type, prov_cb_data_t cb_data)
             break;
         case PB_GENERIC_CB_LINK_OPEN_FAILED:
             data_uart_debug("PB-ADV Link Open Failed!\r\n>");
+            send_coex_mailbox_to_wifi_from_BtAPP(0);
 #if defined(CONFIG_EXAMPLE_BT_MESH_DEMO) && CONFIG_EXAMPLE_BT_MESH_DEMO
             if (bt_mesh_lib_priv.connect_device_sema) {
                 bt_mesh_lib_priv.connect_device_flag = 0;
@@ -2261,6 +2090,7 @@ bool prov_cb(prov_cb_type_t cb_type, prov_cb_data_t cb_data)
             break;
         case PB_GENERIC_CB_LINK_CLOSED:
             data_uart_debug("PB-ADV Link Closed!\r\n>");
+            send_coex_mailbox_to_wifi_from_BtAPP(0);
             break;
         default:
             break;
@@ -2381,6 +2211,8 @@ bool prov_cb(prov_cb_type_t cb_type, prov_cb_data_t cb_data)
  */
 void fn_cb(uint8_t frnd_index, fn_cb_type_t type, uint16_t lpn_addr)
 {
+    /* avoid gcc compile warning */
+    (void)frnd_index;
     char *string[] = {"establishing with lpn 0x%04x\r\n", "no poll from 0x%04x\r\n", "established with lpn 0x%04x\r\n", "lpn 0x%04x lost\r\n"};
     data_uart_debug(string[type], lpn_addr);
     if (type == FN_CB_TYPE_ESTABLISH_SUCCESS || type == FN_CB_TYPE_FRND_LOST)
@@ -2843,11 +2675,11 @@ T_APP_RESULT bt_mesh_central_gcs_client_callback(T_CLIENT_ID client_id, uint8_t 
             bt_mesh_central_gcs_handle_discovery_result(conn_id, p_gcs_cb_data->cb_content.discov_result);
             break;
         case GCS_CLIENT_CB_TYPE_READ_RESULT:
-            APP_PRINT_INFO3("READ RESULT: cause 0x%x, handle 0x%x,  value_len %d",
+            APP_PRINT_INFO3("READ RESULT: cause 0x%x, handle 0x%x, value_len %d",
                             p_gcs_cb_data->cb_content.read_result.cause,
                             p_gcs_cb_data->cb_content.read_result.handle,
                             p_gcs_cb_data->cb_content.read_result.value_size);
-            data_uart_print("READ RESULT: cause 0x%x, handle 0x%x,  value_len %d\n\r",
+            data_uart_debug("READ RESULT: cause 0x%x, handle 0x%x, value_len %d\n\r",
                             p_gcs_cb_data->cb_content.read_result.cause,
                             p_gcs_cb_data->cb_content.read_result.handle,
                             p_gcs_cb_data->cb_content.read_result.value_size);
@@ -2857,18 +2689,18 @@ T_APP_RESULT bt_mesh_central_gcs_client_callback(T_CLIENT_ID client_id, uint8_t 
                 APP_PRINT_INFO1("READ VALUE: %b",
                                 TRACE_BINARY(p_gcs_cb_data->cb_content.read_result.value_size,
                                              p_gcs_cb_data->cb_content.read_result.p_value));
-				data_uart_print("REAR VALUE:");
-				for(int i=0; i< p_gcs_cb_data->cb_content.read_result.value_size; i++)
-					data_uart_print("0x%2X", *(p_gcs_cb_data->cb_content.read_result.p_value + i));
-				data_uart_print("\n\r");
+                data_uart_debug("REAR VALUE: ");
+                for(int i=0; i< p_gcs_cb_data->cb_content.read_result.value_size; i++)
+                    data_uart_debug("0x%2x ", *(p_gcs_cb_data->cb_content.read_result.p_value + i));
+                data_uart_debug("\n\r");
             }
             break;
         case GCS_CLIENT_CB_TYPE_WRITE_RESULT:
-            APP_PRINT_INFO3("WRITE RESULT: cause 0x%x ,handle 0x%x, type %d",
+            APP_PRINT_INFO3("WRITE RESULT: cause 0x%x, handle 0x%x, type %d",
                             p_gcs_cb_data->cb_content.write_result.cause,
                             p_gcs_cb_data->cb_content.write_result.handle,
                             p_gcs_cb_data->cb_content.write_result.type);
-			data_uart_print("WRITE RESULT: cause 0x%x ,handle 0x%x, type %d",
+            data_uart_debug("WRITE RESULT: cause 0x%x, handle 0x%x, type %d\n\r",
                             p_gcs_cb_data->cb_content.write_result.cause,
                             p_gcs_cb_data->cb_content.write_result.handle,
                             p_gcs_cb_data->cb_content.write_result.type);

@@ -15,6 +15,8 @@
 #ifndef _BT_MESH_PROVISIONER_APP_FLAGS_H_
 #define _BT_MESH_PROVISIONER_APP_FLAGS_H_
 
+#include <app_common_flags.h>
+
 /**
  * @addtogroup MESH_APP_CONFIG
  * @{
@@ -37,8 +39,6 @@
 #define F_BT_GAPS_CHAR_WRITEABLE            0
 /** @brief  Config set physical: 0-Not built in, 1-built in, use user command to set*/
 #define F_BT_LE_5_0_SET_PHY_SUPPORT         0
-/** @brief  Config local address type: 0-pulic address, 1-static random address */
-#define F_BT_LE_USE_STATIC_RANDOM_ADDR      0
 
 /** @} */
 /** @} */

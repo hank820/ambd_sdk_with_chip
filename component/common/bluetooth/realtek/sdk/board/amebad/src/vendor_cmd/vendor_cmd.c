@@ -103,6 +103,34 @@ T_GAP_CAUSE le_set_conn_tx_power(uint8_t conn_id, bool reset, uint8_t tx_power)
     }
 }
 #endif
+
+#if BT_VENDOR_CMD_SLAVE_LATENCY_SUPPORT
+T_GAP_CAUSE le_disable_slave_latency(uint8_t conn_id, bool disable)
+{
+    uint16_t conn_handle;
+
+    if (le_get_conn_param(GAP_PARAM_CONN_HANDLE, &conn_handle, conn_id) == GAP_CAUSE_SUCCESS) {
+        uint8_t param[4];
+        param[0] = HCI_EXT_SUB_DISABLE_LATENCY;
+        param[1] = conn_handle & 0xFF;
+        param[2] = (conn_handle >> 8) & 0xFF;
+
+        if (disable) {
+            param[3] = 0;
+        } else {
+            param[3] = 1;
+        }
+
+        if (gap_vendor_cmd_req(HCI_LE_VENDOR_EXTENSION_FEATURE, 4, param) == GAP_CAUSE_SUCCESS) {
+            return GAP_CAUSE_SUCCESS;
+        }
+        return GAP_CAUSE_SEND_REQ_FAILED;
+    } else {
+        return GAP_CAUSE_NON_CONN;
+    }
+}
+#endif
+
 /**
  * @brief Callback for gap common module to notify app
  * @param[in] cb_type callback msy type @ref GAP_COMMON_MSG_TYPE.

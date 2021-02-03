@@ -21,6 +21,8 @@
 struct us_data gUS_DATA;
 static char quirks[128];
 extern _sema us_sto_rdy_sema;
+struct us_usr_cb *stor_cb;
+_sema us_trd_exit_sema;
 
 /*Example: quirks=0419:aaf5:rl,0421:0433:rc*/
 
@@ -197,13 +199,13 @@ US_ENTER;
 	us->cr = (struct usb_ctrlrequest*)rtw_malloc(sizeof(struct usb_ctrlrequest));
 	if (!us->cr){
 		US_ERR("USB CTRL request allocation failed\n");
-		return -ENOMEM;
+		return -USB_ENOMEM;
 	}
 
  	us->iobuf = (unsigned char*)rtw_malloc(US_IOBUF_SIZE);
 	if (!us->iobuf) {
 		US_ERR("I/O buffer allocation failed\n");
-		return -ENOMEM;
+		return -USB_ENOMEM;
 	}
 US_EXIT;
 	return 0;
@@ -241,7 +243,7 @@ US_ENTER;
 
 	if (us->fflags & US_FL_IGNORE_DEVICE){
 		US_ERR("Device ignored\n");
-		return -ENODEV;
+		return -USB_ENODEV;
 	}
 
 	/*
@@ -367,7 +369,7 @@ US_ENTER;
 
 	if (!ep_in || !ep_out || (us->protocol == USB_PR_CBI && !ep_int)) {
 		US_INFO("Endpoint sanity check failed! Rejecting dev.\n");
-		return -EIO;
+		return -USB_EIO;
 	}
 
 	/* Calculate and store the pipe values */
@@ -386,6 +388,15 @@ US_EXIT;
 	return 0;
 }
 
+static u32 rtw_down_sema_stor(_sema *sema)
+{
+	while(rtw_down_timeout_sema(sema, 3000) != _TRUE) {
+		if(!usbh_get_connect_status()) {
+			return _FALSE;
+		}
+	}
+	return _TRUE;
+}
 
 /**
  * this thread will sleep until any SCSI command transported
@@ -401,14 +412,18 @@ void usb_stor_control_thread(void * param)
 	for (;;) {
 		// 1: the usb_stor_release_resource will release this semaphore
 		// 2: the queuecommand will release this semaphore
-		if(!rtw_down_sema(&(us->cmnd_ready))){ // wait here until awoke
-			US_ERR("Get command ready semaphore fail.\n");
+		if(!rtw_down_sema_stor(&(us->cmnd_ready))){ // wait here until awoke
+			US_WARN("Get command ready semaphore fail.\n");
 			break;
 		}
 
 		// protect data when scsi command is running
 		/* lock the device pointers */
 		rtw_mutex_get(&(us->dev_mutex));
+		if(!usbh_get_connect_status()) {
+			rtw_mutex_put(&(us->dev_mutex));
+			break;
+		}
 		// protect resource while doing srb operation
 		/* When we are called with no command pending, we're done */
 		if (us->srb == NULL) {
@@ -490,7 +505,7 @@ SkipForAbort:
 		/* unlock the device pointers */
 		rtw_mutex_put(&us->dev_mutex);
 	}
-	
+	rtw_up_sema(&us_trd_exit_sema);
 	vTaskDelete(NULL);
 }
 
@@ -503,7 +518,7 @@ US_ENTER;
 	us->current_urb = usb_alloc_urb(0);
 	if (!us->current_urb) {
 		US_ERR("URB allocation failed\n");
-		return -ENOMEM;
+		return -USB_ENOMEM;
 	}
 	/* Just before we start our control thread, initialize
 	 * the device if it needs initialization */
@@ -532,7 +547,7 @@ static void usb_stor_release_resources(struct us_data *us)
 	 * so that we won't accept any more commands.
 	 */
 	US_INFO("sending exit command to thread\n");
-	rtw_mutex_put(&us->cmnd_ready); // release cmnd_ready semaphore, so
+	rtw_up_sema(&us->cmnd_ready); // release cmnd_ready semaphore, so
 								// the usb_stor_control_thread will exit
 	// the task will kill itsself
 /*
@@ -553,7 +568,13 @@ static void usb_stor_release_resources(struct us_data *us)
 static void release_everything(struct us_data *us)
 {
 	usb_stor_release_resources(us);
+	if(us->pusb_dev &&  us->pusb_intf) {
+		usb_disable_interface(us->pusb_dev, us->pusb_intf, TRUE);
+	}
 	dissociate_dev(us);
+	rtw_mutex_free(&(us->dev_mutex));
+	rtw_free_sema(&us->cmnd_ready);
+	rtw_mutex_free(&(us->notify));
 }
 
 /* First part of general USB mass-storage probing */
@@ -606,7 +627,7 @@ int usb_stor_probe2(struct us_data *us)
 US_ENTER;
 	/* Make sure the transport and protocol have both been set */
 	if (!us->transport || !us->proto_handler) {
-		result = -ENXIO;
+		result = -USB_ENXIO;
 		goto BadDevice;
 	}
 	US_INFO(" %s\n", us->transport_name);
@@ -667,6 +688,10 @@ void usb_stor_disconnect(struct usb_interface *intf)
     if (intf == NULL) {
         return;
     }
+	
+    if ( rtw_down_timeout_sema(&us_trd_exit_sema, 5000) == _FAIL) {
+        US_ERR("\nGet thread exit sema time out\n");
+    }
     
 	us = usb_get_intfdata(intf);
 US_ENTER;
@@ -676,6 +701,9 @@ US_ENTER;
 	 */
 	set_bit(US_FLIDX_DISCONNECTING, &us->dflags);
 	release_everything(us);
+	if (stor_cb && stor_cb->detach) {
+		stor_cb->detach();
+	}
 US_EXIT;
 }
 
@@ -699,6 +727,8 @@ US_ENTER;
 		return 1;
 	}
 
+	memset(us, 0, sizeof(*us));
+	
 #if 1
 	/*
 	 * If the device isn't standard (is handled by a subdriver
@@ -706,7 +736,7 @@ US_ENTER;
 	 */
 	if (usb_usual_ignore_device(intf)){
 		US_ERR("This device is not a stadard USB storage devices.\n");
-		return -ENXIO;
+		return -USB_ENXIO;
 	}
 #endif
 
@@ -737,7 +767,7 @@ US_ENTER;
 	}
 	
 	if(!id){
-		return -ENODEV;
+		return -USB_ENODEV;
 	}
 
 	US_INFO("GOT an id(index:%d/%d).\n", index, size);
@@ -769,6 +799,9 @@ US_ENTER;
 	if(!result){
 		USB_STORAGE_READY = TRUE;
 		rtw_up_sema(&us_sto_rdy_sema);
+		if (stor_cb && stor_cb->attach){
+			stor_cb->attach();
+		}
         US_INFO("done");
         }
 US_EXIT;
@@ -790,12 +823,21 @@ static struct usb_driver usb_storage_driver = {
 int usb_storage_init(void){
 	int res = 0;
   	res = usb_register_class_driver(&usb_storage_driver);
+	rtw_init_sema(&us_trd_exit_sema, 0);
 	return res;
 }
 
 int usb_storage_deinit(void){
+	rtw_free_sema(&us_trd_exit_sema);
   	usb_unregister_class_driver(&usb_storage_driver);
     return 0;
+}
+
+void usb_msc_register_usr_cb(struct us_usr_cb *cb)
+{	
+	if (cb != NULL) {
+		stor_cb = cb;
+	}
 }
 
 #endif // CONFIG_USBH_MSC

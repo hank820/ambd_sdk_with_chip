@@ -190,6 +190,8 @@ static int32_t scene_trans_step_change(const mesh_model_info_p pmodel_info, uint
                                        generic_transition_time_t total_time,
                                        generic_transition_time_t remaining_time)
 {
+    /* avoid gcc compile warning */
+    (void)type;
     int32_t ret = MODEL_SUCCESS;
     scene_info_t *pinfo = pmodel_info->pargs;
     if (NULL == pinfo)
@@ -505,6 +507,8 @@ static bool scene_server_receive(mesh_msg_p pmesh_msg)
 
 static int32_t scene_server_publish(mesh_model_info_p pmodel_info, bool retrans)
 {
+    /* avoid gcc compile warning */
+    (void)retrans;
     generic_transition_time_t trans_time = {0, 0};
     scene_status(pmodel_info, 0, 0, SCENE_STATUS_SUCCESS, get_current_scene(pmodel_info), FALSE, 0,
                  trans_time, 0);

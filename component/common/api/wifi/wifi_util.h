@@ -59,6 +59,9 @@ int wext_set_tdma_param(const char *ifname, __u8 slot_period, __u8 rfon_period_l
 int wext_set_lps_dtim(const char *ifname, __u8 lps_dtim);
 int wext_get_lps_dtim(const char *ifname, __u8 *lps_dtim);
 int wext_set_lps_thresh(const char *ifname, __u8 low_thresh);
+#ifdef LONG_PERIOD_TICKLESS
+int wext_set_lps_smartps(const char *ifname, __u8 smart_ps);
+#endif
 int wext_set_beacon_mode(const char *ifname, __u8 mode);
 int wext_set_lps_level(const char *ifname, __u8 lps_level);
 int wext_get_tx_power(const char *ifname, __u8 *poweridx);
@@ -74,6 +77,7 @@ int wext_set_autoreconnect(const char *ifname, __u8 mode, __u8 retry_times, __u1
 int wext_get_autoreconnect(const char *ifname, __u8 *mode);
 int wext_set_adaptivity(rtw_adaptivity_mode_t adaptivity_mode);
 int wext_set_trp_tis(__u8 enable);
+int wext_set_anti_interference(__u8 enable);
 int wext_set_adaptivity_th_l2h_ini(__u8 l2h_threshold);
 int wext_get_auto_chl(const char *ifname, unsigned char *channel_set, unsigned char channel_num);
 int wext_set_sta_num(unsigned char ap_sta_num);

@@ -24,6 +24,20 @@ extern mesh_msg_send_cause_t light_hsl_range_stat(mesh_model_info_p pmodel_info,
                                                   uint16_t app_key_index, generic_stat_t stat, uint16_t hue_range_min, uint16_t hue_range_max,
                                                   uint16_t saturation_range_min, uint16_t saturation_range_max, uint32_t delay_time);
 
+#if 0
+typedef struct
+{
+    uint8_t tid;
+    uint16_t target_lightness;
+    uint16_t target_hue;
+    uint16_t target_saturation;
+    generic_transition_time_t trans_time;
+    uint32_t delay_time;
+#if MODEL_ENABLE_DELAY_MSG_RSP
+    uint32_t delay_pub_time;
+#endif
+} light_hsl_info_t;
+#endif
 
 static bool light_hsl_setup_server_receive(mesh_msg_p pmesh_msg)
 {
@@ -92,6 +106,24 @@ static bool light_hsl_setup_server_receive(mesh_msg_p pmesh_msg)
     return ret;
 }
 
+#if MESH_MODEL_ENABLE_DEINIT
+static void light_hsl_setup_server_deinit(mesh_model_info_t *pmodel_info)
+{
+    if (pmodel_info->model_receive == light_hsl_setup_server_receive)
+    {
+#if 0
+        /* now we can remove */
+        if (NULL != pmodel_info->pargs)
+        {
+            plt_free(pmodel_info->pargs, RAM_TYPE_DATA_ON);
+            pmodel_info->pargs = NULL;
+        }
+#endif
+        pmodel_info->model_receive = NULL;
+    }
+}
+#endif
+
 bool light_hsl_setup_server_reg(uint8_t element_index, mesh_model_info_p pmodel_info)
 {
     if (NULL == pmodel_info)
@@ -102,11 +134,24 @@ bool light_hsl_setup_server_reg(uint8_t element_index, mesh_model_info_p pmodel_
     pmodel_info->model_id = MESH_MODEL_LIGHT_HSL_SETUP_SERVER;
     if (NULL == pmodel_info->model_receive)
     {
+#if 0
+		light_hsl_info_t *phsl_info = plt_malloc(sizeof(light_hsl_info_t),
+                                                 RAM_TYPE_DATA_ON);
+        if (NULL == phsl_info)
+        {
+            printe("light_hsl_setup_server_reg: fail to allocate memory for the new model extension data!");
+            return FALSE;
+        }
+		memset(phsl_info, 0, sizeof(light_hsl_info_t));
+#endif
         pmodel_info->model_receive = light_hsl_setup_server_receive;
         if (NULL == pmodel_info->model_data_cb)
         {
             printw("light_hsl_setup_server_reg: missing model data process callback!");
         }
+#if MESH_MODEL_ENABLE_DEINIT
+        pmodel_info->model_deinit = light_hsl_setup_server_deinit;
+#endif
     }
 
     return mesh_model_reg(element_index, pmodel_info);

@@ -15,6 +15,8 @@
   */
 
 /** Add Includes here **/
+#include <platform_opts_bt.h>
+#if defined(CONFIG_BT_THROUGHPUT_TEST) && CONFIG_BT_THROUGHPUT_TEST
 #include <string.h>
 #include <os_msg.h>
 #include <os_task.h>
@@ -107,5 +109,5 @@ void ble_throughput_app_task_deinit(void)
 	ble_throughput_gap_dev_state.gap_conn_state = 0;
 
 }
-
+#endif
 

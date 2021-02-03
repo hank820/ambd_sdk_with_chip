@@ -18,6 +18,8 @@
 #include "mesh_api.h"
 #include "device_cmd.h"
 #include "device_app.h"
+#include "datatrans_model.h"
+#include "datatrans_app.h"
 #include "datatrans_server.h"
 #include "generic_on_off.h"
 
@@ -76,7 +78,7 @@ static user_cmd_parse_result_t user_cmd_lpn_req(user_cmd_parse_value_t *pparse_v
 {
     uint8_t fn_index = pparse_value->dw_parameter[0];
     uint16_t net_key_index = pparse_value->dw_parameter[1];
-    lpn_req_params_t req_params = {50, 100, {1, 0, 0}};
+    lpn_req_params_t req_params = {50, 100, {1, 0, 0, 0}};
     if (pparse_value->dw_parameter[2])
     {
         req_params.poll_interval = pparse_value->dw_parameter[2];
@@ -177,6 +179,30 @@ static user_cmd_parse_result_t user_cmd_generic_on_off_publish(user_cmd_parse_va
     return USER_CMD_RESULT_OK;
 }
 
+static user_cmd_parse_result_t user_cmd_datatrans_write(user_cmd_parse_value_t *pparse_value)
+{
+    uint8_t para_count = pparse_value->para_count;
+    uint8_t data[18];
+
+    for (uint8_t i = 0; i < para_count - 3; ++i)
+    {
+        data[i] = pparse_value->dw_parameter[i + 1];
+    }
+    datatrans_write(&datatrans, pparse_value->dw_parameter[0],
+                    pparse_value->dw_parameter[para_count - 2], para_count - 3, data,
+                    pparse_value->dw_parameter[para_count - 1]);
+
+    return USER_CMD_RESULT_OK;
+}
+
+static user_cmd_parse_result_t user_cmd_datatrans_read(user_cmd_parse_value_t *pparse_value)
+{
+    datatrans_read(&datatrans, pparse_value->dw_parameter[0],
+                   pparse_value->dw_parameter[2], pparse_value->dw_parameter[1]);
+
+    return USER_CMD_RESULT_OK;
+}
+
 /*----------------------------------------------------
  * command table
  * --------------------------------------------------*/
@@ -239,6 +265,18 @@ const user_cmd_table_entry_t device_cmd_table[] =
         "data transmission notify\n\r",
         user_cmd_data_transmission_notify
     },
+    {
+        "dtw",
+        "dtw [dst] [data...] [app_key_index] [ack] \n\r",
+        "data transmission write data\n\r",
+        user_cmd_datatrans_write
+    },
+    {
+        "dtr",
+        "dtr [dst] [len] [app_key_index]\n\r",
+        "data transmission read data\n\r",
+        user_cmd_datatrans_read
+    },
     /* MUST be at the end: */
     {
         0,
@@ -259,11 +297,17 @@ const struct bt_mesh_api_hdl devicecmds[] =
     GEN_MESH_HANDLER(_lpn_sub)
     GEN_MESH_HANDLER(_lpn_clear)
 #endif
+#if MESH_FN
+	GEN_MESH_HANDLER(_fn_init)
+#endif
     GEN_MESH_HANDLER(_data_transmission_notify)
     GEN_MESH_HANDLER(_generic_on_off_publish)
+    GEN_MESH_HANDLER(_datatrans_write)
+    GEN_MESH_HANDLER(_datatrans_read)
     GEN_MESH_HANDLER(_connect)
     GEN_MESH_HANDLER(_disconnect)
     GEN_MESH_HANDLER(_list)
+    GEN_MESH_HANDLER(_dev_info_show)
 };
 #endif
 

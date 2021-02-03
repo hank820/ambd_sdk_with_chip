@@ -129,6 +129,9 @@
 
 #define CONFIG_JOINLINK    0
 
+/*For MIMO pkt decode*/
+#define CONFIG_UNSUPPORT_PLCPHDR_RPT	0
+
 #define CONFIG_EXAMPLE_CM_BACKTRACE 0
 
 #endif //end of #if CONFIG_WLAN
@@ -298,6 +301,9 @@
 
 /*For wifi roaming plus example*/
 #define CONFIG_EXAMPLE_WIFI_ROAMING_PLUS		0
+
+/*For wifi connection priority example*/
+#define CONFIG_EXAMPLE_CONN_PRI_COND			0
 
 /* For dct example */
 #define CONFIG_EXAMPLE_DCT			0
@@ -575,7 +581,13 @@ in lwip_opt.h for support uart adapter*/
 #endif
 
 #if defined(CONFIG_USBD_CDC_ACM)
+#if defined(CONFIG_USBD_CDC_ACM_TP)
+#define CONFIG_EXAMPLE_USBD_CDC_ACM_TP     1
+#elif defined(CONFIG_USBD_CDC_ACM_RP)
+#define CONFIG_EXAMPLE_USBD_CDC_ACM_RP     1
+#else
 #define CONFIG_EXAMPLE_USBD_CDC_ACM     1
+#endif
 #endif
 
 #if defined(CONFIG_USBD_VENDOR)
@@ -597,8 +609,32 @@ in lwip_opt.h for support uart adapter*/
 #endif
 #endif
 
+#if defined(CONFIG_USBH_UVC)
+#define CONFIG_VIDEO_APPLICATION        1
+#define CONFIG_EXAMPLE_USBH_UVC         1
+#if CONFIG_EXAMPLE_USBH_UVC
+#define CONFIG_FATFS_EN                 0
+#if CONFIG_FATFS_EN
+// fatfs version
+#define FATFS_R_10C
+// fatfs disk interface
+#define FATFS_DISK_USB                  0
+#define FATFS_DISK_SD                   1
+#define FATFS_DISK_FLASH 	            0
+#endif
+#endif
+#endif
+
 #if defined(CONFIG_USBH_VENDOR)
 #define CONFIG_EXAMPLE_USBH_VENDOR      1
+#endif
+
+#if defined(CONFIG_USBH_CDC_ACM)
+#if defined(CONFIG_USBH_CDC_ACM_VERIFY)
+#define CONFIG_EXAMPLE_USBH_CDC_ACM_VERIFY 1
+#else
+#define CONFIG_EXAMPLE_USBH_CDC_ACM      1
+#endif
 #endif
 
 //#define CONFIG_EXAMPLE_COMPETITIVE_HEADPHONES		1
@@ -608,6 +644,14 @@ in lwip_opt.h for support uart adapter*/
 #define CONFIG_FAST_DHCP 1
 #else
 #define CONFIG_FAST_DHCP 0
+#endif
+
+/* For wlan repeater example */
+#define CONFIG_EXAMPLE_WLAN_REPEATER    0
+#if CONFIG_EXAMPLE_WLAN_REPEATER
+#define CONFIG_BRIDGE                   1
+#else
+#define CONFIG_BRIDGE                   0
 #endif
 
 #endif

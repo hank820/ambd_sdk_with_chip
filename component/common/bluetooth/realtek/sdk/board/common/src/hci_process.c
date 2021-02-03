@@ -100,13 +100,25 @@ uint8_t hci_tp_read_rom_ver(void)
     return HCI_TP_CHECK_OK;
 }
 
+extern bool hci_rtk_find_patch(uint8_t bt_hci_chip_id);
 uint8_t hci_read_rom_check(uint8_t len, uint8_t *p_buf)
 {
     (void)len;
+    bool ret = false;
     uint8_t    rom_version;
+    uint8_t    bt_hci_chip_id;
     LE_STREAM_TO_UINT8(rom_version, p_buf);
     HCI_PRINT_INFO1("hci_tp_config: rom_version 0x%02x", rom_version);
-    //hci_board_debug("%s: rom_version 0x%04x\n",__FUNCTION__,rom_version);
+    bt_hci_chip_id = rom_version + 1;
+    hci_board_debug("%s: rom_version 0x%04x, bt_hci_chip_id 0x%04x\n", __FUNCTION__, rom_version, bt_hci_chip_id);
+
+    ret = hci_rtk_find_patch(bt_hci_chip_id);
+    if(ret == false)
+    {
+        hci_board_debug("\r\n%s: error operate\r\n",__FUNCTION__);
+        return HCI_TP_CHECK_ERROR;
+    }
+
     return HCI_TP_CHECK_OK;
 }
 

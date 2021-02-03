@@ -557,6 +557,16 @@ int wifi_set_lps_thresh(rtw_lps_thresh_t mode);
  */
 int wifi_set_lps_level(unsigned char lps_level);
 
+#ifdef LONG_PERIOD_TICKLESS
+/**
+ * @brief Set Smart PS
+ * @param[in] smartps: 0 is issue NULL data, 2 is issue PS-Poll
+ *
+ * @return  RTW_SUCCESS if setting Smart PS successful.
+ * @return  RTW_ERROR otherwise
+ */
+int wifi_set_lps_smartps(unsigned char smartps);
+#endif
 /**
  * @brief  Set Management Frame Protection Support.
  * @param[in] value: 
@@ -1111,6 +1121,11 @@ extern u32 rtw_get_tsf(u32 Port);
 WL_BAND_TYPE wifi_get_band_type(void);
 
 
+#ifdef LOW_POWER_WIFI_CONNECT
+int wifi_set_psk_eap_interval(uint16_t psk_interval, uint16_t eap_interval);
+int wifi_set_null1_param(uint8_t check_period, uint8_t limit, uint8_t interval);
+#endif
+
 #ifdef __cplusplus
   }
 #endif
@@ -1119,5 +1134,3 @@ WL_BAND_TYPE wifi_get_band_type(void);
 
 #endif // __WIFI_API_H
 
-//----------------------------------------------------------------------------//
-int wifi_set_tx_pause_data(unsigned int NewState);

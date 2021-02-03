@@ -13,10 +13,10 @@
 
 /* Add Includes here */
 #include <string.h>
+#include "provisioner_app.h"
 #include "mesh_api.h"
 #include "configuration.h"
 #include "platform_opts.h"
-#include "provisioner_app.h"
 
 mesh_model_info_t cfg_client;
 uint16_t cfg_client_key_index; //!< NetKey or AppKey depends on the mesh_node.features.cfg_model_use_app_key
@@ -166,7 +166,9 @@ mesh_msg_send_cause_t cfg_model_pub_set(uint16_t dst, uint16_t element_addr, boo
     memcpy(pbuffer + index, pub_addr, va_flag ? 16 : 2);
     index += va_flag ? 16 : 2;
     pub_key_info.rfu = 0;
-    LE_WORD2EXTRN(pbuffer + index, *(uint16_t *)&pub_key_info);
+    /* to avoid gcc compile warning */
+    pub_key_info_p temp = &pub_key_info;
+    LE_WORD2EXTRN(pbuffer + index, *(uint16_t *)temp);
     pbuffer[index + 2] = pub_ttl;
     pbuffer[index + 3] = *(uint8_t *)&pub_period;
     pbuffer[index + 4] = *(uint8_t *)&pub_retrans_info;
@@ -525,6 +527,7 @@ mesh_msg_send_cause_t cfg_hb_sub_set(uint16_t dst, uint16_t src, uint16_t dst_se
 #if defined(CONFIG_BT_MESH_PROVISIONER_RTK_DEMO) && CONFIG_BT_MESH_PROVISIONER_RTK_DEMO
 #include "bt_mesh_app_lib_intf.h"
 extern struct BT_MESH_LIB_PRIV bt_mesh_lib_priv;
+extern void update_node_group(uint16_t mesh_addr, uint16_t group_addr);
 #endif
 
 bool cfg_client_receive(mesh_msg_p pmesh_msg)
@@ -758,7 +761,7 @@ compo_data_end:
                 {
                     data_uart_debug(" 0x%04x", LE_EXTRN2WORD(pbuffer + loop));
                 }
-#if defined(CONFIG_EXAMPLE_BT_MESH_DEMO) && CONFIG_EXAMPLE_BT_MESH_DEMO
+#if defined(CONFIG_BT_MESH_PROVISIONER_RTK_DEMO) && CONFIG_BT_MESH_PROVISIONER_RTK_DEMO
                 {
                     uint16_t mesh_addr = pmesh_msg->src;
                     uint16_t group_addr = 0;

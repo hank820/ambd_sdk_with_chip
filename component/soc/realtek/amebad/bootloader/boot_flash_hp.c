@@ -13,7 +13,6 @@ extern u8 Boot_Log_En;
 extern u8 IMG3_Exist;
 extern void INT_HardFault_C(uint32_t mstack[], uint32_t pstack[], uint32_t lr_value, uint32_t fault_id);
 
-BOOT_RAM_DATA_SECTION
 u32 SCB_VTOR_BK = 0;
 
 /* Generate BLXNS instruction */
@@ -229,9 +228,25 @@ void BOOT_FLASH_Image3Load(void)
 	}
 
 	switch(RdpStatus) {
-	case 0:	/* For MP */
+	case 0: {	/* For MP */
+
+		u32 OTF_Enable = HAL_READ32(SYSTEM_CTRL_BASE_LP, REG_SYS_EFUSE_SYSCFG3) & BIT_SYS_FLASH_ENCRYPT_EN;
+
+		/* RSIP mask to prevent IMG3 header from being decrypted. If customers use RDP+RSIP function, IMG3 only need
+		RDP encryption, and don't need RSIP encryption. */
+		if(OTF_Enable)
+			RSIP_OTF_Mask(3, (u32)Img3SecureHdr, 1, ENABLE);
+		
 		if((Img3SecureHdr->signature[0] == 0x35393138) && (Img3SecureHdr->signature[1] == 0x31313738)) {			
 			Img3NSCHdr = (IMAGE_HEADER *)((u32)Img3SecureHdr + IMAGE_HEADER_LEN + (Img3SecureHdr->image_size));
+			if(OTF_Enable)
+				RSIP_OTF_Mask(3, (u32)Img3NSCHdr, 1, ENABLE);
+			
+			u32 ImgSize = Img3SecureHdr->image_size + Img3NSCHdr->image_size + 2 * IMAGE_HEADER_LEN;
+
+			/* RSIP mask the whole image to prevent IMG3 Code/Data from being decrypted. */
+			if(OTF_Enable)
+				RSIP_OTF_Mask(3, (u32)Img3SecureHdr, ((ImgSize - 1) >> 12) + 1, ENABLE);
 
 			DBG_PRINTF(MODULE_BOOT, LEVEL_INFO,"IMG3 RAM_S:[0x%x:%d:0x%x]\n", Img3SecureHdr->image_addr, Img3SecureHdr->image_size, (void*)(Img3SecureHdr+1));
 			DBG_PRINTF(MODULE_BOOT, LEVEL_INFO,"IMG3 NSC:[0x%x:%d:0x%x]\n", Img3NSCHdr->image_addr, Img3NSCHdr->image_size, (void*)(Img3NSCHdr+1));
@@ -241,11 +256,16 @@ void BOOT_FLASH_Image3Load(void)
 
 			/* Save plaintext rdp len (no checksum)*/
 			PRAM_FUNCTION_START_TABLE pRamStartFun = (PRAM_FUNCTION_START_TABLE)__ram_start_table_start__;
-			u32 ImgSize = Img3SecureHdr->image_size + Img3NSCHdr->image_size + 2 * IMAGE_HEADER_LEN;
 			ImgSize = ((((ImgSize - 1) >> 4) + 1) << 4);
 			pRamStartFun->ExportTable->psram_s_start_addr = (u32)Img3SecureHdr + ImgSize;
 		}
+
+		/* Relase temporary-used RSIP Mask entry */
+		if(OTF_Enable)
+			RSIP_OTF_Mask(3, 0, 0, DISABLE);
+
 	break;
+	}
 	case 2: /* For normal boot (RDP enable) */
 		DBG_PRINTF(MODULE_BOOT, LEVEL_INFO,"RDP EN\n");
 
@@ -291,6 +311,10 @@ u32 BOOT_FLASH_Reason_Set(void)
 	} else {
 		tmp_reason &= ~BIT_BOOT_BOD_RESET_HAPPEN;
 	}	
+
+	if ((tmp_reason & BIT_BOOT_KM4SYS_RESET_HAPPEN) && (tmp_reason & BIT_BOOT_KM4WDG_RESET_HAPPEN)) {
+		tmp_reason &= ~BIT_BOOT_KM4WDG_RESET_HAPPEN;
+	}		
 
 	if (tmp_reason == 0) {
 		return 0;

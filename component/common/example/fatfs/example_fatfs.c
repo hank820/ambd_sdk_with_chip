@@ -617,7 +617,13 @@ void example_fatfs_thread(void* param){
 	int test_result = 1;
 	int ret = 0;
 	int flash = 0;
+#if FATFS_DISK_USB
+	u8 test_info[]="\"Ameba test fatfs usb ~~~~\"";
+#elif FATFS_DISK_SD
 	u8 test_info[]="\"Ameba test fatfs sd card ~~~~\"";
+#elif FATFS_DISK_FLASH
+	u8 test_info[]="\"Ameba test fatfs flash ~~~~\"";
+#endif
 
 #if FATFS_DISK_USB
 	_usb_init();

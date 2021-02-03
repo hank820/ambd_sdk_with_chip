@@ -725,7 +725,7 @@ static int audio_get_intf_req(struct usb_function *f, const struct usb_control_r
     struct usb_composite_dev *cdev = f->config->cdev;
     struct usb_request *req = cdev->req;
     struct f_audio *audio = &audio_dev;
-    int value = -EOPNOTSUPP;
+    int value = -USB_EOPNOTSUPP;
     uint8_t id = (((ctrl->wIndex) >> 8) & 0xFF);
     uint16_t len = (ctrl->wLength);
     uint16_t w_value = (ctrl->wValue);
@@ -763,7 +763,7 @@ static int audio_set_endpoint_req(struct usb_function *f, const struct usb_contr
 {
     struct usb_composite_dev *cdev = f->config->cdev;
     struct f_audio *audio = &audio_dev;
-    int value = -EOPNOTSUPP;
+    int value = -USB_EOPNOTSUPP;
     uint16_t ep = (ctrl->wIndex);
     uint16_t len = (ctrl->wLength);
     struct usb_request *req = cdev->req;
@@ -804,7 +804,7 @@ static int audio_set_endpoint_req(struct usb_function *f, const struct usb_contr
 
 static int audio_get_endpoint_req(struct usb_function *f, const struct usb_control_request *ctrl)
 {
-    int value = -EOPNOTSUPP;
+    int value = -USB_EOPNOTSUPP;
     uint16_t len = (ctrl->wLength);
     UNUSED(f);
 
@@ -830,7 +830,7 @@ static int audio_fun_setup(struct usb_function *f, const struct usb_control_requ
 {
     struct usb_composite_dev *cdev = f->config->cdev;
     struct usb_request      *req = cdev->req;
-    int                     value = -EOPNOTSUPP;
+    int                     value = -USB_EOPNOTSUPP;
 
     USBD_AUDIO_ENTER;
 
@@ -1018,7 +1018,7 @@ static int audio_fun_set_alt(struct usb_function *function, unsigned intf, unsig
         } else if (alt == 1) {
             err = up_isoin(audio);
         } else {
-            err = -ENOMEM;
+            err = -USB_ENOMEM;
         }
     }
 
@@ -1055,7 +1055,7 @@ static int audio_fun_get_alt(struct usb_function *function, unsigned intf)
 static int audio_fun_bind(struct usb_configuration *c, struct usb_function *function)
 {
     struct usb_ep *ep;
-    int status = -ENODEV;
+    int status = -USB_ENODEV;
     int id;
     struct f_audio  *audio = &audio_dev;
 
@@ -1119,7 +1119,7 @@ static int audio_fun_bind(struct usb_configuration *c, struct usb_function *func
     isoinreq->buf1 = rtw_malloc(g_req_in_buf_size);
     if ((isoinreq == NULL) || (isoinreq->buf0 == NULL) || (isoinreq->buf1 == NULL)) {
         USBD_AUDIO_ERROR("isoinreq allocate fail");
-        status = -ENOMEM;
+        status = -USB_ENOMEM;
         goto audio_fun_bind_fail;
     }
 
@@ -1134,7 +1134,7 @@ static int audio_fun_bind(struct usb_configuration *c, struct usb_function *func
         isoinreq->buf1 = NULL;
         free_iso_request(audio->in_ep, isoinreq);
         isoinreq = NULL;
-        status = -ENOMEM;
+        status = -USB_ENOMEM;
         goto audio_fun_bind_fail;
     }
 
@@ -1318,7 +1318,7 @@ static int audio_config(struct usb_configuration *c)
     pcm_rate_table = (uint32_t *)rtw_malloc(PCM_TABLE_CNT * 4);
     if (pcm_rate_table == NULL) {
         USBD_AUDIO_ERROR("PCM rate table allocate fail");
-        status = -ENOMEM;
+        status = -USB_ENOMEM;
         goto audio_config_fail;
     } else {
         *(pcm_rate_table + 0) = 8000;
@@ -1332,7 +1332,7 @@ static int audio_config(struct usb_configuration *c)
     }
 
     USBD_AUDIO_EXIT;
-    return ESUCCESS;
+    return USB_ESUCCESS;
 
 audio_config_fail:
     USBD_AUDIO_EXIT_ERR;
@@ -1384,7 +1384,7 @@ int usbd_audio_init(usbd_audio_usr_cb_t *cb)
     
     if (usb_audio_usr_cb->init != NULL) {
         status = usb_audio_usr_cb->init();
-        if (status != ESUCCESS) {
+        if (status != USB_ESUCCESS) {
             USBD_AUDIO_ERROR("User init fail");
             if (usb_audio_usr_cb->deinit != NULL) {
                 usb_audio_usr_cb->deinit();
@@ -1394,7 +1394,7 @@ int usbd_audio_init(usbd_audio_usr_cb_t *cb)
     }
     
     USBD_AUDIO_EXIT;
-    return ESUCCESS;
+    return USB_ESUCCESS;
     
 usbd_audio_init_fail:
     USBD_AUDIO_EXIT_ERR;

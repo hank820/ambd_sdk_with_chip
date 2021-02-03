@@ -46,7 +46,7 @@ CSRC += \
     $(MESH_DIR)/lib/model/realtek/ping_control.c \
     $(MESH_DIR)/lib/model/realtek/tp_control.c \
     $(MESH_DIR)/lib/model/realtek/light_cwrgb_client.c \
-    $(MESH_DIR)/lib/model/realtek/datatrans_model_client.c \
+    $(MESH_DIR)/lib/model/realtek/datatrans_model.c \
     $(MESH_DIR)/lib/model/generic_on_off_client.c \
     $(MESH_DIR)/lib/model/generic_default_transition_time_client.c \
     $(MESH_DIR)/lib/model/generic_level_client.c \
@@ -63,12 +63,13 @@ CSRC += \
     $(MESH_DIR)/lib/model/scene_client.c \
     $(MESH_DIR)/lib/model/sensor_client.c \
     $(MESH_DIR)/lib/model/scheduler_client.c \
+	$(MESH_DIR)/lib/model/delay_msg_rsp.c \
     $(MESH_DIR)/provisioner/bt_mesh_provisioner_app_task.c \
     $(MESH_DIR)/provisioner/provisioner_app.c \
     $(MESH_DIR)/lib/common/ping_app.c \
     $(MESH_DIR)/lib/common/generic_client_app.c \
     $(MESH_DIR)/lib/common/light_client_app.c \
-    $(MESH_DIR)/lib/common/datatrans_client_app.c \
+    $(MESH_DIR)/lib/common/datatrans_app.c \
     $(MESH_DIR)/lib/cmd/mesh_cmd.c \
     $(MESH_DIR)/lib/cmd/client_cmd.c \
     $(MESH_DIR)/lib/cmd/test_cmd.c \

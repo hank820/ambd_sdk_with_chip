@@ -257,13 +257,15 @@ static bool sensor_client_receive(mesh_msg_p pmesh_msg)
     case MESH_MSG_SENSOR_DESCRIPTOR_STATUS:
         {
             sensor_descriptor_status_t *pmsg = (sensor_descriptor_status_t *)pbuffer;
+            /* to avoid gcc compile warning */
+            uint8_t *temp = pmsg->descriptors;
             if (NULL != pmodel_info->model_data_cb)
             {
                 sensor_client_status_descriptor_t status_data = {pmesh_msg->src, 0, 0, NULL};
                 uint16_t descriptor_len = pmesh_msg->msg_len - sizeof(sensor_descriptor_status_t);
                 if (PROPERTY_ID_LEN == descriptor_len)
                 {
-                    status_data.property_id = *((uint16_t *)pmsg->descriptors);
+                    status_data.property_id = *((uint16_t *)temp);
                 }
                 else
                 {

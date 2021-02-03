@@ -32,10 +32,6 @@ void bt_example_init_thread(void *param)
 	(void )param;
 	T_GAP_DEV_STATE new_state;
 	
-#if defined(configENABLE_TRUSTZONE) && (configENABLE_TRUSTZONE == 1)
-	rtw_create_secure_context(configMINIMAL_SECURE_STACK_SIZE);
-#endif
-	
 	/*Wait WIFI init complete*/
 	while(!(wifi_is_up(RTW_STA_INTERFACE) || wifi_is_up(RTW_AP_INTERFACE))) {
 		vTaskDelay(1000 / portTICK_RATE_MS);

@@ -40,15 +40,38 @@ CSRC += \
     $(MESH_DIR)/lib/profile/datatrans_service.c \
 	$(MESH_DIR)/lib/model/generic_on_off_server.c \
 	$(MESH_DIR)/lib/model/delay_execution.c \
+	$(MESH_DIR)/lib/model/delay_msg_rsp.c \
 	$(MESH_DIR)/lib/model/generic_transition_time.c \
-    $(MESH_DIR)/lib/model/realtek/datatrans_model_server.c \
+    $(MESH_DIR)/lib/model/realtek/datatrans_model.c \
     $(MESH_DIR)/lib/model/realtek/ping_control.c \
     $(MESH_DIR)/lib/model/realtek/tp_control.c \
     $(MESH_DIR)/lib/model/health_server.c \
+	$(MESH_DIR)/lib/model/light_lightness_setup_server.c \
+	$(MESH_DIR)/lib/model/light_lightness_server.c \
+	$(MESH_DIR)/lib/model/light_xyl_setup_server.c \
+	$(MESH_DIR)/lib/model/light_xyl_server.c \
+	$(MESH_DIR)/lib/model/light_ctl_server.c \
+	$(MESH_DIR)/lib/model/light_ctl_setup_server.c \
+	$(MESH_DIR)/lib/model/light_ctl_temperature_server.c \
+	$(MESH_DIR)/lib/model/light_ctl_temperature_server.c \
+	$(MESH_DIR)/lib/model/light_hsl_hue_server.c \
+	$(MESH_DIR)/lib/model/light_hsl_saturation_server.c \
+	$(MESH_DIR)/lib/model/light_hsl_server.c \
+	$(MESH_DIR)/lib/model/light_hsl_setup_server.c \
+	$(MESH_DIR)/lib/model/time_server.c \
+	$(MESH_DIR)/lib/model/time_setup_server.c \
+    $(MESH_DIR)/lib/model/scene_server.c \
+    $(MESH_DIR)/lib/model/scene_setup_server.c \
+    $(MESH_DIR)/lib/model/scheduler_server.c \
+    $(MESH_DIR)/lib/model/scheduler_setup_server.c \
     $(MESH_DIR)/device/bt_mesh_device_app_task.c \
     $(MESH_DIR)/device/device_app.c \
     $(MESH_DIR)/lib/common/ping_app.c \
-    $(MESH_DIR)/lib/common/datatrans_server_app.c \
+    $(MESH_DIR)/lib/common/datatrans_app.c \
+	$(MESH_DIR)/lib/common/scene_server_app.c \
+    $(MESH_DIR)/lib/common/scheduler_server_app.c \
+	$(MESH_DIR)/lib/common/time_server_app.c \
+	$(MESH_DIR)/lib/common/light_server_app.c \
     $(MESH_DIR)/lib/cmd/mesh_cmd.c \
     $(MESH_DIR)/lib/cmd/test_cmd.c \
     $(MESH_DIR)/device/device_cmd.c \

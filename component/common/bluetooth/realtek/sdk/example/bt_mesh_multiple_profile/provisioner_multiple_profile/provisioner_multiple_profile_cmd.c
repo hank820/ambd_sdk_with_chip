@@ -24,7 +24,7 @@
 #include "client_cmd.h"
 #include "generic_client_app.h"
 #include "datatrans_model.h"
-#include "datatrans_client_app.h"
+#include "datatrans_app.h"
 
 
 static user_cmd_parse_result_t user_cmd_prov_discover(user_cmd_parse_value_t *pparse_value)
@@ -76,6 +76,9 @@ static user_cmd_parse_result_t user_cmd_prov_cccd_operate(user_cmd_parse_value_t
 
 static user_cmd_parse_result_t user_cmd_prov_list(user_cmd_parse_value_t *pparse_value)
 {
+    /* avoid gcc compile warning */
+    (void)pparse_value;
+    
     data_uart_debug("Prov Server Handle List:\r\nidx\thandle\r\n");
     for (prov_handle_type_t hdl_idx = HDL_PROV_SRV_START; hdl_idx < HDL_PROV_CACHE_LEN; hdl_idx++)
     {
@@ -87,7 +90,8 @@ static user_cmd_parse_result_t user_cmd_prov_list(user_cmd_parse_value_t *pparse
 static user_cmd_parse_result_t user_cmd_pb_adv_con(user_cmd_parse_value_t *pparse_value)
 {
     uint8_t dev_uuid[16];
-    
+
+    send_coex_mailbox_to_wifi_from_BtAPP(1);
     plt_hex_to_bin(dev_uuid, (uint8_t *)pparse_value->pparameter[0], sizeof(dev_uuid));
     if (!pb_adv_link_open(0, dev_uuid))
     {
@@ -98,6 +102,9 @@ static user_cmd_parse_result_t user_cmd_pb_adv_con(user_cmd_parse_value_t *ppars
 
 static user_cmd_parse_result_t user_cmd_pb_adv_disc(user_cmd_parse_value_t *pparse_value)
 {
+    /* avoid gcc compile warning */
+    (void)pparse_value;
+    
     if (pb_adv_link_close(0, PB_ADV_LINK_CLOSE_SUCCESS))
     {
         data_uart_debug("PB_ADV: Link Closed!\r\n");
@@ -120,6 +127,9 @@ static user_cmd_parse_result_t user_cmd_prov(user_cmd_parse_value_t *pparse_valu
 
 static user_cmd_parse_result_t user_cmd_prov_stop(user_cmd_parse_value_t *pparse_value)
 {
+    /* avoid gcc compile warning */
+    (void)pparse_value;
+    
     return prov_reject() ? USER_CMD_RESULT_OK : USER_CMD_RESULT_ERROR;
 }
 
@@ -142,6 +152,9 @@ static user_cmd_parse_result_t user_cmd_prov_auth_path(user_cmd_parse_value_t *p
 
 static user_cmd_parse_result_t user_cmd_unprov(user_cmd_parse_value_t *pparse_value)
 {
+    /* avoid gcc compile warning */
+    (void)pparse_value;
+    
     data_uart_debug("Unprovision...\r\n");
 #if MESH_UNPROVISIONING_SUPPORT
     prov_unprovisioning();
@@ -439,7 +452,7 @@ static user_cmd_parse_result_t user_cmd_datatrans_write(user_cmd_parse_value_t *
     {
         data[i] = pparse_value->dw_parameter[i + 1];
     }
-    datatrans_write(&datatrans_client, pparse_value->dw_parameter[0],
+    datatrans_write(&datatrans, pparse_value->dw_parameter[0],
                     pparse_value->dw_parameter[para_count - 2], para_count - 3, data,
                     pparse_value->dw_parameter[para_count - 1]);
 
@@ -448,7 +461,7 @@ static user_cmd_parse_result_t user_cmd_datatrans_write(user_cmd_parse_value_t *
 
 static user_cmd_parse_result_t user_cmd_datatrans_read(user_cmd_parse_value_t *pparse_value)
 {
-    datatrans_read(&datatrans_client, pparse_value->dw_parameter[0],
+    datatrans_read(&datatrans, pparse_value->dw_parameter[0],
                    pparse_value->dw_parameter[2], pparse_value->dw_parameter[1]);
 
     return USER_CMD_RESULT_OK;
@@ -627,7 +640,8 @@ const user_cmd_table_entry_t provisioner_cmd_table[] =
 const struct bt_mesh_api_hdl provisionercmds[] = 
 {
     GEN_MESH_HANDLER(_pb_adv_con)    
-    GEN_MESH_HANDLER(_prov)    
+    GEN_MESH_HANDLER(_prov)
+    GEN_MESH_HANDLER(_prov_stop)
     GEN_MESH_HANDLER(_app_key_add)
     GEN_MESH_HANDLER(_model_app_bind)
     GEN_MESH_HANDLER(_model_pub_set)
@@ -641,9 +655,64 @@ const struct bt_mesh_api_hdl provisionercmds[] =
     GEN_MESH_HANDLER(_prov_cccd_operate)
     GEN_MESH_HANDLER(_proxy_discover)
     GEN_MESH_HANDLER(_proxy_cccd_operate)
+    GEN_MESH_HANDLER(_datatrans_write)
+    GEN_MESH_HANDLER(_datatrans_read)
     GEN_MESH_HANDLER(_connect)
     GEN_MESH_HANDLER(_disconnect)
     GEN_MESH_HANDLER(_list)
+    GEN_MESH_HANDLER(_dev_info_show)
+    GEN_MESH_HANDLER(_fn_init)
+    GEN_MESH_HANDLER(_light_lightness_get)
+    GEN_MESH_HANDLER(_light_lightness_set)
+    GEN_MESH_HANDLER(_light_lightness_linear_get)
+    GEN_MESH_HANDLER(_light_lightness_linear_set)
+    GEN_MESH_HANDLER(_light_lightness_last_get)
+    GEN_MESH_HANDLER(_light_lightness_default_get)
+    GEN_MESH_HANDLER(_light_lightness_default_set)
+    GEN_MESH_HANDLER(_light_lightness_range_get)
+    GEN_MESH_HANDLER(_light_lightness_range_set)
+    GEN_MESH_HANDLER(_light_ctl_get)
+    GEN_MESH_HANDLER(_light_ctl_set)
+    GEN_MESH_HANDLER(_light_ctl_temperature_get)
+    GEN_MESH_HANDLER(_light_ctl_temperature_set)
+    GEN_MESH_HANDLER(_light_ctl_temperature_range_get)
+    GEN_MESH_HANDLER(_light_ctl_temperature_range_set)
+    GEN_MESH_HANDLER(_light_ctl_default_get)
+    GEN_MESH_HANDLER(_light_ctl_default_set)
+    GEN_MESH_HANDLER(_light_hsl_get)
+    GEN_MESH_HANDLER(_light_hsl_set)
+    GEN_MESH_HANDLER(_light_hsl_target_get)
+    GEN_MESH_HANDLER(_light_hsl_hue_get)
+    GEN_MESH_HANDLER(_light_hsl_hue_set)
+    GEN_MESH_HANDLER(_light_hsl_saturation_get)
+    GEN_MESH_HANDLER(_light_hsl_saturation_set)
+    GEN_MESH_HANDLER(_light_hsl_default_get)
+    GEN_MESH_HANDLER(_light_hsl_default_set)
+    GEN_MESH_HANDLER(_light_hsl_range_get)
+    GEN_MESH_HANDLER(_light_hsl_range_set)
+    GEN_MESH_HANDLER(_light_xyl_get)
+    GEN_MESH_HANDLER(_light_xyl_set)
+    GEN_MESH_HANDLER(_light_xyl_target_get)
+    GEN_MESH_HANDLER(_light_xyl_default_get)
+    GEN_MESH_HANDLER(_light_xyl_default_set)
+    GEN_MESH_HANDLER(_light_xyl_range_get)
+    GEN_MESH_HANDLER(_light_xyl_range_set)
+    GEN_MESH_HANDLER(_time_set)
+    GEN_MESH_HANDLER(_time_get)
+    GEN_MESH_HANDLER(_time_zone_set)
+    GEN_MESH_HANDLER(_time_zone_get)
+    GEN_MESH_HANDLER(_time_tai_utc_delta_set)
+    GEN_MESH_HANDLER(_time_tai_utc_delta_get)
+    GEN_MESH_HANDLER(_time_role_set)
+    GEN_MESH_HANDLER(_time_role_get)
+	GEN_MESH_HANDLER(_scene_store)
+	GEN_MESH_HANDLER(_scene_recall)
+	GEN_MESH_HANDLER(_scene_get)
+	GEN_MESH_HANDLER(_scene_register_get)
+	GEN_MESH_HANDLER(_scene_delete)
+	GEN_MESH_HANDLER(_scheduler_get)
+	GEN_MESH_HANDLER(_scheduler_action_get)
+	GEN_MESH_HANDLER(_scheduler_action_set)
 };
 #endif
 

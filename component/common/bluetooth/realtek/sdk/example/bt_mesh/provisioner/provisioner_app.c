@@ -117,6 +117,35 @@ void bt_mesh_provisioner_app_handle_dev_state_evt(T_GAP_DEV_STATE new_state, uin
     APP_PRINT_INFO4("bt_mesh_provisioner_app_handle_dev_state_evt: init state  %d, adv state %d, scan state %d, cause 0x%x",
                     new_state.gap_init_state, new_state.gap_adv_state,
                     new_state.gap_scan_state, cause);
+    if (bt_mesh_provisioner_gap_dev_state.gap_init_state != new_state.gap_init_state)
+    {
+        if (new_state.gap_init_state == GAP_INIT_STATE_STACK_READY)
+        {
+            APP_PRINT_INFO0("GAP stack ready");
+            uint8_t bt_addr[6];
+            uint8_t net_key[16] = MESH_NET_KEY;
+            uint8_t net_key1[16] = MESH_NET_KEY1;
+            uint8_t app_key[16] = MESH_APP_KEY;
+            uint8_t app_key1[16] = MESH_APP_KEY1;
+            gap_get_param(GAP_PARAM_BD_ADDR, bt_addr);
+            data_uart_debug("bt addr: 0x%02x%02x%02x%02x%02x%02x\r\n>",
+                            bt_addr[5], bt_addr[4], bt_addr[3],
+                            bt_addr[2], bt_addr[1], bt_addr[0]);
+
+            /** configure provisioner */
+            mesh_node.node_state = PROV_NODE;
+            mesh_node.unicast_addr = bt_addr[0] % 99 + 1;
+            memcpy(&net_key[10], bt_addr, sizeof(bt_addr));
+            memcpy(&net_key1[10], bt_addr, sizeof(bt_addr));
+            memcpy(&app_key[10], bt_addr, sizeof(bt_addr));
+            memcpy(&app_key1[10], bt_addr, sizeof(bt_addr));
+            uint16_t net_key_index = net_key_add(0, net_key);
+            app_key_add(net_key_index, 0, app_key);
+            uint8_t net_key_index1 = net_key_add(1, net_key1);
+            app_key_add(net_key_index1, 1, app_key1);
+        	mesh_model_bind_all_key();
+        }
+    }
     if (bt_mesh_provisioner_gap_dev_state.gap_scan_state != new_state.gap_scan_state)
     {
         if (new_state.gap_scan_state == GAP_SCAN_STATE_IDLE)
@@ -362,7 +391,7 @@ void bt_mesh_provisioner_app_handle_gap_msg(T_IO_MSG *p_gap_msg)
     {
     case GAP_MSG_LE_DEV_STATE_CHANGE:
         {
-            static bool start = FALSE;
+            //static bool start = FALSE;
             if (!mesh_initial_state)
             {
                 mesh_initial_state = TRUE;
@@ -869,6 +898,7 @@ bool prov_cb(prov_cb_type_t cb_type, prov_cb_data_t cb_data)
         {
         case PB_GENERIC_CB_LINK_OPENED:
             data_uart_debug("PB-ADV Link Opened!\r\n>");
+            send_coex_mailbox_to_wifi_from_BtAPP(0);
 #if defined(CONFIG_EXAMPLE_BT_MESH_DEMO) && CONFIG_EXAMPLE_BT_MESH_DEMO
             if (bt_mesh_lib_priv.connect_device_sema) {
                 bt_mesh_lib_priv.connect_device_flag = 1;
@@ -883,6 +913,7 @@ bool prov_cb(prov_cb_type_t cb_type, prov_cb_data_t cb_data)
             break;
         case PB_GENERIC_CB_LINK_OPEN_FAILED:
             data_uart_debug("PB-ADV Link Open Failed!\r\n>");
+            send_coex_mailbox_to_wifi_from_BtAPP(0);
 #if defined(CONFIG_EXAMPLE_BT_MESH_DEMO) && CONFIG_EXAMPLE_BT_MESH_DEMO
             if (bt_mesh_lib_priv.connect_device_sema) {
                 bt_mesh_lib_priv.connect_device_flag = 0;
@@ -897,6 +928,7 @@ bool prov_cb(prov_cb_type_t cb_type, prov_cb_data_t cb_data)
             break;
         case PB_GENERIC_CB_LINK_CLOSED:
             data_uart_debug("PB-ADV Link Closed!\r\n>");
+            send_coex_mailbox_to_wifi_from_BtAPP(0);
             break;
         default:
             break;
@@ -1017,6 +1049,9 @@ bool prov_cb(prov_cb_type_t cb_type, prov_cb_data_t cb_data)
  */
 void fn_cb(uint8_t frnd_index, fn_cb_type_t type, uint16_t lpn_addr)
 {
+    /* avoid gcc compile warning */
+    (void)frnd_index;
+    
     char *string[] = {"establishing with lpn 0x%04x\r\n", "no poll from 0x%04x\r\n", "established with lpn 0x%04x\r\n", "lpn 0x%04x lost\r\n"};
     data_uart_debug(string[type], lpn_addr);
     if (type == FN_CB_TYPE_ESTABLISH_SUCCESS || type == FN_CB_TYPE_FRND_LOST)

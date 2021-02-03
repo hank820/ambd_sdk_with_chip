@@ -127,6 +127,9 @@ user_cmd_parse_result_t user_cmd_iv_index_mode(user_cmd_parse_value_t *pparse_va
 
 user_cmd_parse_result_t user_cmd_nmc_clear(user_cmd_parse_value_t *pparse_value)
 {
+    /* avoid gcc compile warning */
+    (void)pparse_value;
+    
     nmc_init();
     data_uart_debug("Net Msg Cache are cleared.\r\n");
     return USER_CMD_RESULT_OK;
@@ -134,6 +137,9 @@ user_cmd_parse_result_t user_cmd_nmc_clear(user_cmd_parse_value_t *pparse_value)
 
 user_cmd_parse_result_t user_cmd_rpl_clear(user_cmd_parse_value_t *pparse_value)
 {
+    /* avoid gcc compile warning */
+    (void)pparse_value;
+    
     rpl_clear();
     rpl_clear();
     return USER_CMD_RESULT_OK;

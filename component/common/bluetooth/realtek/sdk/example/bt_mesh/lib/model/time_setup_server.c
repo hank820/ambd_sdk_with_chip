@@ -16,6 +16,16 @@
 #include "delay_msg_rsp.h"
 #endif
 
+#if 0
+typedef struct
+{
+    uint8_t tid;
+#if MODEL_ENABLE_DELAY_MSG_RSP
+    uint32_t delay_pub_time;
+#endif
+} time_info_t;
+#endif
+
 extern mesh_msg_send_cause_t time_status(mesh_model_info_p pmodel_info, uint16_t dst,
                                          uint16_t app_key_index, tai_time_t time_info, uint32_t delay_time);
 extern mesh_msg_send_cause_t time_zone_status(mesh_model_info_p pmodel_info, uint16_t dst,
@@ -59,7 +69,9 @@ static bool time_setup_server_receive(mesh_msg_p pmesh_msg)
             time_set_t *pmsg = (time_set_t *)pbuffer;
 
             time_server_set_t set_data;
-            set_data = *((tai_time_t *)(pmsg->tai_seconds));
+            /* avoid gcc compile warning */
+            uint8_t *temp = pmsg->tai_seconds;
+            set_data = *((tai_time_t *)(temp));
             if (NULL != pmodel_info->model_data_cb)
             {
                 pmodel_info->model_data_cb(pmodel_info, TIME_SERVER_SET, &set_data);
@@ -164,6 +176,24 @@ static bool time_setup_server_receive(mesh_msg_p pmesh_msg)
     return ret;
 }
 
+#if MESH_MODEL_ENABLE_DEINIT
+static void time_setup_server_deinit(mesh_model_info_t *pmodel_info)
+{
+    if (pmodel_info->model_receive == time_setup_server_receive)
+    {
+#if 0
+        /* now we can remove */
+        if (NULL != pmodel_info->pargs)
+        {
+            plt_free(pmodel_info->pargs, RAM_TYPE_DATA_ON);
+            pmodel_info->pargs = NULL;
+        }
+#endif
+        pmodel_info->model_receive = NULL;
+    }
+}
+#endif
+
 bool time_setup_server_reg(uint8_t element_index, mesh_model_info_p pmodel_info)
 {
     if (NULL == pmodel_info)
@@ -174,11 +204,23 @@ bool time_setup_server_reg(uint8_t element_index, mesh_model_info_p pmodel_info)
     pmodel_info->model_id = MESH_MODEL_TIME_SETUP_SERVER;
     if (NULL == pmodel_info->model_receive)
     {
+#if 0
+        pmodel_info->pargs = plt_malloc(sizeof(time_info_t), RAM_TYPE_DATA_ON);
+        if (NULL == pmodel_info->pargs)
+        {
+            printe("time_setup_server_reg: fail to allocate memory for the new model extension data!");
+            return FALSE;
+        }
+        memset(pmodel_info->pargs, 0, sizeof(time_info_t));
+#endif
         pmodel_info->model_receive = time_setup_server_receive;
         if (NULL == pmodel_info->model_data_cb)
         {
             printw("time_setup_server_reg: missing model data process callback!");
         }
+#if MESH_MODEL_ENABLE_DEINIT
+        pmodel_info->model_deinit = time_setup_server_deinit;
+#endif
     }
 
     return mesh_model_reg(element_index, pmodel_info);

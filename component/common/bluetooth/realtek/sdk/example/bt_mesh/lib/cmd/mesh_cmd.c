@@ -30,11 +30,17 @@ bool dev_info_show_flag;
 user_cmd_parse_result_t user_cmd_reset(user_cmd_parse_value_t *pparse_value)
 {
     //WDG_SystemReset(RESET_ALL, SW_RESET_APP_START);
+    /* avoid gcc compile warning */
+    (void)pparse_value;
+    
     return USER_CMD_RESULT_OK;
 }
 
 user_cmd_parse_result_t user_cmd_list(user_cmd_parse_value_t *pparse_value)
 {
+    /* avoid gcc compile warning */
+    (void)pparse_value;
+
     data_uart_debug("MeshState:\t%d\r\n", mesh_node.node_state);
     data_uart_debug("DevUUID:\t");
     data_uart_dump(mesh_node.dev_uuid, 16);
@@ -251,9 +257,13 @@ static mesh_msg_send_cause_t (*const ping_pf[3])(uint16_t dst, uint8_t ttl, uint
 
 int32_t tp_reveive(const mesh_model_info_p pmodel_info, uint32_t type, void *pargs)
 {
+    /* avoid gcc compile warning */
+    (void)pmodel_info;
+    (void)type;
     mesh_msg_t *pmesh_msg = (mesh_msg_t *)pargs;
     uint8_t *pbuffer = pmesh_msg->pbuffer + pmesh_msg->msg_offset;
     tp_msg_t *pmsg = (tp_msg_t *)(pbuffer);
+    
     data_uart_debug("From:0x%04x To:0x%04x Tid:%d Time:%dms\r\n", pmesh_msg->src, pmesh_msg->dst,
                     pmsg->tid, plt_time_read_ms());
     if (pmesh_msg->msg_len < sizeof(tp_msg_t))
@@ -267,6 +277,10 @@ int32_t tp_reveive(const mesh_model_info_p pmodel_info, uint32_t type, void *par
 void pong_receive(uint16_t src, uint16_t dst, uint8_t hops_forward, ping_pong_type_t type,
                   uint8_t hops_reverse, uint16_t pong_delay)
 {
+    /* avoid gcc compile warning */
+    (void)dst;
+    (void)type;
+   
     pong_count++;
     uint32_t pong_time_us = plt_time_read_us();
     uint32_t pong_time_ms = plt_time_read_ms();
@@ -309,6 +323,8 @@ extern void *bt_mesh_provisioner_multiple_profile_io_queue_handle;   //!< IO que
 #endif
 static void ping_timeout_cb(void *ptimer)
 {
+    /* avoid gcc compile warning */
+    (void)ptimer;
     uint8_t event = EVENT_IO_TO_APP;
     T_IO_MSG msg;
     msg.type = PING_TIMEOUT_MSG;
@@ -475,10 +491,10 @@ user_cmd_parse_result_t user_cmd_connect(user_cmd_parse_value_t *pparse_value)
     uint8_t addr_type = pparse_value->dw_parameter[1] ? GAP_LOCAL_ADDR_LE_RANDOM :
                         GAP_LOCAL_ADDR_LE_PUBLIC;
     T_GAP_LE_CONN_REQ_PARAM conn_req_param;
-    conn_req_param.scan_interval = 0x10;
-    conn_req_param.scan_window = 0x10;
-    conn_req_param.conn_interval_min = 0x10;
-    conn_req_param.conn_interval_max = 0x10;
+    uint16_t scan_window = 0x30; /* 30ms */
+    uint16_t scan_interval = 0x40; /* 40ms */
+    conn_req_param.conn_interval_min = 0x60;	//120ms
+    conn_req_param.conn_interval_max = 0x60;	//120ms
     conn_req_param.conn_latency = 0;
     conn_req_param.supv_tout = 1000;
     conn_req_param.ce_len_min = 2 * (conn_req_param.conn_interval_min - 1);
@@ -503,7 +519,7 @@ user_cmd_parse_result_t user_cmd_disconnect(user_cmd_parse_value_t *pparse_value
 user_cmd_parse_result_t user_cmd_proxy_discover(user_cmd_parse_value_t *pparse_value)
 {
     data_uart_debug("Proxy Start Discover\r\n");
-#if MESH_DEVICE
+#if defined(MESH_DEVICE) && MESH_DEVICE
     /* for pts test */
     proxy_client_add(NULL);
     /* replace proxy server */
@@ -543,6 +559,9 @@ user_cmd_parse_result_t user_cmd_proxy_cccd_operate(user_cmd_parse_value_t *ppar
 
 user_cmd_parse_result_t user_cmd_proxy_list(user_cmd_parse_value_t *pparse_value)
 {
+    /* avoid gcc compile warning */
+    (void)pparse_value;
+    
     data_uart_debug("Proxy Server Handle List:\r\nidx\thandle\r\n");
     for (proxy_handle_type_t hdl_idx = HDL_PROXY_SRV_START; hdl_idx < HDL_PROXY_CACHE_LEN; hdl_idx++)
     {
@@ -602,6 +621,8 @@ user_cmd_parse_result_t user_cmd_log_set(user_cmd_parse_value_t *pparse_value)
 
 user_cmd_parse_result_t user_cmd_time(user_cmd_parse_value_t *pparse_value)
 {
+    /* avoid gcc compile warning */
+    (void)pparse_value;
     uint32_t time_ms = plt_time_read_ms();
     uint32_t day, hour, minute, second;
     second = time_ms / 1000;
@@ -617,7 +638,7 @@ user_cmd_parse_result_t user_cmd_time(user_cmd_parse_value_t *pparse_value)
 
 user_cmd_parse_result_t user_cmd_adv_power_set(user_cmd_parse_value_t *pparse_value)
 {
-    uint8_t tx_gain[4] = {0x30, 0x80, 0xA0, 0xF0};
+    //uint8_t tx_gain[4] = {0x30, 0x80, 0xA0, 0xF0};
     int8_t tx_gain_info[4] = {-20, 0, 4, 8};
     //le_adv_set_tx_power(GAP_ADV_TX_POW_SET_1M, tx_gain[pparse_value->dw_parameter[0]]);
     data_uart_debug("Adv power %d dBm\r\n", tx_gain_info[pparse_value->dw_parameter[0]]);
@@ -677,6 +698,9 @@ user_cmd_parse_result_t user_cmd_hb_sub(user_cmd_parse_value_t *pparse_value)
 
 user_cmd_parse_result_t user_cmd_mesh_deinit(user_cmd_parse_value_t *pparse_value)
 {
+    /* avoid gcc compile warning */
+    (void)pparse_value;
+    
     mesh_deinit();
     return USER_CMD_RESULT_OK;
 }

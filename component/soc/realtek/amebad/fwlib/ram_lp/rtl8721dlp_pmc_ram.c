@@ -454,7 +454,9 @@ void SOCPS_DeepSleep_RAM(void)
 	//NVIC->ICPR[0] = NVIC_ICPR0_PS_MASK;
 
 	/* Enable low power mode */
+	FLASH_Write_Lock();
 	FLASH_DeepPowerDown(ENABLE);
+	FLASH_Write_Unlock();
 
 	/* set LP_LDO to 0.899V to fix RTC Calibration XTAL power leakage issue */
 	Rtemp = HAL_READ32(SYSTEM_CTRL_BASE_LP, REG_AON_LDO_CTRL1);

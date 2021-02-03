@@ -13,10 +13,10 @@
 
 /* Add Includes here */
 #include <string.h>
-#include "mesh_data_uart.h"
 #if defined(CONFIG_PLATFORM_8721D)
 #include "ameba_soc.h"
 #endif
+#include "mesh_data_uart.h"
 #include "platform_diagnose.h"
 #include "mesh_config.h"
 
@@ -240,6 +240,8 @@ static int32_t data_uart_vsprintf(char *buf, const char *fmt, const int32_t *dp)
 #if defined(CONFIG_PLATFORM_8721D)
 void mesh_data_uart_irq(void *data)
 {
+    /* avoid gcc compile warning */
+    (void)data;
     uint8_t int_id;
     uint8_t rx_data;
     uint8_t reg_iir = UART_IntStatus(data_uart_def);
@@ -294,6 +296,10 @@ void mesh_data_uart_irq(uint32_t id, SerialIrq event)
 #define DATAUART_IRQ_PRIO      11
 void mesh_data_uart_init(uint32_t tx_pin, uint32_t rx_pin, pf_send_msg_from_isr_t pf_send)
 {
+    /* avoid gcc compile warning */
+    (void)tx_pin;
+    (void)rx_pin;
+
     data_uart_flag = true;
     pf_data_uart_send_msg = pf_send;
 #if defined(CONFIG_PLATFORM_8721D)

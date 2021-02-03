@@ -74,7 +74,7 @@ static bool scene_setup_server_receive(mesh_msg_p pmesh_msg)
                     }
                 }
 
-                scene_server_store_t store_data = {SCENE_STATUS_SUCCESS, pmsg->scene_number};
+                scene_server_store_t store_data = {SCENE_STATUS_SUCCESS, pmsg->scene_number, NULL};
                 pinfo->status_register = SCENE_STATUS_SUCCESS;
                 store_data.status = SCENE_STATUS_SUCCESS;
                 if (index < pinfo->num_scenes)
@@ -175,6 +175,22 @@ static bool scene_setup_server_receive(mesh_msg_p pmesh_msg)
     return ret;
 }
 
+#if MESH_MODEL_ENABLE_DEINIT
+static void scene_setup_server_deinit(mesh_model_info_t *pmodel_info)
+{
+    if (pmodel_info->model_receive == scene_setup_server_receive)
+    {
+        /* now we can remove */
+        if (NULL != pmodel_info->pargs)
+        {
+            plt_free(pmodel_info->pargs, RAM_TYPE_DATA_ON);
+            pmodel_info->pargs = NULL;
+        }
+        pmodel_info->model_receive = NULL;
+    }
+}
+#endif
+
 bool scene_setup_server_reg(uint8_t element_index, mesh_model_info_p pmodel_info)
 {
     if (NULL == pmodel_info)
@@ -198,6 +214,10 @@ bool scene_setup_server_reg(uint8_t element_index, mesh_model_info_p pmodel_info
         {
             printw("scene_server_reg: missing model data process callback!");
         }
+
+#if MESH_MODEL_ENABLE_DEINIT
+        pmodel_info->model_deinit = scene_setup_server_deinit;
+#endif
     }
 
     return mesh_model_reg(element_index, pmodel_info);

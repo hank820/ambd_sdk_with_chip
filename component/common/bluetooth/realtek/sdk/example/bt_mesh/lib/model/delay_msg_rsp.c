@@ -17,9 +17,9 @@
 
 #define DELAY_MSG_TRANS_DELAY_MIN       200 /* 200ms */
 
-#define DELAY_MSG_UNICAST_ADDR_MIN      50
-#define DELAY_MSG_UNICAST_ADDR_MAX      100
-#define DELAY_MSG_GROUP_ADDR_MIN        100
+#define DELAY_MSG_UNICAST_ADDR_MIN      0
+#define DELAY_MSG_UNICAST_ADDR_MAX      50
+#define DELAY_MSG_GROUP_ADDR_MIN        200
 #define DELAY_MSG_GROUP_ADDR_MAX        1000
 
 uint32_t delay_msg_get_rsp_delay(uint16_t dst_addr)

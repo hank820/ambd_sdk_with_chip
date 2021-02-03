@@ -66,7 +66,9 @@ mesh_msg_send_cause_t time_set(const mesh_model_info_p pmodel_info, uint16_t dst
 {
     time_set_t msg;
     ACCESS_OPCODE_BYTE(msg.opcode, MESH_MSG_TIME_SET);
-    *((tai_time_t *)(msg.tai_seconds)) = time;
+    /* to avoid gcc compile warning */
+    uint8_t *temp = msg.tai_seconds;
+    *((tai_time_t *)temp) = time;
     return time_client_send(pmodel_info, dst, app_key_index, (uint8_t *)&msg, sizeof(msg));
 }
 
@@ -119,8 +121,10 @@ static bool time_client_receive(mesh_msg_p pmesh_msg)
             memset(&status_data, 0, sizeof(time_client_status_t));
             if (pmesh_msg->msg_len == sizeof(time_status_t))
             {
+                /* to avoid gcc compile warning */
+                uint8_t *temp = pmsg->tai_seconds;
                 status_data.src = pmesh_msg->src;
-                status_data.tai_time = *((tai_time_t *)(pmsg->tai_seconds));
+                status_data.tai_time = *((tai_time_t *)(temp));
             }
             if (NULL != pmodel_info->model_data_cb)
             {

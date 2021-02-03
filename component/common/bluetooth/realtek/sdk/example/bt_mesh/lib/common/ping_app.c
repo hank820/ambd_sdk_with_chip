@@ -40,6 +40,9 @@ static uint16_t pong_delay;
 
 static void ping_app_timeout_cb(void *ptimer)
 {
+    /* avoid gcc compile warning */
+    (void)ptimer;
+    
     uint8_t event = EVENT_IO_TO_APP;
     T_IO_MSG msg;
     msg.type = PING_APP_TIMEOUT_MSG;
@@ -98,6 +101,9 @@ void ping_app_handle_timeout(void)
 void ping_app_ping_cb(uint16_t src, uint16_t dst, uint8_t hops_forward, ping_pong_type_t type,
                       uint8_t init_ttl, uint8_t key_index, uint16_t pong_max_delay)
 {
+    /* avoid gcc compile warning */
+    (void)dst;
+    
     if (pong_max_delay == 0 || pong_timer)
     {
         switch (type)

@@ -40,6 +40,7 @@ static const mesh_cmd_entry mesh_cmd_table[] = {
     defined(CONFIG_BT_MESH_PROVISIONER_MULTIPLE_PROFILE) && CONFIG_BT_MESH_PROVISIONER_MULTIPLE_PROFILE)
     PARAM_MESH_CODE("pbadvcon", "\r pbadvcon [dev uuid]", "\r create a pb-adv link with the device uuid\n\r", GEN_MESH_CODE(_pb_adv_con))
     PARAM_MESH_CODE("prov", "\r prov [attn_dur] [manual]", "\r provision a new mesh device\n\r", GEN_MESH_CODE(_prov))
+    PARAM_MESH_CODE("provs", "\r provs", "\r provision stop\n\r", GEN_MESH_CODE(_prov_stop))
     PARAM_MESH_CODE("aka", "\r aka [dst] [net_key_index] [app_key_index]", "\r app key add\n\r", GEN_MESH_CODE(_app_key_add))
     PARAM_MESH_CODE("mab", "\r mab [dst] [element index] [model_id] [app_key_index]", "\r model app bind\n\r", GEN_MESH_CODE(_model_app_bind))
     PARAM_MESH_CODE("goos", "\r goos [dst] [on/off] [ack] [app_key_index] [steps] [resolution] [delay]", "\r generic on off set\n\r", GEN_MESH_CODE(_generic_on_off_set))
@@ -51,6 +52,57 @@ static const mesh_cmd_entry mesh_cmd_table[] = {
     PARAM_MESH_CODE("provcmd", "\r provcmd [char CCCD] [command: enable/disable]", "\r Provisioning notify/ind switch command\n\r", GEN_MESH_CODE(_prov_cccd_operate))
     PARAM_MESH_CODE("proxydis", "\r proxydis [conn id]", "\r Start discovery proxy service\n\r", GEN_MESH_CODE(_proxy_discover))
     PARAM_MESH_CODE("proxycmd", "\r proxycmd [char CCCD] [command: enable/disable]", "\r Proxy notify/ind switch command\n\r", GEN_MESH_CODE(_proxy_cccd_operate))
+    PARAM_MESH_CODE("llg", "\r llg [dst] [app_key_index]", "\r light lightness get\n\r",GEN_MESH_CODE(_light_lightness_get))
+    PARAM_MESH_CODE("lls", "\r lls [dst] [lightness] [ack] [app_key_index] [steps] [resolution] [delay]", "\r light lightness set\n\r", GEN_MESH_CODE(_light_lightness_set))
+    PARAM_MESH_CODE("lllg", "\r lllg [dst] [app_key_index]", "\r light lightness linear get\n\r", GEN_MESH_CODE(_light_lightness_linear_get))
+    PARAM_MESH_CODE("llls", "\r llls [dst] [lightness] [ack] [app_key_index] [steps] [resolution] [delay]", "\r light lightness linear set\n\r", GEN_MESH_CODE(_light_lightness_linear_set))
+    PARAM_MESH_CODE("lllag", "\r lllag [dst] [app_key_index]", "\r light lightness last get\n\r", GEN_MESH_CODE(_light_lightness_last_get))
+    PARAM_MESH_CODE("lldg", "\r lldg [dst] [app_key_index]", "\r light lightness default get\n\r", GEN_MESH_CODE(_light_lightness_default_get))
+    PARAM_MESH_CODE("llds", "\r llds [dst] [lightness] [ack] [app_key_index]", "\r light lightness default set\n\r", GEN_MESH_CODE(_light_lightness_default_set))
+    PARAM_MESH_CODE("llrg", "\r llrg [dst] [app_key_index]", "\r light lightness range get\n\r", GEN_MESH_CODE(_light_lightness_range_get))
+    PARAM_MESH_CODE("llrs", "\r llrs [dst] [min] [max] [ack] [app_key_index]", "\r light lightness range set\n\r", GEN_MESH_CODE(_light_lightness_range_set))
+    PARAM_MESH_CODE("lcg", "\r lcg [dst] [app_key_index]", "\r light ctl set\n\r", GEN_MESH_CODE(_light_ctl_get))
+    PARAM_MESH_CODE("lcs", "\r lcs [dst] [lightness] [temperature] [delta uv] [ack] [app_key_index] [steps] [resolution] [delay]", "\r light ctl set\n\r", GEN_MESH_CODE(_light_ctl_set))
+    PARAM_MESH_CODE("lctg", "\r lctg [dst] [app_key_index]", "\r light ctl temperature get\n\r", GEN_MESH_CODE(_light_ctl_temperature_get))
+    PARAM_MESH_CODE("lcts", "\r lcts [dst] [temperature] [delta uv] [ack] [app_key_index] [steps] [resolution] [delay]", "\r light ctl temperature set\n\r", GEN_MESH_CODE(_light_ctl_temperature_set))
+    PARAM_MESH_CODE("lctrg", "\r lctrg [dst] [app_key_index]", "\r light ctl temperature range get\n\r", GEN_MESH_CODE(_light_ctl_temperature_range_get))
+    PARAM_MESH_CODE("lctrs", "\r lctrs [dst] [min] [max] [ack] [app_key_index]", "\r light ctl temperature range set\n\r", GEN_MESH_CODE(_light_ctl_temperature_range_set))
+    PARAM_MESH_CODE("lcdg", "\r lcdg [dst] [app_key_index]", "\r light ctl default get\n\r", GEN_MESH_CODE(_light_ctl_default_get))
+    PARAM_MESH_CODE("lcds", "\r lcds [dst] [lightness] [temperature] [delta uv] [ack] [app_key_index]", "\r light ctl default set\n\r", GEN_MESH_CODE(_light_ctl_default_set))
+    PARAM_MESH_CODE("lhg", "\r lhg [dst] [app_key_index]", "\r light hsl get\n\r", GEN_MESH_CODE(_light_hsl_get))
+    PARAM_MESH_CODE("lhs", "\r lhs [dst] [hue] [saturation] [lightness] [ack] [app_key_index] [steps] [resolution] [delay]", "\r light hsl set\n\r", GEN_MESH_CODE(_light_hsl_set))
+    PARAM_MESH_CODE("lhtg", "\r lhtg [dst] [app_key_index]", "\r light hsl target get\n\r", GEN_MESH_CODE(_light_hsl_target_get))
+    PARAM_MESH_CODE("lhhg", "\r lhhg [dst] [app_key_index]", "\r light hsl hue get\n\r", GEN_MESH_CODE(_light_hsl_hue_get))
+    PARAM_MESH_CODE("lhhs", "\r lhhs [dst] [hue] [ack] [app_key_index] [steps] [resolution] [delay]", "\r light hsl hue set\n\r", GEN_MESH_CODE(_light_hsl_hue_set))
+    PARAM_MESH_CODE("lhsg", "\r lhsg [dst] [app_key_index]", "\r light hsl saturation get\n\r", GEN_MESH_CODE(_light_hsl_saturation_get))
+    PARAM_MESH_CODE("lhss", "\r lhss [dst] [saturation] [ack] [app_key_index] [steps] [resolution] [delay]", "\r light hsl saturation set\n\r", GEN_MESH_CODE(_light_hsl_saturation_set))
+    PARAM_MESH_CODE("lhdg", "\r lhdg [dst] [app_key_index]", "\r light hsl default get\n\r", GEN_MESH_CODE(_light_hsl_default_get))
+    PARAM_MESH_CODE("lhds", "\r lhds [dst] [lightness] [hue] [saturation] [ack] [app_key_index]", "\r light hsl default set\n\r", GEN_MESH_CODE(_light_hsl_default_set))
+    PARAM_MESH_CODE("lhrg", "\r lhrg [dst] [app_key_index]", "\r light hsl range get\n\r", GEN_MESH_CODE(_light_hsl_range_get))
+    PARAM_MESH_CODE("lhrs", "\r lhrs [dst] [hue min] [hue max] [saturation min] [saturation max] [ack] [app_key_index]", "\r light hsl range set\n\r", GEN_MESH_CODE(_light_hsl_range_set))
+    PARAM_MESH_CODE("lxg", "\r lxg [dst] [app_key_index]\n\r", "light xyl get\n\r", GEN_MESH_CODE(_light_xyl_get))
+    PARAM_MESH_CODE("lxs", "\r lxs [dst] [lightness] [xyl_x] [xyl_y] [ack] [app_key_index] [steps] [resolution] [delay]\n\r", "light xyl set\n\r", GEN_MESH_CODE(_light_xyl_set))
+    PARAM_MESH_CODE("lxtg", "\r lxtg [dst] [app_key_index]\n\r", "light xyl target get\n\r", GEN_MESH_CODE(_light_xyl_target_get))
+    PARAM_MESH_CODE("lxdg", "\r lxdg [dst] [app_key_index]\n\r", "light xyl default get\n\r", GEN_MESH_CODE(_light_xyl_default_get))
+    PARAM_MESH_CODE("lxds", "\r lxds [dst] [lightness] [xyl_x] [xyl_y] [ack] [app_key_index]\n\r", "light xyl default set\n\r", GEN_MESH_CODE(_light_xyl_default_set))
+    PARAM_MESH_CODE("lxrg", "\r lxrg [dst] [app_key_index]\n\r", "light xyl range get\n\r", GEN_MESH_CODE(_light_xyl_range_get))
+    PARAM_MESH_CODE("lxrs", "\r lxrs [dst] [xyl_x min] [xyl_x max] [xyl_y min] [xyl_y max] [ack] [app_key_index]\n\r", "light xyl range set\n\r", GEN_MESH_CODE(_light_xyl_range_set))
+    PARAM_MESH_CODE("ts", "\r ts [dst] [tai second low] [tai second high] [subsecond] [uncertainty] [time authority] [tai utc delta] [time zone offset] [app_key_index]\n\r", "time set\n\r", GEN_MESH_CODE(_time_set))
+    PARAM_MESH_CODE("tg", "\r tg [dst] [app_key_index]\n\r", "time get\n\r", GEN_MESH_CODE(_time_get))
+    PARAM_MESH_CODE("tzs", "\r tzs [dst] [time zone offset new] [tai of zone change low] [tai of zone change high] [app_key_index]\n\r", "time zone set\n\r", GEN_MESH_CODE(_time_zone_set))
+    PARAM_MESH_CODE("tzg", "\r tzg [dst] [app_key_index]\n\r", "time zone get\n\r", GEN_MESH_CODE(_time_zone_get))
+    PARAM_MESH_CODE("ttuds", "\r ttuds [dst] [tai utc delta new] [tai of delta change low] [tai of delta change high] [app_key_index]\n\r", "time tai utc delta set\n\r", GEN_MESH_CODE(_time_tai_utc_delta_set))
+    PARAM_MESH_CODE("ttudg", "\r ttudg [dst] [app_key_index]\n\r", "time tai utc delta get\n\r", GEN_MESH_CODE(_time_tai_utc_delta_get))
+    PARAM_MESH_CODE("trs", "\r trs [dst] [role] [app_key_index]\n\r", "time role set\n\r", GEN_MESH_CODE(_time_role_set))
+    PARAM_MESH_CODE("trg", "\r trg [dst] [app_key_index]\n\r", "time role get\n\r", GEN_MESH_CODE(_time_role_get))
+	PARAM_MESH_CODE("ss", "\r ss [dst] [scene number] [ack] [app_key_index]", "\r scene store\n\r", GEN_MESH_CODE(_scene_store))
+	PARAM_MESH_CODE("sr", "\r sr [dst] [scene number] [ack] [app_key_index] [steps] [resolution] [delay]", "\r scene recall\n\r", GEN_MESH_CODE(_scene_recall))
+	PARAM_MESH_CODE("sg", "\r sg [dst] [app_key_index]", "\r scene get\n\r", GEN_MESH_CODE(_scene_get))
+	PARAM_MESH_CODE("srg", "\r srg [dst] [app_key_index]", "\r scene register get\n\r", GEN_MESH_CODE(_scene_register_get))
+	PARAM_MESH_CODE("sd", "\r sd [dst] [scene number] [ack] [app_key_index]", "\r scene delete\n\r", GEN_MESH_CODE(_scene_delete))
+	PARAM_MESH_CODE("scheg", "\r scheg [dst] [app_key_index]", "\r scheduler get\n\r", GEN_MESH_CODE(_scheduler_get))
+	PARAM_MESH_CODE("scheag", "\r scheag [dst] [index] [app_key_index]", "\r scheduler action get\n\r", GEN_MESH_CODE(_scheduler_action_get))
+	PARAM_MESH_CODE("scheas", "\r scheag [dst] [index] [app_key_index]", "\r scheduler action get\n\r", GEN_MESH_CODE(_scheduler_action_set))
 #endif
 #if (defined(CONFIG_BT_MESH_DEVICE) && CONFIG_BT_MESH_DEVICE || \
     defined(CONFIG_BT_MESH_DEVICE_MULTIPLE_PROFILE) && CONFIG_BT_MESH_DEVICE_MULTIPLE_PROFILE)
@@ -62,9 +114,13 @@ static const mesh_cmd_entry mesh_cmd_table[] = {
     PARAM_MESH_CODE("lpnclear", "\r lpnclear [fn_index]\n\r", "\r LPN clear\n\r", GEN_MESH_CODE(_lpn_clear)) 
     PARAM_MESH_CODE("dtn", "\r dtn [conn_id] [value...]\n\r", "\r data transmission notify\n\r", GEN_MESH_CODE(_data_transmission_notify))
 #endif
+    PARAM_MESH_CODE("dtw", "\r dtw [dst] [data...] [app_key_index] [ack]", "\r data transmission write data\n\r", GEN_MESH_CODE(_datatrans_write))
+    PARAM_MESH_CODE("dtr", "\r dtr [dst] [len] [app_key_index]", "\r data transmission read data\n\r", GEN_MESH_CODE(_datatrans_read))
     PARAM_MESH_CODE("con", "\r con [bt addr] [addr type]", "\r connect to remote device\n\r", GEN_MESH_CODE(_connect))
     PARAM_MESH_CODE("disc", "\r disc [conn id]", "\r disconnect to remote device\n\r", GEN_MESH_CODE(_disconnect))
     PARAM_MESH_CODE("ls", "\r ls\n\r", "\rlist node state info\n\r", GEN_MESH_CODE(_list))
+    PARAM_MESH_CODE("dis", "\r dis [1 on/0 off]\n\r", "\rdevice information show\n\r", GEN_MESH_CODE(_dev_info_show))
+    PARAM_MESH_CODE("fninit", "\r fninit [lpn num] [queue size] [rx window(ms)]\n\r", "\r friend node init\n\r", GEN_MESH_CODE(_fn_init))
 };
 
 void bt_mesh_io_msg_handler(T_IO_MSG io_msg)
@@ -117,17 +173,20 @@ exit:
     return;
 }
 
+extern int bt_mesh_send_io_msg(T_IO_MSG *p_io_msg);
+
 int bt_mesh_user_cmd(uint16_t mesh_code, void *pmesh_cmd_item_s)
 {
     T_IO_MSG io_msg;
     CMD_ITEM_S *pmeshCmdItem_s = (CMD_ITEM_S *)pmesh_cmd_item_s;
+    int ret;
 
     io_msg.type = mesh_code;
 	io_msg.u.buf = (void *)pmeshCmdItem_s;
     pmeshCmdItem_s->msgRecvFlag = 0;
-	bt_mesh_send_io_msg(&io_msg);
+	ret = bt_mesh_send_io_msg(&io_msg);
 
-    return 0;
+    return ret;
 }
 
 uint8_t bt_mesh_user_cmd_hdl(uint16_t mesh_code, CMD_ITEM_S *pmesh_cmd_item_s)
@@ -190,6 +249,8 @@ exit:
     
     return ret;    
 }
+
+extern void rtw_if_wifi_wakeup_task(struct task_struct *ptask);
 
 uint8_t bt_mesh_enqueue_cmd(struct list_head *queue, uint8_t head_or_tail)
 {
@@ -406,6 +467,7 @@ user_api_parse_result_t bt_mesh_indication(uint16_t mesh_code, uint8_t state, vo
     }
     //printf("\r\n %s()",__func__);
     if (btMeshCmdIdPriv.userApiMode != USER_API_SYNCH) {
+        printf("[BT_MESH] %s(): BT mesh indication is not USER_API_SYNCH !\r\n", __func__);
         return USER_API_RESULT_OK;
     }
     if (mesh_code != btMeshCmdIdPriv.meshCmdCode) {
@@ -413,11 +475,31 @@ user_api_parse_result_t bt_mesh_indication(uint16_t mesh_code, uint8_t state, vo
         //rtw_up_sema(&btMeshCmdPriv.meshThreadSema);
         return USER_API_RESULT_INCORRECT_CODE;//Cause there are several cmd use the same in prov_cb
     }
-    if ((plt_time_read_ms() < btMeshCmdIdPriv.startTime) || ((plt_time_read_ms() - btMeshCmdIdPriv.startTime) > 10000)) {
+#if (defined(CONFIG_BT_MESH_PROVISIONER) && CONFIG_BT_MESH_PROVISIONER || \
+    defined(CONFIG_BT_MESH_PROVISIONER_MULTIPLE_PROFILE) && CONFIG_BT_MESH_PROVISIONER_MULTIPLE_PROFILE) 
+    if (btMeshCmdIdPriv.meshCmdCode == GEN_MESH_CODE(_prov)) {
+        if ((plt_time_read_ms() < btMeshCmdIdPriv.startTime) || ((plt_time_read_ms() - btMeshCmdIdPriv.startTime) > 10000)) {
+            printf("[BT_MESH] %s(): BT mesh code start time is not reasonable !\r\n", __func__);
+            return USER_API_RESULT_TIMEOUT;
+        }
+    } else {
+        if ((plt_time_read_ms() < btMeshCmdIdPriv.startTime) || ((plt_time_read_ms() - btMeshCmdIdPriv.startTime) > 2000)) {
+            printf("[BT_MESH] %s(): BT mesh code start time is not reasonable !\r\n", __func__);
+            return USER_API_RESULT_TIMEOUT;
+        }
+    }
+#elif (defined(CONFIG_BT_MESH_DEVICE) && CONFIG_BT_MESH_DEVICE || \
+       defined(CONFIG_BT_MESH_DEVICE_MULTIPLE_PROFILE) && CONFIG_BT_MESH_DEVICE_MULTIPLE_PROFILE)
+    if ((plt_time_read_ms() < btMeshCmdIdPriv.startTime) || ((plt_time_read_ms() - btMeshCmdIdPriv.startTime) > 2000)) {
         printf("[BT_MESH] %s(): BT mesh code start time is not reasonable !\r\n", __func__);
         return USER_API_RESULT_TIMEOUT;
     }
+#endif
     pmeshCmdItem_s = btMeshCmdIdPriv.pmeshCmdItem_s;
+    if (pmeshCmdItem_s->semaDownTimeOut) {
+        printf("[BT_MESH] %s(): mesh_code %d indication is timeout !\r\n", __func__, mesh_code);
+        return USER_API_RESULT_TIMEOUT;
+    }
     if (!pmeshCmdItem_s->msgRecvFlag) {
         printf("[BT_MESH] %s(): This indication is not matched !\r\n", __func__, mesh_code);
         return USER_API_RESULT_ERROR;
@@ -616,7 +698,7 @@ void bt_mesh_param_user_cmd(unsigned int argc, char **argv)
             k = 0;
             memset(meshUserCmdLine, 0, sizeof(meshUserCmdLine));
             for (j = 1; j < argc; j ++) {
-                if (strlen(argv[j]) < (USER_CMD_MAX_COMMAND_LINE - k)) {
+                if (strlen(argv[j]) < (size_t)(USER_CMD_MAX_COMMAND_LINE - k)) {
                     memcpy(&meshUserCmdLine[k], argv[j], strlen(argv[j]));
                     k += strlen(argv[j]);
                     strcpy(&meshUserCmdLine[k++], " ");
@@ -642,6 +724,8 @@ void bt_mesh_param_user_cmd(unsigned int argc, char **argv)
 
     return;
 }
+
+extern char *_strncat(char *dest, char const *src, size_t count);
 
 void user_cmd_array2string(uint8_t *buf, unsigned int buflen, char *out)
 {

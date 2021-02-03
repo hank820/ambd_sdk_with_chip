@@ -322,7 +322,7 @@ typedef enum
     PROV_CB_TYPE_COMPLETE, /**< only notified in the prov procedure */
     PROV_CB_TYPE_FAIL,
     PROV_CB_TYPE_PROV, /**< added to notify the stack is ready */
-#if MESH_PROV_WO_AUTH_VALUE
+#if defined(MESH_PROV_WO_AUTH_VALUE) && MESH_PROV_WO_AUTH_VALUE
     PROV_CB_TYPE_CONF_CHECK,
 #endif
 } prov_cb_type_t;
@@ -346,7 +346,7 @@ typedef struct
     };
 } prov_cb_fail_t;
 
-#if MESH_PROV_WO_AUTH_VALUE
+#if defined(MESH_PROV_WO_AUTH_VALUE) && MESH_PROV_WO_AUTH_VALUE
 typedef struct
 {
     uint8_t *rand;
@@ -362,7 +362,7 @@ typedef union
     prov_start_t *pprov_start; //!< used in PROV_CB_TYPE_AUTH_DATA by device
     prov_data_t *pprov_data; //!< used in PROV_CB_TYPE_COMPLETE
     prov_cb_fail_t prov_fail; //!< used in PROV_CB_TYPE_FAIL
-#if MESH_PROV_WO_AUTH_VALUE
+#if defined(MESH_PROV_WO_AUTH_VALUE) && MESH_PROV_WO_AUTH_VALUE
     prov_check_conf_t prov_check_conf;
 #endif
 } prov_cb_data_t;

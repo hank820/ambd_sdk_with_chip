@@ -55,7 +55,7 @@ static struct usb_device_descriptor msc_device_desc = {
     .bDeviceProtocol    = 0,
     .bMaxPacketSize0    = 64,
     .idVendor           = REALTEK_USB_VID,
-    .idProduct          = REALTEK_USB_PID,
+    .idProduct          = REALTEK_USB_PID+1,
     .bcdDevice          = 0x0100,
     .iManufacturer      = USBD_MSC_STRING_MANUFACTURER,
     .iProduct           = USBD_MSC_STRING_PRODUCT,
@@ -167,12 +167,12 @@ int usbd_msc_halt_bulk_in_endpoint(struct usb_msc_dev_t *mscdev)
     int error_cnt = 0;
     
     rc = usb_ep_set_halt(mscdev->in_ep);
-    if (rc == -EAGAIN) {
+    if (rc == -USB_EAGAIN) {
         USBD_MSC_ERROR("delayed bulk-in endpoint halt");
     }
 
     while (rc != 0) {
-        if (rc != -EAGAIN) {
+        if (rc != -USB_EAGAIN) {
             USBD_MSC_ERROR("usb_ep_set_halt -> %d", rc);
             rc = 0;
             break;
@@ -215,14 +215,14 @@ static void msc_bulk_in_complete(struct usb_ep *ep, struct usb_request *req)
     
     /* check request status */
     switch (status) {
-        case ESUCCESS:          /* tx seccussfuly*/
+        case USB_ESUCCESS:          /* tx seccussfuly*/
             break;
 
-        case -ECONNRESET:       /* unlink */
+        case -USB_ECONNRESET:       /* unlink */
             USBD_MSC_ERROR("ECONNRESET");
             break;
 
-        case -ESHUTDOWN:        /* disconnect etc */
+        case -USB_ESHUTDOWN:        /* disconnect etc */
             USBD_MSC_ERROR("ESHUTDOWN");
             break;
 
@@ -325,7 +325,7 @@ static void msc_bulk_out_complete(struct usb_ep *ep, struct usb_request *req)
 
     /*check request status*/
     switch (status) {
-        case ESUCCESS:  /* normal complete */
+        case USB_ESUCCESS:  /* normal complete */
             if (req->actual > 0) {
                 if (bufhd->type == BUFHD_CBW && req->actual == US_BULK_CB_WRAP_LEN) {
                     rtw_mutex_get(&common->boc_mutex);
@@ -359,19 +359,19 @@ static void msc_bulk_out_complete(struct usb_ep *ep, struct usb_request *req)
 
             break;
 
-        case -ECONNRESET:       /* unlink, software-driven interface shutdown */
+        case -USB_ECONNRESET:       /* unlink, software-driven interface shutdown */
             USBD_MSC_ERROR("ECONNRESET");
             break;
 
-        case -ESHUTDOWN:        /* disconnect etc */
+        case -USB_ESHUTDOWN:        /* disconnect etc */
             USBD_MSC_ERROR("ESHUTDOWN");
             break;
 
-        case -ECONNABORTED:     /* endpoint reset */
+        case -USB_ECONNABORTED:     /* endpoint reset */
             USBD_MSC_ERROR("ECONNABORTED");
             break;
 
-        case -EOVERFLOW:
+        case -USB_EOVERFLOW:
             USBD_MSC_ERROR("EOVERFLOW");
             break;
 
@@ -439,12 +439,12 @@ static int msc_lun_open(struct usb_msc_lun_t *curlun)
     /* init hard disk */
     if (curlun->lun_opts->disk_init) {
         if (curlun->lun_opts->disk_init()) {
-            return -ENOMEDIUM;
+            return -USB_ENOMEDIUM;
         }
 
         curlun->is_open = 1;
     } else {
-        return -ENOMEDIUM;
+        return -USB_ENOMEDIUM;
     }
 
     /* get disk capacity */
@@ -469,7 +469,7 @@ static int msc_create_lun(struct usb_msc_common_t *common, unsigned int id)
     lun = (struct usb_msc_lun_t *)msc_malloc(sizeof(struct usb_msc_lun_t));
     if (!lun) {
         USBD_MSC_ERROR("fail to malloc lun");
-        return -ENOMEM;
+        return -USB_ENOMEM;
     }
 
     lun->cdrom = 0;
@@ -491,6 +491,7 @@ static void msc_remove_luns(struct usb_msc_common_t *common, int n)
         for (i = 0; i < n; ++i) {
             if (common->luns[i]) {
                 msc_lun_close(common->luns[i]);
+                rtw_mutex_free(&common->luns[i]->lun_mutex);
                 msc_free(common->luns[i]);
                 common->luns[i] = NULL;
             }
@@ -509,7 +510,7 @@ static int msc_create_luns(struct usb_msc_common_t *common)
     luns = (struct usb_msc_lun_t **)msc_malloc(common->nluns * sizeof(struct usb_msc_lun_t *));
     if (!luns) {
         USBD_MSC_ERROR("fail to malloc luns");
-        return -ENOMEM;
+        return -USB_ENOMEM;
     }
 
     common->luns = luns;
@@ -669,7 +670,7 @@ static int msc_alloc_bufhds(struct usb_msc_common_t *common)
         common->cbw_bh = bufhd;
     } else {
         USBD_MSC_ERROR("fail to malloc bufhd cbw");
-        rc = -ENOMEM;
+        rc = -USB_ENOMEM;
         goto fail;
     }
 
@@ -679,7 +680,7 @@ static int msc_alloc_bufhds(struct usb_msc_common_t *common)
         common->csw_bh = bufhd;
     } else {
         USBD_MSC_ERROR("fail to malloc bufhd csw");
-        rc = -ENOMEM;
+        rc = -USB_ENOMEM;
         goto fail;
     }
 
@@ -693,7 +694,7 @@ static int msc_alloc_bufhds(struct usb_msc_common_t *common)
             rtw_list_insert_tail(&bufhd->list, &common->bufhd_pool);
         } else {
             USBD_MSC_ERROR("fail to malloc bufhd(No.%d)", i + 1);
-            rc = -ENOMEM;
+            rc = -USB_ENOMEM;
             goto fail;
         }
     }
@@ -912,7 +913,7 @@ static int msc_fun_bind(struct usb_configuration *c, struct usb_function *f)
 {
     struct usb_msc_dev_t *mscdev = &msc_dev;
     struct usb_ep *ep;
-    int status = -ENODEV;
+    int status = -USB_ENODEV;
     int id;
 
     USBD_MSC_ENTER;
@@ -999,7 +1000,7 @@ static int msc_fun_setup(struct usb_function *fun, const struct usb_control_requ
     u16 wLength = ctrl->wLength;
     u16 wIndex = ctrl->wIndex;
     u16 wValue = ctrl->wValue;
-    int value = -EOPNOTSUPP;
+    int value = -USB_EOPNOTSUPP;
     req0->context = NULL;
     req0->length = 0;
 
@@ -1167,7 +1168,7 @@ static int msc_config(struct usb_configuration *c)
     }
 
     USBD_MSC_EXIT;
-    return ESUCCESS;
+    return USB_ESUCCESS;
 
 msc_config_fail:
     
@@ -1226,7 +1227,7 @@ int usbd_msc_init(void)
     }
     
     USBD_MSC_EXIT;
-    return ESUCCESS;
+    return USB_ESUCCESS;
     
 usbd_msc_init_fail:
     USBD_MSC_EXIT_ERR;

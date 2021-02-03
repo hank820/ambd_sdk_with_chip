@@ -4534,8 +4534,8 @@ void fATPT(void *arg){
 	node* curnode = NULL;
 	struct sockaddr_in cli_addr;
 	int data_sz;
-	int data_pos = C_NUM_AT_CMD + C_NUM_AT_CMD_DLT+ strlen(arg) + 1;
-	u8 *data = (u8 *)log_buf + data_pos;
+	int data_pos;
+	u8 *data;
 
 	AT_DBG_MSG(AT_FLAG_LWIP, AT_DBG_ALWAYS, 
 		"[ATPT]: _AT_TRANSPORT_SEND_DATA");
@@ -4551,6 +4551,9 @@ void fATPT(void *arg){
 		error_no = 1;
 		goto exit;
 	}
+
+	data_pos = C_NUM_AT_CMD + C_NUM_AT_CMD_DLT+ strlen(arg) + 1;
+	data = (u8 *)log_buf + data_pos;
 
 	data_sz = atoi((char*)argv[1]);
 	if(data_sz > MAX_BUFFER){

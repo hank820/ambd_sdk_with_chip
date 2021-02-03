@@ -44,7 +44,7 @@ BEGIN_DECLS
 #define MESH_PROVISIONING_SAMPLE_DATA           0 //!< Provisioning Protocol
 #define MESH_UNPROVISIONING_SUPPORT             0 //!< Support unprovisioning cmd in pb-gatt
 
-#if MESH_DEVICE
+#if defined(MESH_DEVICE) && MESH_DEVICE
 //#warning "current project is device lib"
 #define MESH_DATA_UART_DEBUG                    1
 #define MESH_LPN                                1 //!< low power node
@@ -56,7 +56,7 @@ BEGIN_DECLS
 #define MESH_BEARER_GATT                        1
 #endif
 
-#if MESH_PROVISIONER
+#if defined(MESH_PROVISIONER) && MESH_PROVISIONER
 //#warning "current project is provisioner lib"
 #define MESH_DATA_UART_DEBUG                    1 //!< Data uart debug
 #define MESH_FN                                 1 //!< friend relay
@@ -72,7 +72,8 @@ BEGIN_DECLS
 #define data_uart_dump(...)
 #endif
 
-#if MESH_FN && MESH_LPN
+#if ((defined(MESH_FN) && MESH_FN) && \
+    (defined(MESH_LPN) && MESH_LPN))
 //#error "Can't support both Friend Node and Low Power Node at the same time!"
 #endif
 

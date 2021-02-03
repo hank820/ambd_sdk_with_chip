@@ -105,6 +105,8 @@ mesh_msg_send_cause_t light_ctl_delay_publish(const mesh_model_info_p pmodel_inf
                                               uint16_t lightness,
                                               uint16_t temperature, uint32_t delay_time)
 {
+    /* avoid gcc compile warning */
+    (void)delay_time;
     mesh_msg_send_cause_t ret = MESH_MSG_SEND_CAUSE_INVALID_DST;
     if (mesh_model_pub_check(pmodel_info))
     {
@@ -206,6 +208,8 @@ static int32_t light_ctl_trans_step_change(const mesh_model_info_p pmodel_info,
                                            generic_transition_time_t total_time,
                                            generic_transition_time_t remaining_time)
 {
+    /* avoid gcc compile warning */
+    (void)type;
     int32_t ret = MODEL_SUCCESS;
     light_ctl_server_set_t trans_set_data;
     light_ctl_info_t *pctl_info = pmodel_info->pargs;
@@ -533,6 +537,8 @@ static bool light_ctl_server_receive(mesh_msg_p pmesh_msg)
 
 static int32_t light_ctl_server_publish(mesh_model_info_p pmodel_info, bool retrans)
 {
+    /* avoid gcc compile warning */
+    (void)retrans;
     light_ctl_server_get_t get_data = {0, 0};
     if (NULL != pmodel_info->model_data_cb)
     {

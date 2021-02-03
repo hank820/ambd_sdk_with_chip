@@ -16,6 +16,8 @@
 /*============================================================================*
  *                              Header Files
  *============================================================================*/
+#include "platform_opts_bt.h"
+#if defined(CONFIG_BT_SCATTERNET) && CONFIG_BT_SCATTERNET
 #include <os_sched.h>
 #include <string.h>
 #include <ble_scatternet_app_task.h>
@@ -44,7 +46,6 @@
 #include "task.h"
 #include "rtk_coex.h"
 #include <simple_ble_service.h>
-#include "platform_opts_bt.h"
 
 #if defined (CONFIG_BT_CENTRAL_CONFIG) && (CONFIG_BT_CENTRAL_CONFIG)
 #include <gap_adv.h>
@@ -130,9 +131,9 @@ static const uint8_t adv_data[] =
 #endif
 
 /** @brief  Default minimum advertising interval when device is discoverable (units of 625us, 160=100ms) */
-#define DEFAULT_ADVERTISING_INTERVAL_MIN            320
+#define DEFAULT_ADVERTISING_INTERVAL_MIN            352 //220ms
 /** @brief  Default maximum advertising interval */
-#define DEFAULT_ADVERTISING_INTERVAL_MAX            400
+#define DEFAULT_ADVERTISING_INTERVAL_MAX            384 //240ms
 
 //extern T_SERVER_ID simp_srv_id; /**< Simple ble service id*/
 //extern T_SERVER_ID bas_srv_id;  /**< Battery service id */
@@ -149,6 +150,7 @@ static const uint8_t adv_data[] =
 void ble_scatternet_bt_stack_config_init(void)
 {
     gap_config_max_le_link_num(BLE_SCATTERNET_APP_MAX_LINKS);
+    gap_config_max_le_paired_device(BLE_SCATTERNET_APP_MAX_LINKS);
 }
 
 /**
@@ -316,6 +318,7 @@ void ble_scatternet_app_le_profile_init(void)
 	bas_srv_id	= bas_add_service((void *)app_profile_callback);
 	server_register_app_cb(app_profile_callback);
 #endif
+
 }
 
 
@@ -488,5 +491,5 @@ void ble_scatternet_app_deinit(void)
 }
 
 /** @} */ /* End of group CENTRAL_CLIENT_DEMO_MAIN */
-
+#endif
 

@@ -92,7 +92,7 @@ static int usbd_msc_scsi_send_status(struct usb_msc_common_t *common)
     if (common->running) {
         if (usbd_msc_bulk_in_transfer(common->mscdev, reqin)) {
             /* Don't know what to do if common->fsg is NULL */
-            return -EIO;
+            return -USB_EIO;
         }
     }
 
@@ -110,7 +110,7 @@ static int usbd_msc_scsi_inquiry(struct usb_msc_common_t *common)
     bufhd = usbd_msc_get_bufhd(common);
     if (NULL == bufhd) {
         USBD_MSC_ERROR("fail to get bufhd");
-        return -EIO;        /* No default reply */
+        return -USB_EIO;        /* No default reply */
     }
 
     common->curbh = bufhd; // store the current buffer header for data stage
@@ -153,7 +153,7 @@ static int usbd_msc_read_format_capacities(struct usb_msc_common_t *common)
     bufhd = usbd_msc_get_bufhd(common);
     if (NULL == bufhd) {
         USBD_MSC_ERROR("fail to get bufhd");
-        return -EIO;        /* No default reply */
+        return -USB_EIO;        /* No default reply */
     }
 
     common->curbh = bufhd; // store the current buffer header for data stage
@@ -188,7 +188,7 @@ static int usbd_msc_request_sense(struct usb_msc_common_t *common)
     bufhd = usbd_msc_get_bufhd(common);
     if (NULL == bufhd) {
         USBD_MSC_ERROR("fail to get bufhd");
-        return -EIO;        /* No default reply */
+        return -USB_EIO;        /* No default reply */
     }
 
     common->curbh = bufhd; // store the current buffer header for data stage
@@ -256,7 +256,7 @@ static int usbd_msc_mode_sense(struct usb_msc_common_t *common)
     bufhd = usbd_msc_get_bufhd(common);
     if (NULL == bufhd) {
         USBD_MSC_ERROR("fail to get bufhd");
-        return -EIO;        /* No default reply */
+        return -USB_EIO;        /* No default reply */
     }
 
     common->curbh = bufhd; // store the current buffer header for data stage
@@ -265,7 +265,7 @@ static int usbd_msc_mode_sense(struct usb_msc_common_t *common)
 
     if ((common->scsi_cmnd[1] & ~0x08) != 0) {  /* Mask away DBD */
         curlun->sense_data = SS_INVALID_FIELD_IN_CDB;
-        return -EINVAL;
+        return -USB_EINVAL;
     }
 
     if (mscmnd == SCSI_MODE_SENSE6) {
@@ -288,7 +288,7 @@ static int usbd_msc_mode_select(struct usb_msc_common_t *common)
         curlun->sense_data = SS_INVALID_COMMAND;
     }
 
-    return -EINVAL;
+    return -USB_EINVAL;
 }
 
 static int usbd_msc_read_capacity(struct usb_msc_common_t *common)
@@ -305,7 +305,7 @@ static int usbd_msc_read_capacity(struct usb_msc_common_t *common)
     bufhd = usbd_msc_get_bufhd(common);
     if (NULL == bufhd) {
         USBD_MSC_ERROR("fail to get bufhd");
-        return -EIO;        /* No default reply */
+        return -USB_EIO;        /* No default reply */
     }
 
     common->curbh = bufhd; // store the current buffer header for data stage
@@ -319,7 +319,7 @@ static int usbd_msc_read_capacity(struct usb_msc_common_t *common)
     /* Check the PMI and LBA fields */
     if ((pmi > 1) || ((pmi == 0) && (lba != 0))) {
         curlun->sense_data = SS_INVALID_FIELD_IN_CDB;
-        return -EINVAL;
+        return -USB_EINVAL;
     }
 
     /* Block Count */
@@ -365,19 +365,19 @@ static int usbd_msc_read(struct usb_msc_common_t *common)
          */
         if ((common->scsi_cmnd[1] & ~0x18) != 0) {
             curlun->sense_data = SS_INVALID_FIELD_IN_CDB;
-            return -EINVAL;
+            return -USB_EINVAL;
         }
     }
 
     if (lba >= curlun->num_sectors) {
         curlun->sense_data = SS_LOGICAL_BLOCK_ADDRESS_OUT_OF_RANGE;
-        return -EINVAL;
+        return -USB_EINVAL;
     }
 
     blks_left_to_read = common->data_size_from_cmnd >> curlun->blkbits;
 
     if (unlikely(blks_left_to_read == 0)) {
-        return -EIO;        /* No default reply */
+        return -USB_EIO;        /* No default reply */
     }
 
     for (;;) {
@@ -474,7 +474,7 @@ retry:
         }
     }
 
-    return -EIO;        /* No default reply */
+    return -USB_EIO;        /* No default reply */
 }
 
 static int usbd_msc_write(struct usb_msc_common_t *common)
@@ -492,7 +492,7 @@ static int usbd_msc_write(struct usb_msc_common_t *common)
 
     if (curlun->ro) {
         curlun->sense_data = SS_WRITE_PROTECTED;
-        return -EINVAL;
+        return -USB_EINVAL;
     }
 
     /*
@@ -513,7 +513,7 @@ static int usbd_msc_write(struct usb_msc_common_t *common)
          */
         if (common->scsi_cmnd[1] & ~0x18) {
             curlun->sense_data = SS_INVALID_FIELD_IN_CDB;
-            return -EINVAL;
+            return -USB_EINVAL;
         }
 
         if (!curlun->nofua && (common->scsi_cmnd[1] & 0x08)) { /* FUA */
@@ -525,7 +525,7 @@ static int usbd_msc_write(struct usb_msc_common_t *common)
 
     if (lba >= curlun->num_sectors) {
         curlun->sense_data = SS_LOGICAL_BLOCK_ADDRESS_OUT_OF_RANGE;
-        return -EINVAL;
+        return -USB_EINVAL;
     }
 
     /* Carry out the file writes */
@@ -533,7 +533,7 @@ static int usbd_msc_write(struct usb_msc_common_t *common)
     amount_left_to_req = common->data_size_from_cmnd;
 
     if (unlikely(amount_left_to_req == 0)) {
-        return -EIO;    /* No default reply */
+        return -USB_EIO;    /* No default reply */
     }
 
     amount_left_to_write = amount_left_to_req;
@@ -580,7 +580,7 @@ static int usbd_msc_write(struct usb_msc_common_t *common)
             bufhd->reqout->length = amount;
 
             if (usbd_msc_bulk_out_transfer(common->mscdev, bufhd->reqout)) {
-                return -EIO;
+                return -USB_EIO;
             }
 
             if (amount_left_to_req <= amount) {
@@ -662,7 +662,7 @@ check_data:
         }
     }
 
-    return -EIO;        /* No default reply */
+    return -USB_EIO;        /* No default reply */
 }
 
 static int usbd_msc_prevent_allow(struct usb_msc_common_t *common)
@@ -671,17 +671,17 @@ static int usbd_msc_prevent_allow(struct usb_msc_common_t *common)
     int     prevent;
 
     if (!common->curlun) {
-        return -EINVAL;
+        return -USB_EINVAL;
     } else if (!common->curlun->removable) {
         common->curlun->sense_data = SS_INVALID_COMMAND;
-        return -EINVAL;
+        return -USB_EINVAL;
     }
 
     prevent = common->scsi_cmnd[4] & 0x01;
 
     if ((common->scsi_cmnd[4] & ~0x01) != 0) {  /* Mask away Prevent */
         curlun->sense_data = SS_INVALID_FIELD_IN_CDB;
-        return -EINVAL;
+        return -USB_EINVAL;
     }
 
     curlun->prevent_medium_removal = prevent;
@@ -695,14 +695,14 @@ static int usbd_msc_start_stop(struct usb_msc_common_t *common)
     int     loej, start;
 
     if (!curlun) {
-        return -EINVAL;
+        return -USB_EINVAL;
     } else if (!curlun->removable) {
         curlun->sense_data = SS_INVALID_COMMAND;
-        return -EINVAL;
+        return -USB_EINVAL;
     } else if ((common->scsi_cmnd[1] & ~0x01) != 0 || /* Mask away Immed */
         (common->scsi_cmnd[4] & ~0x03) != 0) { /* Mask LoEj, Start */
         curlun->sense_data = SS_INVALID_FIELD_IN_CDB;
-        return -EINVAL;
+        return -USB_EINVAL;
     }
 
     loej  = common->scsi_cmnd[4] & 0x02;
@@ -715,7 +715,7 @@ static int usbd_msc_start_stop(struct usb_msc_common_t *common)
     if (start) {
         if (!(curlun->is_open)) {
             curlun->sense_data = SS_MEDIUM_NOT_PRESENT;
-            return -EINVAL;
+            return -USB_EINVAL;
         }
 
         return 0;
@@ -772,7 +772,7 @@ static int usbd_msc_check_command(struct usb_msc_common_t *common, int cmnd_size
     /* Conflicting data directions is a phase error */
     if (common->data_dir != data_dir && common->data_size_from_cmnd > 0) {
         common->phase_error = 1;
-        return -EINVAL;
+        return -USB_EINVAL;
     }
 
     /* Verify the length of the command itself */
@@ -797,7 +797,7 @@ static int usbd_msc_check_command(struct usb_msc_common_t *common, int cmnd_size
             cmnd_size = common->cmnd_size;
         } else {
             common->phase_error = 1;
-            return -EINVAL;
+            return -USB_EINVAL;
         }
     }
 
@@ -825,7 +825,7 @@ static int usbd_msc_check_command(struct usb_msc_common_t *common, int cmnd_size
         if ((common->scsi_cmnd[0] != SCSI_INQUIRY) &&
             (common->scsi_cmnd[0] != SCSI_REQUEST_SENSE)) {
             USBD_MSC_ERROR("unsupported LUN %u", common->lun);
-            return -EINVAL;
+            return -USB_EINVAL;
         }
     }
 
@@ -839,7 +839,7 @@ static int usbd_msc_check_command(struct usb_msc_common_t *common, int cmnd_size
         (common->scsi_cmnd[0] != SCSI_REQUEST_SENSE)) {
         curlun->sense_data = curlun->unit_attention_data;
         curlun->unit_attention_data = SS_NO_SENSE;
-        return -EINVAL;
+        return -USB_EINVAL;
     }
 
     /* Check that only command bytes listed in the mask are non-zero */
@@ -851,14 +851,14 @@ static int usbd_msc_check_command(struct usb_msc_common_t *common, int cmnd_size
                 curlun->sense_data = SS_INVALID_FIELD_IN_CDB;
             }
 
-            return -EINVAL;
+            return -USB_EINVAL;
         }
     }
 
     /*check LUN is open or not*/
     if (curlun && (!curlun->is_open) && needs_medium) {
         curlun->sense_data = SS_MEDIUM_NOT_PRESENT;
-        return -EINVAL;
+        return -USB_EINVAL;
     }
 
     return 0;
@@ -879,7 +879,7 @@ static int check_command_size_in_blocks(struct usb_msc_common_t *common,
 
 int usbd_msc_scsi_cmd_handler(struct usb_msc_common_t *common)
 {
-    int reply = -EINVAL;
+    int reply = -USB_EINVAL;
     int i;
     u32 buf_error_cnt = 0;
     static char     unknown[16];
@@ -1174,13 +1174,13 @@ int usbd_msc_scsi_cmd_handler(struct usb_msc_common_t *common)
 
             if (reply == 0) {
                 common->curlun->sense_data = SS_INVALID_COMMAND;
-                reply = -EINVAL;
+                reply = -USB_EINVAL;
             }
 
             break;
     }
 
-    if (reply == -EINVAL) {
+    if (reply == -USB_EINVAL) {
         reply = 0;
     }
 
@@ -1190,7 +1190,7 @@ int usbd_msc_scsi_cmd_handler(struct usb_msc_common_t *common)
 retry:
 
         if (!common->running) {
-            return -EIO;
+            return -USB_EIO;
         }
 
         /* if something wrong with the current */
@@ -1203,7 +1203,7 @@ retry:
 
                 if (buf_error_cnt > USBD_MSC_BUF_ERROR_TOLERANCE) {
                     USBD_MSC_ERROR("aborted");
-                    return -EIO;
+                    return -USB_EIO;
                 }
 
                 rtw_mdelay_os(1);
@@ -1215,7 +1215,7 @@ retry:
         common->residue -= reply;
 
         if (!common->running) {
-            return -EIO;
+            return -USB_EIO;
         }
 
         if (common->residue) {
@@ -1223,7 +1223,7 @@ retry:
 
             if (usbd_msc_bulk_in_transfer(common->mscdev, common->curbh->reqin)) {
                 USBD_MSC_ERROR("bulk in transfer fail %u", common->residue);
-                return -EIO;
+                return -USB_EIO;
             }
 
             if (common->can_stall) {
@@ -1234,7 +1234,7 @@ retry:
 
             if (usbd_msc_bulk_in_transfer(common->mscdev, common->curbh->reqin)) {
                 USBD_MSC_ERROR("bulk in transfer fail");
-                return -EIO;
+                return -USB_EIO;
             }
         }
 
@@ -1267,7 +1267,7 @@ int usbd_msc_receive_cbw(struct usb_msc_dev_t *mscdev, struct usb_request *req)
          * until the next reset.
          */
         // TODO:
-        return -EINVAL;
+        return -USB_EINVAL;
     }
 
     /* Is the CBW meaningful? */
@@ -1283,7 +1283,7 @@ int usbd_msc_receive_cbw(struct usb_msc_dev_t *mscdev, struct usb_request *req)
          */
         usb_ep_set_halt(mscdev->out_ep);
         usbd_msc_halt_bulk_in_endpoint(mscdev);
-        return -EINVAL;
+        return -USB_EINVAL;
     }
 
     // store cbw info in msc_common structure

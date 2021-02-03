@@ -114,7 +114,7 @@ struct usb_endpoint_descriptor vendor_bulk_sink_desc_FS = {
     .bDescriptorType  = USB_DT_ENDPOINT,
     .bEndpointAddress = USBD_VENDOR_BULK_OUT_EP_ADDRESS,
     .bmAttributes     = USB_ENDPOINT_XFER_BULK,
-    .wMaxPacketSize   = 512,
+    .wMaxPacketSize   = 64,
     .bInterval        = 0x00,
 };
 

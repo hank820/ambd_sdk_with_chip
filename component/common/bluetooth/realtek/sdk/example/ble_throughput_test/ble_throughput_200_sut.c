@@ -1,4 +1,5 @@
-
+#include <platform_opts_bt.h>
+#if defined(CONFIG_BT_THROUGHPUT_TEST) && CONFIG_BT_THROUGHPUT_TEST
 #include <string.h>
 #include "app_msg.h"
 #include "trace_app.h"
@@ -10,7 +11,6 @@
 
 #include "ble_throughput_user_cmd.h"
 #include "user_cmd_parse.h"
-
 
 #include "os_sched.h"
 #include <os_mem.h>
@@ -30,32 +30,8 @@ extern void *ble_throughput_io_queue_handle;
 typedef void(*P_FUN_TC_RESULT_CB)(uint16_t case_id, uint16_t result, void *p_cb_data);
 P_FUN_TC_RESULT_CB p_tc_result_cb = NULL;
 
-typedef struct
-{
-    uint8_t initial_value;
-    uint32_t total_test_count;
-    uint8_t remote_bd[6];
-    uint32_t total_notify_rx_count;
-    uint32_t begin_time;
-    uint32_t end_time;
-    uint32_t elapsed_time;
-    uint32_t data_rate;
-} TC_206_SUT_MGR;
-
 TC_206_SUT_MGR *p_tc_206_sut_mgr = NULL;
 TTP_PERFER_PARAM g_206_sut_prefer_param;
-
-typedef struct
-{
-    uint8_t initial_value;
-    uint32_t total_test_count;
-    uint8_t remote_bd[6];
-    uint32_t count_remain;
-    uint32_t begin_time;
-    uint32_t end_time;
-    uint32_t elapsed_time;
-    uint32_t data_rate;
-} TC_207_SUT_MGR;
 
 TC_207_SUT_MGR *p_tc_207_sut_mgr = NULL;
 TTP_PERFER_PARAM g_207_sut_prefer_param;
@@ -774,4 +750,4 @@ void ble_throughput_207_sut_dump_result(void)
         data_uart_print("Not running\r\n");
     }
 }
-
+#endif

@@ -16,6 +16,8 @@
 /*============================================================================*
  *                              Header Files
  *============================================================================*/
+#include <platform_opts_bt.h>
+#if defined(CONFIG_BT_SCATTERNET) && CONFIG_BT_SCATTERNET
 #include <stdio.h>
 #include <app_msg.h>
 #include <string.h>
@@ -107,10 +109,14 @@ void ble_scatternet_app_handle_io_msg(T_IO_MSG io_msg)
         break;
     case IO_MSG_TYPE_QDECODE:
         {
-            if (io_msg.subtype == 1) {
-                le_adv_start();
-            } else if (io_msg.subtype == 0) {
+            if (io_msg.subtype == 0) {
                 le_adv_stop();
+            } else if (io_msg.subtype == 1) {
+                le_adv_start();
+            } else if (io_msg.subtype == 2) {
+                le_scan_stop();
+            } else if (io_msg.subtype == 3) {
+                le_scan_start();
             }
         }
         break;
@@ -127,7 +133,6 @@ void ble_scatternet_app_handle_io_msg(T_IO_MSG io_msg)
  * @param[in] cause GAP device state change cause
  * @return   void
  */
-extern void sw_bt_info_update(unsigned char is_scan);
 void ble_scatternet_app_handle_dev_state_evt(T_GAP_DEV_STATE new_state, uint16_t cause)
 {
     int ret = 1;
@@ -170,13 +175,11 @@ void ble_scatternet_app_handle_dev_state_evt(T_GAP_DEV_STATE new_state, uint16_t
         {
             APP_PRINT_INFO0("GAP scan stop");
             data_uart_print("GAP scan stop\r\n");
-
         }
         else if (new_state.gap_scan_state == GAP_SCAN_STATE_SCANNING)
         {
             APP_PRINT_INFO0("GAP scan start");
             data_uart_print("GAP scan start\r\n");
-
         }
     }
 
@@ -353,7 +356,7 @@ void ble_scatternet_app_handle_conn_state_evt(uint8_t conn_id, T_GAP_CONN_STATE 
         break;
 
     }
-	
+
 #if defined (CONFIG_BT_CENTRAL_CONFIG) && (CONFIG_BT_CENTRAL_CONFIG)
 	bt_config_gap_conn_state = new_state;
 #endif
@@ -386,7 +389,6 @@ void ble_scatternet_app_handle_authen_state_evt(uint8_t conn_id, uint8_t new_sta
             {
                 data_uart_print("Pair success\r\n");
                 APP_PRINT_INFO0("ble_scatternet_app_handle_authen_state_evt: GAP_AUTHEN_STATE_COMPLETE pair success");
-
             }
             else
             {
@@ -792,8 +794,8 @@ T_APP_RESULT ble_scatternet_app_gap_callback(uint8_t cb_type, void *p_cb_data)
 		sprintf(remote_addr_type,"%s",(p_data->p_le_scan_info->remote_addr_type == GAP_REMOTE_ADDR_LE_PUBLIC)? "public":
 							   (p_data->p_le_scan_info->remote_addr_type == GAP_REMOTE_ADDR_LE_RANDOM)? "random":"unknown");
 
-		BLE_PRINT("ADVType\t\t\t| AddrType\t|%-17s\t|rssi\n\r","BT_Addr");
-		BLE_PRINT("%-20s\t|%-8s\t|"BD_ADDR_FMT"\t|%d\n\r",adv_type,remote_addr_type,BD_ADDR_ARG(p_data->p_le_scan_info->bd_addr),
+		BLE_PRINT("ADVType\t\t\t| AddrType\t|%s\t\t\t|rssi\n\r","BT_Addr");
+		BLE_PRINT("%s\t\t%s\t"BD_ADDR_FMT"\t%d\n\r",adv_type,remote_addr_type,BD_ADDR_ARG(p_data->p_le_scan_info->bd_addr),
 												p_data->p_le_scan_info->rssi);
 
         ble_scatternet_app_parse_scan_info(p_data->p_le_scan_info);
@@ -853,17 +855,17 @@ T_APP_RESULT ble_scatternet_app_gap_callback(uint8_t cb_type, void *p_cb_data)
 			}
 			break;
 #endif
+
 		case GAP_MSG_LE_MODIFY_WHITE_LIST:
-   			APP_PRINT_INFO2("GAP_MSG_LE_MODIFY_WHITE_LIST: operation  0x%x, cause 0x%x",
-				   p_data->p_le_modify_white_list_rsp->operation,
-				   p_data->p_le_modify_white_list_rsp->cause);
+			APP_PRINT_INFO2("GAP_MSG_LE_MODIFY_WHITE_LIST: operation  0x%x, cause 0x%x",
+					p_data->p_le_modify_white_list_rsp->operation,
+					p_data->p_le_modify_white_list_rsp->cause);
 			data_uart_print("GAP_MSG_LE_MODIFY_WHITE_LIST: operation  0x%x, cause 0x%x\r\n",
-			       p_data->p_le_modify_white_list_rsp->operation,
-				   p_data->p_le_modify_white_list_rsp->cause);
-   			break;
+					p_data->p_le_modify_white_list_rsp->operation,
+					p_data->p_le_modify_white_list_rsp->cause);
+			break;
 
-
-    	default:
+    default:
         APP_PRINT_ERROR1("ble_scatternet_app_gap_callback: unhandled cb_type 0x%x", cb_type);
         break;
     }
@@ -1271,11 +1273,11 @@ T_APP_RESULT ble_scatternet_gcs_client_callback(T_CLIENT_ID client_id, uint8_t c
             ble_scatternet_gcs_handle_discovery_result(conn_id, p_gcs_cb_data->cb_content.discov_result);
             break;
         case GCS_CLIENT_CB_TYPE_READ_RESULT:
-            APP_PRINT_INFO3("READ RESULT: cause 0x%x, handle 0x%x,  value_len %d",
+            APP_PRINT_INFO3("READ RESULT: cause 0x%x, handle 0x%x, value_len %d",
                             p_gcs_cb_data->cb_content.read_result.cause,
                             p_gcs_cb_data->cb_content.read_result.handle,
                             p_gcs_cb_data->cb_content.read_result.value_size);
-            data_uart_print("READ RESULT: cause 0x%x, handle 0x%x,  value_len %d\n\r",
+            data_uart_print("READ RESULT: cause 0x%x, handle 0x%x, value_len %d\n\r",
                             p_gcs_cb_data->cb_content.read_result.cause,
                             p_gcs_cb_data->cb_content.read_result.handle,
                             p_gcs_cb_data->cb_content.read_result.value_size);
@@ -1285,18 +1287,18 @@ T_APP_RESULT ble_scatternet_gcs_client_callback(T_CLIENT_ID client_id, uint8_t c
                 APP_PRINT_INFO1("READ VALUE: %b",
                                 TRACE_BINARY(p_gcs_cb_data->cb_content.read_result.value_size,
                                              p_gcs_cb_data->cb_content.read_result.p_value));
-				data_uart_print("REAR VALUE:");
-				for(int i=0; i< p_gcs_cb_data->cb_content.read_result.value_size; i++)
-					data_uart_print("0x%2X", *(p_gcs_cb_data->cb_content.read_result.p_value + i));
-				data_uart_print("\n\r");
+                data_uart_print("REAR VALUE: ");
+                for(int i=0; i< p_gcs_cb_data->cb_content.read_result.value_size; i++)
+                    data_uart_print("0x%2x ", *(p_gcs_cb_data->cb_content.read_result.p_value + i));
+                data_uart_print("\n\r");
             }
             break;
         case GCS_CLIENT_CB_TYPE_WRITE_RESULT:
-            APP_PRINT_INFO3("WRITE RESULT: cause 0x%x ,handle 0x%x, type %d",
+            APP_PRINT_INFO3("WRITE RESULT: cause 0x%x, handle 0x%x, type %d",
                             p_gcs_cb_data->cb_content.write_result.cause,
                             p_gcs_cb_data->cb_content.write_result.handle,
                             p_gcs_cb_data->cb_content.write_result.type);
-			data_uart_print("WRITE RESULT: cause 0x%x ,handle 0x%x, type %d",
+            data_uart_print("WRITE RESULT: cause 0x%x, handle 0x%x, type %d\n\r",
                             p_gcs_cb_data->cb_content.write_result.cause,
                             p_gcs_cb_data->cb_content.write_result.handle,
                             p_gcs_cb_data->cb_content.write_result.type);
@@ -1310,12 +1312,6 @@ T_APP_RESULT ble_scatternet_gcs_client_callback(T_CLIENT_ID client_id, uint8_t c
                 APP_PRINT_INFO1("INDICATION VALUE: %b",
                                 TRACE_BINARY(p_gcs_cb_data->cb_content.read_result.value_size,
                                              p_gcs_cb_data->cb_content.read_result.p_value));
-				data_uart_print("INDICATION: handle 0x%x, value_size %d",
-                                p_gcs_cb_data->cb_content.notif_ind.handle,
-                                p_gcs_cb_data->cb_content.notif_ind.value_size);
-				data_uart_print("INDICATION VALUE: %b",
-                                TRACE_BINARY(p_gcs_cb_data->cb_content.read_result.value_size,
-                                             p_gcs_cb_data->cb_content.read_result.p_value));
             }
             else
             {
@@ -1323,12 +1319,6 @@ T_APP_RESULT ble_scatternet_gcs_client_callback(T_CLIENT_ID client_id, uint8_t c
                                 p_gcs_cb_data->cb_content.notif_ind.handle,
                                 p_gcs_cb_data->cb_content.notif_ind.value_size);
                 APP_PRINT_INFO1("NOTIFICATION VALUE: %b",
-                                TRACE_BINARY(p_gcs_cb_data->cb_content.notif_ind.value_size,
-                                             p_gcs_cb_data->cb_content.notif_ind.p_value));
-				data_uart_print("NOTIFICATION: handle 0x%x, value_size %d",
-                                p_gcs_cb_data->cb_content.notif_ind.handle,
-                                p_gcs_cb_data->cb_content.notif_ind.value_size);
-				data_uart_print("NOTIFICATION VALUE: %b",
                                 TRACE_BINARY(p_gcs_cb_data->cb_content.notif_ind.value_size,
                                              p_gcs_cb_data->cb_content.notif_ind.p_value));
             }
@@ -1343,4 +1333,4 @@ T_APP_RESULT ble_scatternet_gcs_client_callback(T_CLIENT_ID client_id, uint8_t c
 
 /** @} */ /* End of group GCS_CLIIENT_CALLBACK */
 /** @} */ /* End of group CENTRAL_CLIENT_APP */
-
+#endif

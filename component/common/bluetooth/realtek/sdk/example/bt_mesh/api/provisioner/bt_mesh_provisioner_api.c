@@ -22,13 +22,15 @@ extern INDICATION_ITEM    btMeshCmdIdPriv;
 
 thread_return mesh_provisioner_cmd_thread(thread_context context)
 {
+    /* avoid gcc compile warning */
+    (void)context;
 	uint8_t count = 0;
     uint32_t time_out = 2000;
     uint16_t mesh_code = MAX_MESH_PROVISIONER_CMD;
     CMD_ITEM *pmeshCmdItem = NULL;
     CMD_ITEM_S *pmeshCmdItem_s = NULL;
     PUSER_ITEM puserItem = NULL;
-    user_cmd_parse_value_t *pparse_value = NULL;
+    //user_cmd_parse_value_t *pparse_value = NULL;
     struct list_head *plist;
 	struct task_struct *pcmdtask = &(meshProvisionerCmdThread);    
     
@@ -48,25 +50,37 @@ thread_return mesh_provisioner_cmd_thread(thread_context context)
         plist = bt_mesh_dequeue_cmd();
         if (!plist) {
             printf("[BT_MESH] %s(): bt_mesh_dequeue_cmd fail !\r\n", __func__);
-			continue;
+			goto _next;
         }
         pmeshCmdItem_s = (CMD_ITEM_S *)plist;
         pmeshCmdItem = pmeshCmdItem_s->pmeshCmdItem;
         mesh_code = pmeshCmdItem->meshCmdCode;
-        pparse_value = pmeshCmdItem->pparseValue;
+        //pparse_value = pmeshCmdItem->pparseValue;
         puserItem = (PUSER_ITEM)pmeshCmdItem->userData;
         if (pmeshCmdItem_s->semaDownTimeOut) {
             printf("[BT_MESH] %s(): mesh cmd %d has already timeout !\r\n", __func__, mesh_code);
             bt_mesh_cmdunreg(pmeshCmdItem_s);
-            continue;
+            goto _next;
         }
-        BT_MESH_CMD_ID_PRIV_MOD(mesh_code, pmeshCmdItem_s, puserItem->userApiMode, 0, plt_time_read_ms());
+        BT_MESH_CMD_ID_PRIV_MOD(mesh_code, pmeshCmdItem_s, puserItem->userApiMode, 1, plt_time_read_ms());
         if (pmeshCmdItem_s->pmeshCmdItem->meshFunc) {
-            pmeshCmdItem_s->pmeshCmdItem->meshFunc(mesh_code, pmeshCmdItem_s);
-            if (puserItem->userApiMode != USER_API_SYNCH) {
-                BT_MESH_CMD_ID_PRIV_MOD(MAX_MESH_PROVISIONER_CMD, NULL, USER_API_DEFAULT_MODE, 0, 0);
-                continue;
+            if (pmeshCmdItem_s->pmeshCmdItem->meshFunc(mesh_code, pmeshCmdItem_s)) {
+                if (pmeshCmdItem_s->userApiMode == USER_API_ASYNCH) {
+                    bt_mesh_free_hdl(puserItem);
+                    bt_mesh_cmdunreg(pmeshCmdItem_s);
+                    BT_MESH_CMD_ID_PRIV_MOD(MAX_MESH_PROVISIONER_CMD, NULL, USER_API_DEFAULT_MODE, 1, 0);
+                    goto _next;
+                } else if (pmeshCmdItem_s->userApiMode == USER_API_CMDLINE) {
+                    bt_mesh_cmdunreg(pmeshCmdItem_s);
+                    BT_MESH_CMD_ID_PRIV_MOD(MAX_MESH_PROVISIONER_CMD, NULL, USER_API_DEFAULT_MODE, 1, 0);
+                    goto _next;
+                }
             }
+            if (puserItem->userApiMode != USER_API_SYNCH) {
+                BT_MESH_CMD_ID_PRIV_MOD(MAX_MESH_PROVISIONER_CMD, NULL, USER_API_DEFAULT_MODE, 1, 0);
+                goto _next;
+            }
+            btMeshCmdIdPriv.semaDownTimeOut = 0;
             /* proivsioning takes more time */
             if (mesh_code == GEN_MESH_CODE(_prov)) {
                 time_out = 10000;
@@ -87,6 +101,7 @@ thread_return mesh_provisioner_cmd_thread(thread_context context)
                     bt_mesh_cmdunreg(pmeshCmdItem_s);
                 } else {
                     /* enqueue to head for another try */
+                    printf("\r\n enqueue again 0x%x \r\n", plist);
                     if (bt_mesh_enqueue_cmd(plist, 1) == 1) {
                         printf("[BT_MESH] %s(): enqueue cmd for mesh code %d fail !\r\n", __func__, mesh_code);
                         bt_mesh_cmdunreg(pmeshCmdItem_s);
@@ -94,19 +109,27 @@ thread_return mesh_provisioner_cmd_thread(thread_context context)
                 }
             }else {
                 count = 0;
-                printf("[BT_MESH] %s():mesh cmd = %d puserItem->userCmdResult = %d !\r\n", __func__, mesh_code, puserItem->userCmdResult);
-                bt_mesh_cmdunreg(pmeshCmdItem_s);
-                BT_MESH_CMD_ID_PRIV_MOD(MAX_MESH_PROVISIONER_CMD, NULL, USER_API_DEFAULT_MODE, 0, 0);
-            } 
-            
+                if (pmeshCmdItem_s->semaDownTimeOut) {
+                    printf("[BT_MESH] %s(): mesh_code %d indication is timeout !\r\n", __func__, mesh_code);
+                    bt_mesh_cmdunreg(pmeshCmdItem_s);
+                } else {
+                    rtw_up_sema(&puserItem->userSema);
+                    printf("[BT_MESH] %s():mesh cmd = %d puserItem->userCmdResult = %d !\r\n", __func__, mesh_code, puserItem->userCmdResult);
+                    bt_mesh_cmdunreg(pmeshCmdItem_s);
+                    BT_MESH_CMD_ID_PRIV_MOD(MAX_MESH_PROVISIONER_CMD, NULL, USER_API_DEFAULT_MODE, 1, 0);
+                }
+            }    
         } else {
             printf("[BT_MESH] %s(): meshFunc is NULL mesh_code = %d !\r\n", __func__, mesh_code);
             bt_mesh_cmdunreg(pmeshCmdItem_s);
-            BT_MESH_CMD_ID_PRIV_MOD(MAX_MESH_PROVISIONER_CMD, NULL, USER_API_DEFAULT_MODE, 0, 0);
-        }      
+            BT_MESH_CMD_ID_PRIV_MOD(MAX_MESH_PROVISIONER_CMD, NULL, USER_API_DEFAULT_MODE, 1, 0);
+        } 
+_next:
+        /* make sure os shedule can switch out */
+        plt_delay_ms(10);
 	}
     /* prevent previous cmd involking bt_mesh_indication */
-    BT_MESH_CMD_ID_PRIV_MOD(MAX_MESH_PROVISIONER_CMD, NULL, USER_API_DEFAULT_MODE, 0, 0);
+    BT_MESH_CMD_ID_PRIV_MOD(MAX_MESH_PROVISIONER_CMD, NULL, USER_API_DEFAULT_MODE, 1, 0);
 	/* free all pmeshCmdItem_s resources */
 	do{
 		plist = bt_mesh_dequeue_cmd();
@@ -121,6 +144,10 @@ thread_return mesh_provisioner_cmd_thread(thread_context context)
 	rtw_thread_exit();
 }
 
+extern int rtw_if_wifi_create_task(struct task_struct *ptask, const char *name,
+	u32  stack_size, u32 priority, thread_func_t func, void *thctx);
+extern void rtw_if_wifi_delete_task(struct task_struct *ptask);
+
 uint8_t bt_mesh_provisioner_api_init(void)
 {
     if (btMeshCmdPriv.meshMode == BT_MESH_PROVISIONER) {
@@ -133,7 +160,7 @@ uint8_t bt_mesh_provisioner_api_init(void)
     rtw_init_listhead(&btMeshCmdPriv.meshCmdList);
     rtw_mutex_init(&btMeshCmdPriv.cmdMutex);
     rtw_init_sema(&btMeshCmdPriv.meshThreadSema, 0);
-    BT_MESH_CMD_ID_PRIV_MOD(MAX_MESH_PROVISIONER_CMD, NULL, USER_API_DEFAULT_MODE, 0, 0);
+    BT_MESH_CMD_ID_PRIV_MOD(MAX_MESH_PROVISIONER_CMD, NULL, USER_API_DEFAULT_MODE, 1, 0);
     if (rtw_if_wifi_create_task(&meshProvisionerCmdThread, "mesh_provisioner_cmd_thread", 1024, TASK_PRORITY_MIDDLE, mesh_provisioner_cmd_thread, NULL)!= 1) {
         printf("[BT_MESH] %s(): create mesh_provisioner_cmd_thread fail !\r\n", __func__);
         rtw_mutex_free(&btMeshCmdPriv.cmdMutex);
@@ -154,7 +181,7 @@ void bt_mesh_provisioner_api_deinit(void)
     }
     btMeshCmdPriv.meshMode = 0;
     btMeshCmdPriv.meshCmdEnable = 0;
-    BT_MESH_CMD_ID_PRIV_MOD(MAX_MESH_PROVISIONER_CMD, NULL, USER_API_DEFAULT_MODE, 0, 0);
+    BT_MESH_CMD_ID_PRIV_MOD(MAX_MESH_PROVISIONER_CMD, NULL, USER_API_DEFAULT_MODE, 1, 0);
     rtw_if_wifi_delete_task(&meshProvisionerCmdThread);
     rtw_mutex_free(&btMeshCmdPriv.cmdMutex);
     rtw_free_sema(&btMeshCmdPriv.meshThreadSema);

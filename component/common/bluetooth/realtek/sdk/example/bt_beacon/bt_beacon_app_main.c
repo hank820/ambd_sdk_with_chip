@@ -16,6 +16,8 @@
 /*============================================================================*
  *                              Header Files
  *============================================================================*/
+#include <platform_opts_bt.h>
+#if defined(CONFIG_BT_BEACON) && CONFIG_BT_BEACON
 #include "platform_stdlib.h"
 #include <os_sched.h>
 #include <string.h>
@@ -132,11 +134,10 @@ static const uint8_t alt_beacon_adv_data[] =
  * NOTE: This function shall be called before @ref bte_init is invoked.
  * @return void
  */
-extern void gap_config_hci_task_secure_context(uint32_t size);
 static void bt_stack_config_init(void)
 {
     gap_config_max_le_link_num(0);
-    gap_config_hci_task_secure_context (280);
+    gap_config_max_le_paired_device(0);
 }
 
 /**
@@ -294,5 +295,5 @@ void bt_beacon_app_deinit(void)
 }
 
 /** @} */ /* End of group BEACON_MAIN */
-
+#endif
 

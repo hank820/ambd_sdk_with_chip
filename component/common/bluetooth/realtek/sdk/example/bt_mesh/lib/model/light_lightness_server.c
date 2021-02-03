@@ -728,6 +728,8 @@ static bool light_lightness_server_receive(mesh_msg_p pmesh_msg)
 
 static int32_t light_lightness_server_publish(mesh_model_info_p pmodel_info, bool retrans)
 {
+    /* avoid gcc compile warning */
+    (void)retrans;
     generic_transition_time_t remaining_time;
     if (lightness_period_pub_enabled)
     {

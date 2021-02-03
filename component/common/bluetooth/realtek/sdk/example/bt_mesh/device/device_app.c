@@ -814,6 +814,7 @@ bool prov_cb(prov_cb_type_t cb_type, prov_cb_data_t cb_data)
         break;
     case PROV_CB_TYPE_COMPLETE:
         {
+            mesh_node.iv_timer_count = MESH_IV_INDEX_48W;
             prov_data_p pprov_data = cb_data.pprov_data;
             data_uart_debug("been prov-ed with addr 0x%04x!\r\n", pprov_data->unicast_address);
         }
@@ -842,6 +843,8 @@ bool prov_cb(prov_cb_type_t cb_type, prov_cb_data_t cb_data)
  */
 void fn_cb(uint8_t frnd_index, fn_cb_type_t type, uint16_t lpn_addr)
 {
+    /* avoid gcc compile warning */
+    (void)frnd_index;
     char *string[] = {"establishing with lpn 0x%04x\r\n", "no poll from 0x%04x\r\n", "established with lpn 0x%04x\r\n", "lpn 0x%04x lost\r\n"};
     data_uart_debug(string[type], lpn_addr);
     if (type == FN_CB_TYPE_ESTABLISH_SUCCESS || type == FN_CB_TYPE_FRND_LOST)
@@ -861,6 +864,8 @@ void fn_cb(uint8_t frnd_index, fn_cb_type_t type, uint16_t lpn_addr)
  */
 void lpn_cb(uint8_t frnd_index, lpn_cb_type_t type, uint16_t fn_addr)
 {
+    /* avoid gcc compile warning */
+    (void)frnd_index;
     char *string[] = {"established with fn 0x%04x\r\n", "no frnd offer\r\n", "no frnd update\r\n", "fn 0x%04x lost\r\n"};
     data_uart_debug(string[type], fn_addr);
     if (type == LPN_CB_TYPE_ESTABLISH_SUCCESS || type == LPN_CB_TYPE_FRIENDSHIP_LOST)

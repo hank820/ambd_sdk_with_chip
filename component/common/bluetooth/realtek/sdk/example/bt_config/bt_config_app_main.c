@@ -8,6 +8,8 @@
  */
 
 // #include <os_sched.h>
+#include <platform_opts_bt.h>
+#if (defined(CONFIG_BT_CONFIG) && CONFIG_BT_CONFIG) || (defined(CONFIG_BT_AIRSYNC_CONFIG) && CONFIG_BT_AIRSYNC_CONFIG)
 #include <platform/platform_stdlib.h>
 #include <string.h>
 #include <trace_app.h>
@@ -90,11 +92,10 @@ static const uint8_t adv_data[] =
  * NOTE: This function shall be called before @ref bte_init is invoked.
  * @return void
  */
-extern void gap_config_hci_task_secure_context(uint32_t size);
 void bt_config_stack_config_init(void)
 {
     gap_config_max_le_link_num(APP_MAX_LINKS);
-    gap_config_hci_task_secure_context (280);
+    gap_config_max_le_paired_device(APP_MAX_LINKS);
 }
 /**
   * @brief  Initialize peripheral and gap bond manager related parameters
@@ -292,3 +293,4 @@ void bt_config_app_deinit(void)
 #endif
 	set_bt_config_state(BC_DEV_DISABLED); // BT Config off
 }
+#endif

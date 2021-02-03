@@ -33,10 +33,9 @@
 #include <profile_server.h>
 #include <gatt_builtin_services.h>
 #include <platform_utils.h>
-
+#include "provisioner_app.h"
 #include "mesh_api.h"
 #include "mesh_cmd.h"
-#include "provisioner_app.h"
 #include "health.h"
 #include "ping.h"
 #include "ping_app.h"
@@ -45,7 +44,7 @@
 #include "light_client_app.h"
 #include "provision_client.h"
 #include "proxy_client.h"
-#include "datatrans_client_app.h"
+#include "datatrans_app.h"
 #include "bt_mesh_provisioner_app_flags.h"
 #include "vendor_cmd.h"
 #include "vendor_cmd_bt.h"
@@ -53,6 +52,10 @@
 #include "FreeRTOS.h"
 
 #if defined(CONFIG_BT_MESH_PROVISIONER_RTK_DEMO) && CONFIG_BT_MESH_PROVISIONER_RTK_DEMO
+#include "bt_mesh_app_list_intf.h"
+#endif
+
+#if defined(CONFIG_BT_MESH_USER_API) && CONFIG_BT_MESH_USER_API
 #include "bt_mesh_provisioner_api.h"
 #endif
 
@@ -66,6 +69,10 @@ extern struct BT_MESH_LIB_PRIV bt_mesh_lib_priv;
 
 void bt_mesh_example_device_info_cb(uint8_t bt_addr[6], uint8_t bt_addr_type, int8_t rssi, device_info_t *pinfo)
 {
+    /* avoid gcc compile warning */
+    (void)bt_addr;
+    (void)bt_addr_type;
+    (void)rssi;
     uint8_t NULL_UUID[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     if (pinfo->type == DEVICE_INFO_UDB) {
         if (rtw_memcmp(pinfo->pbeacon_udb->dev_uuid, NULL_UUID, 16) == 0)
@@ -154,13 +161,13 @@ void bt_mesh_provisioner_stack_init(void)
         .proxy_num = 1
     };
 #endif 
+	node_cfg.proxy_interval = 5;
 	mesh_node_cfg(features, &node_cfg);   
-#if defined(CONFIG_BT_MESH_PROVISIONER_RTK_DEMO) && CONFIG_BT_MESH_PROVISIONER_RTK_DEMO
-	mesh_node.net_trans_count = 5;
+	mesh_node.net_trans_count = 6;
     mesh_node.relay_retrans_count = 2;
     mesh_node.trans_retrans_count = 4;
     mesh_node.ttl = 5;
-#endif	
+
     /** create elements and register models */
     mesh_element_create(GATT_NS_DESC_UNKNOWN);
     mesh_element_create(GATT_NS_DESC_UNKNOWN);
@@ -173,26 +180,13 @@ void bt_mesh_provisioner_stack_init(void)
     ping_control_reg(ping_app_ping_cb, pong_receive);
     trans_ping_pong_init(ping_app_ping_cb, pong_receive);
     light_client_models_init();
-	datatrans_client_model_init();
+	datatrans_model_init();
 #endif
     compo_data_page0_header_t compo_data_page0_header = {COMPANY_ID, PRODUCT_ID, VERSION_ID};
     compo_data_page0_gen(&compo_data_page0_header);
 
     /** init mesh stack */
     mesh_init();
-
-    /** configure provisioner */
-    mesh_node.node_state = PROV_NODE;
-    //mesh_node.unicast_addr = bt_addr[0] % 99 + 1;
-    const uint8_t net_key[] = MESH_NET_KEY;
-    const uint8_t net_key1[] = MESH_NET_KEY1;
-    const uint8_t app_key[] = MESH_APP_KEY;
-    const uint8_t app_key1[] = MESH_APP_KEY1;
-    uint16_t net_key_index = net_key_add(0, net_key);
-    app_key_add(net_key_index, 0, app_key);
-    uint8_t net_key_index1 = net_key_add(1, net_key1);
-    app_key_add(net_key_index1, 1, app_key1);
-	mesh_model_bind_all_key();
 
     /** register udb/provision adv/proxy adv callback */
 #if defined(CONFIG_BT_MESH_PROVISIONER_RTK_DEMO) && CONFIG_BT_MESH_PROVISIONER_RTK_DEMO	
@@ -221,6 +215,12 @@ void bt_mesh_provisioner_app_le_gap_init(void)
     uint8_t  auth_sec_req_enable = false;
     uint16_t auth_sec_req_flags = GAP_AUTHEN_BIT_BONDING_FLAG;
 
+    uint16_t scan_window = 0x100; /* 160ms */
+    uint16_t scan_interval = 0x120; /* 180ms */
+    gap_sched_params_set(GAP_SCHED_PARAMS_INTERWAVE_SCAN_WINDOW, &scan_window, sizeof(scan_window));
+    gap_sched_params_set(GAP_SCHED_PARAMS_INTERWAVE_SCAN_INTERVAL, &scan_interval, sizeof(scan_interval));
+    gap_sched_params_set(GAP_SCHED_PARAMS_SCAN_WINDOW, &scan_window, sizeof(scan_window));
+    gap_sched_params_set(GAP_SCHED_PARAMS_SCAN_INTERVAL, &scan_interval, sizeof(scan_interval));
     /* Setup the GAP Bond Manager */
     gap_set_param(GAP_PARAM_BOND_PAIRING_MODE, sizeof(auth_pair_mode), &auth_pair_mode);
     gap_set_param(GAP_PARAM_BOND_AUTHEN_REQUIREMENTS_FLAGS, sizeof(auth_flags), &auth_flags);
@@ -321,6 +321,7 @@ void bt_mesh_provisioner_task_deinit(void)
 void bt_mesh_provisioner_stack_config_init(void)
 {
     gap_config_max_le_link_num(APP_MAX_LINKS);
+    gap_config_max_le_paired_device(APP_MAX_LINKS);
 }
 
 /**
@@ -343,6 +344,11 @@ int bt_mesh_provisioner_app_main(void)
 
     return 0;
 }
+
+typedef unsigned long rtw_interface_t;
+extern int wifi_is_up(rtw_interface_t interface);
+extern void bt_coex_init(void);
+extern void wifi_btcoex_set_bt_on(void);
 
 int bt_mesh_provisioner_app_init(void)
 {
@@ -372,6 +378,31 @@ int bt_mesh_provisioner_app_init(void)
 	/*Start BT WIFI coexistence*/
 	wifi_btcoex_set_bt_on();
 
+    if (bt_stack_already_on) {
+        uint8_t bt_addr[6];
+        uint8_t net_key[16] = MESH_NET_KEY;
+        uint8_t net_key1[16] = MESH_NET_KEY1;
+        uint8_t app_key[16] = MESH_APP_KEY;
+        uint8_t app_key1[16] = MESH_APP_KEY1;
+        gap_get_param(GAP_PARAM_BD_ADDR, bt_addr);
+        data_uart_debug("bt addr: 0x%02x%02x%02x%02x%02x%02x\r\n>",
+                        bt_addr[5], bt_addr[4], bt_addr[3],
+                        bt_addr[2], bt_addr[1], bt_addr[0]);
+
+                         /** configure provisioner */
+        mesh_node.node_state = PROV_NODE;
+        mesh_node.unicast_addr = bt_addr[0] % 99 + 1;
+        memcpy(&net_key[10], bt_addr, sizeof(bt_addr));
+        memcpy(&net_key1[10], bt_addr, sizeof(bt_addr));
+        memcpy(&app_key[10], bt_addr, sizeof(bt_addr));
+        memcpy(&app_key1[10], bt_addr, sizeof(bt_addr));
+        uint16_t net_key_index = net_key_add(0, net_key);
+        app_key_add(net_key_index, 0, app_key);
+        uint8_t net_key_index1 = net_key_add(1, net_key1);
+        app_key_add(net_key_index1, 1, app_key1);
+    	mesh_model_bind_all_key();
+    }
+
 #if defined(CONFIG_BT_MESH_USER_API) && CONFIG_BT_MESH_USER_API
     if (bt_mesh_provisioner_api_init()) {
         printf("[BT Mesh Provisioner] bt_mesh_provisioner_api_init fail ! \n\r");
@@ -395,6 +426,8 @@ void bt_mesh_provisioner_app_deinit(void)
     le_get_gap_param(GAP_PARAM_DEV_STATE , &new_state);
 	if (new_state.gap_init_state != GAP_INIT_STATE_STACK_READY) {
 		printf("[BT Mesh Provisioner] BT Stack is not running\n\r");
+        mesh_initial_state = FALSE;
+        return;
 	}
 #if F_BT_DEINIT
 	else {

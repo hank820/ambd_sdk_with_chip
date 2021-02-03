@@ -193,6 +193,8 @@ void sys_reset(void)
 	u32 DivFacProcess;
 
 	rtc_backup_timeinfo();
+	
+	BKUP_Set(BKUP_REG0, BIT_KM4SYS_RESET_HAPPEN);
 
 	WDG_Scalar(50, &CountProcess, &DivFacProcess);
 	WDG_InitStruct.CountProcess = CountProcess;

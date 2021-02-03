@@ -345,9 +345,7 @@ struct netif {
 #endif /* LWIP_LOOPBACK_MAX_PBUFS */
 #endif /* ENABLE_LOOPBACK */
 };
-/* Interface indexes always start at 1 per RFC 3493, section 4, num starts at 0 (internal index is 0..254)*/
-#define netif_get_index(netif)      ((u8_t)((netif)->num + 1))
-#define NETIF_NO_INDEX              (0)
+
 #if LWIP_CHECKSUM_CTRL_PER_NETIF
 #define NETIF_SET_CHECKSUM_CTRL(netif, chksumflags) do { \
   (netif)->chksum_flags = chksumflags; } while(0)
@@ -478,6 +476,14 @@ err_t netif_add_ip6_address(struct netif *netif, const ip6_addr_t *ip6addr, s8_t
 #else /* LWIP_NETIF_HWADDRHINT */
 #define NETIF_SET_HWADDRHINT(netif, hint)
 #endif /* LWIP_NETIF_HWADDRHINT */
+
+u8_t netif_name_to_index(const char *name);
+char * netif_index_to_name(u8_t idx, char *name);
+struct netif* netif_get_by_index(u8_t index);
+
+/* Interface indexes always start at 1 per RFC 3493, section 4, num starts at 0 */
+#define netif_get_index(netif)      ((netif)->num + 1)
+#define NETIF_NO_INDEX              (0)
 
 #ifdef __cplusplus
 }

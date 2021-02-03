@@ -65,6 +65,7 @@
 #include "lwip/stats.h"
 #include "lwip/sys.h"
 #include "lwip/ip.h"
+#include "lwip/if.h"
 #if ENABLE_LOOPBACK
 #if LWIP_NETIF_LOOPBACK_MULTITHREADING
 #include "lwip/tcpip.h"
@@ -89,6 +90,10 @@
 #include "lwip/nd6.h"
 #endif
 
+#if LWIP_IPV6_ROUTE_TABLE_SUPPORT
+#include "lwip/ip6_route_table.h"
+#endif /* LWIP_IPV6_ROUTE_TABLE_SUPPORT */
+
 #if LWIP_NETIF_STATUS_CALLBACK
 #define NETIF_STATUS_CALLBACK(n) do{ if (n->status_callback) { (n->status_callback)(n); }}while(0)
 #else
@@ -104,6 +109,7 @@
 struct netif *netif_list;
 struct netif *netif_default;
 
+#define netif_index_to_num(index)   ((index) - 1)
 static u8_t netif_num;
 
 #if LWIP_NUM_NETIF_CLIENT_DATA > 0
@@ -190,6 +196,15 @@ netif_init(void)
 #endif /* LWIP_HAVE_LOOPIF */
 }
 
+void
+netif_apply_pcb(struct netif *netif, struct ip_pcb *pcb)
+{
+  NETIF_SET_HWADDRHINT(netif, pcb?&(pcb->addr_hint)?NULL);
+#if LWIP_MANAGEMENT_CHANNEL
+  netif->using_management_channel = pcb?!!ip_get_option(pcb,SOF_MANAGEMENT):0;
+#endif
+}
+
 /**
  * @ingroup lwip_nosys
  * Forwards a received packet for input processing with
@@ -260,6 +275,10 @@ netif_add(struct netif *netif,
   for (i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++) {
     ip_addr_set_zero_ip6(&netif->ip6_addr[i]);
     netif->ip6_addr_state[i] = IP6_ADDR_INVALID;
+#if LWIP_IPV6_ADDRESS_LIFETIMES
+    netif->ip6_addr_valid_life[i] = IP6_ADDR_LIFE_STATIC;
+    netif->ip6_addr_pref_life[i] = IP6_ADDR_LIFE_STATIC;
+#endif /* LWIP_IPV6_ADDRESS_LIFETIMES */
   }
   netif->output_ip6 = netif_null_output_ip6;
 #endif /* LWIP_IPV6 */
@@ -1265,3 +1284,76 @@ netif_null_output_ip6(struct netif *netif, struct pbuf *p, const ip6_addr_t *ipa
   return ERR_IF;
 }
 #endif /* LWIP_IPV6 */
+
+/**
+* @ingroup netif_if
+* Return the interface index for the netif with name
+* or 0 (invalid interface) if not found/on error
+*
+* @param name the name of the netif
+*/
+u8_t
+netif_name_to_index(const char *name)
+{
+  struct netif *netif = netif_find(name);
+  if (netif != NULL) {
+    return netif_get_index(netif);
+  }
+  /* No name found, return invalid index */
+  return 0;
+}
+
+/**
+* @ingroup netif_if
+* Return the interface name for the netif matching index
+* or NULL if not found/on error
+*
+* @param index the interface index of the netif
+* @param name char buffer of at least IF_NAMESIZE bytes
+*/
+char *
+netif_index_to_name(u8_t index, char *name)
+{
+  struct netif *curif = netif_list;
+
+  u8_t num;
+
+  if (index == 0) {
+    return NULL; /* indexes start at 1 */
+  }
+  num = netif_index_to_num(index);
+
+  /* find netif from num */
+  while (curif != NULL) {
+    if (curif->num == num) {
+      name[0] = curif->name[0];
+      name[1] = curif->name[1];
+      lwip_itoa(&name[2], IF_NAMESIZE - 2, num);
+      return name;
+    }
+    curif = curif->next;
+  }
+  return NULL;
+}
+
+/**
+* @ingroup netif
+* Return the interface for the netif index
+*
+* @param index index of netif to find
+*/
+struct netif*
+netif_get_by_index(u8_t index)
+{
+  struct netif* netif;
+
+  if (index != NETIF_NO_INDEX) {
+    for (netif = netif_list; netif != NULL; netif = netif->next) {
+      if (index == netif_get_index(netif)) {
+        return netif; /* found! */
+      }
+    }
+  }
+
+  return NULL;   
+}

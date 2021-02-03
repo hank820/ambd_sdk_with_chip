@@ -96,11 +96,11 @@
 extern void *pvPortMalloc( size_t xWantedSize );
 extern void vPortFree( void *pv );
 extern void *pvPortReAlloc( void *pv,  size_t xWantedSize );
-extern u8*	rtw_calloc(u32 nelements, u32 elmentSize);
+extern void *pvPortCalloc(size_t xWantedCnt, size_t xWantedSize);
 #define malloc                  pvPortMalloc
 #define free                    vPortFree
 #define realloc			pvPortReAlloc
-#define calloc			rtw_calloc
+#define calloc			pvPortCalloc
 
 
 #endif // PLATFORM_STDLIB_8721D_H

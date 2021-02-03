@@ -891,11 +891,79 @@ void fATSM(void *arg)
 }
 #endif
 
+
+extern uint16_t _ZN4chip12Base64DecodeEPKctPh(const char * in, uint16_t inLen, uint8_t * out);
+extern uint16_t _ZN4chip12Base64EncodeEPKhtPc(const uint8_t * in, uint16_t inLen, char * out);
+
+void TestBase64(const char * test)
+{
+    uint8_t buf[256];
+    char buf2[256];
+    uint16_t len;
+
+    strcpy((char *) buf, test);
+
+    len = _ZN4chip12Base64DecodeEPKctPh((char *) buf, strlen((char *) buf), buf);
+    printf("%s: ", test);
+    if (len != UINT16_MAX)
+    {
+        printf("(%d) ", len);
+        for (uint16_t i = 0; i < len; i++)
+            printf("%c", buf[i]);
+
+        len = _ZN4chip12Base64EncodeEPKhtPc(buf, len, buf2);
+        printf(" (%d) ", len);
+        for (uint16_t i = 0; i < len; i++)
+            printf("%c", buf2[i]);
+    }
+    else
+        printf("ERROR");
+    printf("\n");
+}
+
 void fATSt(void *arg)
 {
 	/* To avoid gcc warnings */
 	( void ) arg;
-	
+
+    TestCHIPErrorStr();
+    TestReferenceCounted();
+    TestCHIPCallback();
+    //TestCHIPTLV();            // TLVReaderFuzzTest failed
+
+    TestInetErrorStr();
+    TestInetAddress();
+    //TestInetEndPoint();       // compile error(TestInetCommon.cpp)
+
+    TestSystemErrorStr();
+    //TestSystemObject();       // CheckHighWatermark failed
+    TestSystemPacketBuffer();
+    //TestSystemTimer();        // All failed, need implement startTimer
+    TestSystemWakeEvent();
+    TestTimeSource();
+
+    TestSafeInt();
+    TestScopedBuffer();
+    TestCHIPCounter();
+    TestMemAlloc();
+    //TestCHIPArgParser();      // ABORT: chip::Platform::MemoryAlloc() called before chip::Platform::MemoryInit()
+    TestPersistedCounter();
+    printf("TestErrorStr: ");
+    TestErrorStr();
+    printf("TestTimeUtils: ");
+    TestTimeUtils();
+
+    TestCHIPCryptoPAL();
+
+    TestPeerConnectionsFn();
+    TestSecurePairingSession();
+    TestSecureSession();
+    //TestSecureSessionMgr();   // compile error(TestInetCommon.cpp)
+
+    //TestTCP();                // compile error(TestInetCommon.cpp)
+    //TestUDP();                // compile error(TestInetCommon.cpp)
+    TestMessageHeader();
+
 	AT_PRINTK("[ATS#]: _AT_SYSTEM_TEST_");
 }
 

@@ -577,6 +577,15 @@ int sys_thread_delete(xTaskHandle pid)
 	}
 }
 
+err_t sys_thread_finish(sys_thread_t t)
+{
+#if INCLUDE_vTaskDelete
+    TaskHandle_t taskH = (TaskHandle_t) t;
+    vTaskDelete(taskH);
+#endif
+    return ERR_OK;
+}
+
 /*
   This optional function does a "fast" critical region protection and returns
   the previous protection level. This function is only called during very short

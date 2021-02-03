@@ -55,6 +55,10 @@ extern "C" {
 typedef u32_t in_addr_t;
 #endif
 
+#ifdef CHIP_PROJECT
+typedef __uint32_t in_addr_t;
+#endif
+
 struct in_addr {
   in_addr_t s_addr;
 };

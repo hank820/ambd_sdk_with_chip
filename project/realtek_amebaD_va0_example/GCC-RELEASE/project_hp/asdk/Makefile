@@ -140,6 +140,8 @@ image2_ns:LINK_APP_LIB += $(ROOTDIR)/lib/application/lib_wlan.a $(ROOTDIR)/lib/a
 mp_image2_ns:LINK_APP_LIB += $(ROOTDIR)/lib/application/lib_wlan_mp.a $(ROOTDIR)/lib/application/lib_wps.a
 endif
 
+LINK_APP_LIB += $(ROOTDIR)/lib/application/lib_chip.a
+
 ifeq ($(CONFIG_LINKKIT_AWSS), y)
 LINK_APP_LIB += $(ROOTDIR)/lib/application/lib_aliiot.a
 endif
@@ -221,32 +223,33 @@ make_subdirs_bootloader:
 
 make_subdirs_lib:
 	@ rm -f $(RAM_OBJS_LIST)
-	@make -C make/wlan lib
+	#@make -C make/wlan lib
 	#@make -C make/wlan clean
 	#@make -C make/wlan lib_mp
 	#@make -C make/wlan clean
 	#@make -C make/wlan lib_lp	
-	@make -C make/cmsis-dsp all
-	@make -C make/wps all
-	@make -C make/network/httpc all
-	@make -C make/network/httpd all
-	@make -C make/network/websocket all
+	#@make -C make/cmsis-dsp all
+	#@make -C make/wps all
+	#@make -C make/network/httpc all
+	#@make -C make/network/httpd all
+	#@make -C make/network/websocket all
 	#@make -C make/network/http2 all
-	@make -C make/network/eap all
-	@make -C make/network/tftp all
-	@make -C make/file_system/dct all
+	#@make -C make/network/eap all
+	#@make -C make/network/tftp all
+	#@make -C make/file_system/dct all
 	#@make -C make/network/libcoap all
+	make -C make/chip all
 #	MMF LIBRARY
 # 	@make -C make/audio/g711 all
 # 	@make -C make/audio/faac all
 # 	@make -C make/audio/haac all
 #	@make -C make/audio/speex all
-	@make -C make/media/rtp_codec all
-	@make -C make/network/rtsp all
-	@make -C make/media/mmfv2 all
-	@make -C make/video/v4l2 all
-	@make -C make/target/usb_otg/device/lib all
-	@make -C make/target/usb_otg/host/lib all
+#	@make -C make/media/rtp_codec all
+#	@make -C make/network/rtsp all
+#	@make -C make/media/mmfv2 all
+#	@make -C make/video/v4l2 all
+#	@make -C make/target/usb_otg/device/lib all
+#	@make -C make/target/usb_otg/host/lib all
 #	@make -C make/ui/emwin/emWinLibrary/GUI lib
 
 #*****************************************************************************#

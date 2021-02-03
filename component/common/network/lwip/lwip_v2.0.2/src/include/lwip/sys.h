@@ -78,6 +78,7 @@ typedef u8_t sys_mbox_t;
 #define sys_mbox_set_invalid_val(m)
 
 #define sys_thread_new(n,t,a,s,p)
+#define sys_thread_finish(a,b)
 
 #define sys_msleep(t)
 
@@ -330,6 +331,13 @@ void sys_mbox_set_invalid(sys_mbox_t *mbox);
  * @param prio priority of the new thread (may be ignored by ports) */
 sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread, void *arg, int stacksize, int prio);
 sys_thread_t sys_thread_new_tcm(const char *name, lwip_thread_fn thread , void *arg, int stacksize, int prio);		//Realtek add
+
+
+/**
+ * Finishes an existing thread
+ * @param thread identifier returned by sys_thread_new
+ */
+err_t sys_thread_finish(sys_thread_t t);
 
 #endif /* NO_SYS */
 

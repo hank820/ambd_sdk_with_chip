@@ -65,9 +65,15 @@
 static struct raw_pcb *raw_pcbs;
 
 static u8_t
-raw_input_match(struct raw_pcb *pcb, u8_t broadcast)
+raw_input_local_match(struct raw_pcb *pcb, u8_t broadcast)
 {
   LWIP_UNUSED_ARG(broadcast); /* in IPv6 only case */
+
+  /* check if PCB is bound to specific netif */
+  if ((pcb->netif_idx != NETIF_NO_INDEX) &&
+      (pcb->netif_idx != netif_get_index(ip_data.current_input_netif))) {
+    return 0;
+  }
 
 #if LWIP_IPV4 && LWIP_IPV6
   /* Dual-stack: PCBs listening to any IP type also listen to any IP address */
@@ -157,12 +163,29 @@ raw_input(struct pbuf *p, struct netif *inp)
   /* loop through all raw pcbs until the packet is eaten by one */
   /* this allows multiple pcbs to match against the packet by design */
   while ((eaten == 0) && (pcb != NULL)) {
-    if ((pcb->protocol == proto) && raw_input_match(pcb, broadcast)) {
+
+    if ((pcb->protocol == proto) && raw_input_local_match(pcb, broadcast) &&
+        (((pcb->intf_filter == NULL || pcb->intf_filter == inp) &&
+          (ip_addr_isany(&pcb->local_ip) ||
+           ip_addr_cmp(&(pcb->local_ip), ip_current_dest_addr()))) ||
+         (((pcb->flags & RAW_FLAGS_CONNECTED) == 0) ||
+          ip_addr_cmp(&pcb->remote_ip, ip_current_src_addr())))
+        ) {
       /* receive callback function available? */
-      if (pcb->recv != NULL) {
+#if IP_SOF_BROADCAST_RECV
+      /* broadcast filter? */
+      if ((ip_get_option(pcb, SOF_BROADCAST) || !ip_addr_isbroadcast(ip_current_dest_addr(), inp))
+#if LWIP_IPV6
+          && !PCB_ISIPV6(pcb)
+#endif /* LWIP_IPV6 */
+          )
+#endif /* IP_SOF_BROADCAST_RECV */
+      {
 #ifndef LWIP_NOASSERT
         void* old_payload = p->payload;
 #endif
+        /* receive callback function available? */
+        if (pcb->recv != NULL) {
         /* the receive callback function did not eat the packet? */
         eaten = pcb->recv(pcb->recv_arg, pcb, p, ip_current_src_addr());
         if (eaten != 0) {
@@ -175,6 +198,7 @@ raw_input(struct pbuf *p, struct netif *inp)
             prev->next = pcb->next;
             pcb->next = raw_pcbs;
             raw_pcbs = pcb;
+          }
           }
         } else {
 #ifndef LWIP_NOASSERT
@@ -220,6 +244,25 @@ raw_bind(struct raw_pcb *pcb, const ip_addr_t *ipaddr)
 
 /**
  * @ingroup raw_raw
+ * Bind a RAW PCB.
+ *
+ * @param pcb RAW PCB to be bound with netif.
+ * @param netif netif to bind to. Can be NULL.
+ *
+ * @see raw_disconnect()
+ */
+void
+raw_bind_netif(struct raw_pcb *pcb, const struct netif *netif)
+{
+  if (netif != NULL) {
+    pcb->netif_idx = netif_get_index(netif);
+  } else {
+    pcb->netif_idx = NETIF_NO_INDEX;
+  }
+}
+
+/**
+ * @ingroup raw_raw
  * Connect an RAW PCB. This function is required by upper layers
  * of lwip. Using the raw api you could use raw_sendto() instead
  *
@@ -240,6 +283,30 @@ raw_connect(struct raw_pcb *pcb, const ip_addr_t *ipaddr)
   }
   ip_addr_set_ipaddr(&pcb->remote_ip, ipaddr);
   return ERR_OK;
+}
+
+/**
+ * @ingroup raw_raw
+ * Disconnect a RAW PCB.
+ *
+ * @param pcb the raw pcb to disconnect.
+ */
+void
+raw_disconnect(struct raw_pcb *pcb)
+{
+  /* reset remote address association */
+#if LWIP_IPV4 && LWIP_IPV6
+  if (IP_IS_ANY_TYPE_VAL(pcb->local_ip)) {
+    ip_addr_copy(pcb->remote_ip, *IP_ANY_TYPE);
+  } else {
+#endif
+    ip_addr_set_any(IP_IS_V6_VAL(pcb->remote_ip), &pcb->remote_ip);
+#if LWIP_IPV4 && LWIP_IPV6
+  }
+#endif
+  pcb->netif_idx = NETIF_NO_INDEX;
+  /* mark PCB as unconnected */
+  raw_clear_flags(pcb, RAW_FLAGS_CONNECTED);
 }
 
 /**

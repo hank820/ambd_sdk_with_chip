@@ -1,3 +1,7 @@
+# ambd_sdk_with_chio
+
+Test on Ubuntu 16.04
+
 # Get amebaD SDK
 mkdir ambd_sdk
 

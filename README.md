@@ -1,10 +1,13 @@
 # Get amebaD SDK
 mkdir ambd_sdk
+
 cd ambd_sdk/
+
 git clone https://github.com/hanksuu/ambd_sdk_with_chip.git
 
 # Get chip SDK
 cd ambd_sdk/
+
 git clone -b tmp_dev https://github.com/hanksuu/connectedhomeip.git
 
 cd connectedhomeip

@@ -1,4 +1,4 @@
-# ambd_sdk_with_chio
+# ambd_sdk_with_chip
 
 Test on Ubuntu 16.04
 

@@ -133,11 +133,11 @@ c
 
 #=============================================================================== 
 #flash write
-set $XIPBootSize =4184
+set $XIPBootSize =4444
 set FlashAddrForWrite =0x00000
 flash_write $IMAGE_BOOT $XIPBootSize
 
-set $FlashFileSize =0
+set $FlashFileSize =978944
 set FlashAddrForWrite =0x06000
 flash_write $IMAGE_IMG2 $FlashFileSize
 

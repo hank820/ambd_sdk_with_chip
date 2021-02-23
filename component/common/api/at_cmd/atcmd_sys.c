@@ -946,7 +946,7 @@ void fATSt(void *arg)
     //TestInetEndPoint();       // compile error(TestInetCommon.cpp)
 
     TestSystemErrorStr();
-    //TestSystemObject();       // CheckHighWatermark failed
+    TestSystemObject();
     TestSystemPacketBuffer();
     TestSystemTimer();
     TestSystemWakeEvent();

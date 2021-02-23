@@ -139,6 +139,11 @@ GLOBAL_CFLAGS +=-DHAVE_LWIP_RAW_BIND_NETIF=1
 GLOBAL_CFLAGS +=-DCHIP_DEVICE_LAYER_TARGET=AmebaD
 GLOBAL_CFLAGS +=-DCHIP_DEVICE_CONFIG_LOG_PROVISIONING_HASH=0
 
+#CHIPPlatformConfig.h
+GLOBAL_CFLAGS +=-DCHIP_CONFIG_USE_OPENSSL_ECC=0
+GLOBAL_CFLAGS +=-DCHIP_CONFIG_AES_IMPLEMENTATION_OPENSSL=0
+GLOBAL_CFLAGS +=-DCHIP_CONFIG_AES_IMPLEMENTATION_AESNI=0
+GLOBAL_CFLAGS +=-DCHIP_CONFIG_AES_IMPLEMENTATION_PLATFORM=1
 
 #********************************************************#
 #                          Temp                          #
@@ -167,7 +172,7 @@ IFLAGS += -I$(CHIPDIR)/third_party/nlassert/repo/include
 IFLAGS += -I$(CHIPDIR)/third_party/nlio/repo/include
 IFLAGS += -I$(BASEDIR)/component/common/network/ssl/mbedtls-2.4.0/include
 IFLAGS += -I$(CHIPDIR)/third_party/mbedtls/repo/include
-
+IFLAGS += -I$(CHIPDIR)/src/lib/message
 
 
 #inet test
@@ -275,6 +280,7 @@ CPPSRC += $(CHIPDIR)/src/platform/AmebaD/ConfigurationManagerImpl.cpp
 CPPSRC += $(CHIPDIR)/src/platform/AmebaD/ConnectivityManagerImpl.cpp
 CPPSRC += $(CHIPDIR)/src/platform/AmebaD/AMEBADConfig.cpp
 #CPPSRC += $(CHIPDIR)/src/platform/AmebaD/AMEBADUtils.cpp
+CPPSRC += $(CHIPDIR)/src/platform/AmebaD/Entropy.cpp
 CPPSRC += $(CHIPDIR)/src/platform/AmebaD/Logging.cpp
 CPPSRC += $(CHIPDIR)/src/platform/AmebaD/PlatformManagerImpl.cpp
 #CPPSRC += $(CHIPDIR)/src/platform/AmebaD/SystemTimeSupport.cpp

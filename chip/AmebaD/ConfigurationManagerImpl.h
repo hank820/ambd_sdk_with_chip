@@ -28,7 +28,7 @@
 #include <platform/ConnectivityManager.h>
 #include <platform/internal/GenericConfigurationManagerImpl.h>
 
-#include <platform/ESP32/ESP32Config.h>
+#include <platform/AmebaD/AMEBADConfig.h>
 
 namespace chip {
 namespace DeviceLayer {
@@ -42,7 +42,7 @@ class NetworkProvisioningServerImpl;
  */
 class ConfigurationManagerImpl final : public ConfigurationManager,
                                        public Internal::GenericConfigurationManagerImpl<ConfigurationManagerImpl>,
-                                       private Internal::ESP32Config
+                                       private Internal::AMEBADConfig
 {
     // Allow the ConfigurationManager interface class to delegate method calls to
     // the implementation methods provided by this class.

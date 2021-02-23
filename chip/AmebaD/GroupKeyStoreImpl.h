@@ -23,7 +23,7 @@
  */
 
 #include <core/CHIPKeyIds.h>
-#include <platform/ESP32/ESP32Config.h>
+#include <platform/AmebaD/AMEBADConfig.h>
 #include <platform/internal/ChipDeviceLayerInternal.h>
 
 namespace chip {

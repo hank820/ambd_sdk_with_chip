@@ -86,7 +86,7 @@ GLOBAL_CFLAGS +=-DCHIP_DEVICE_CONFIG_ENABLE_WPA=0
 GLOBAL_CFLAGS +=-DCHIP_ENABLE_OPENTHREAD=0
 GLOBAL_CFLAGS +=-DCHIP_WITH_GIO=0
 GLOBAL_CFLAGS +=-DOPENTHREAD_CONFIG_ENABLE_TOBLE-0
-#GLOBAL_CFLAGS +=-DCHIP_DEVICE_PLATFORM_CONFIG_INCLUDE <platform/ESP32/CHIPDevicePlatformConfig.h>
+#GLOBAL_CFLAGS +=-DCHIP_DEVICE_PLATFORM_CONFIG_INCLUDE <platform/AmebaD/CHIPDevicePlatformConfig.h>
 #GLOBAL_CFLAGS +=-DCHIP_DEVICE_LAYER_TARGET_ESP32=1
 #GLOBAL_CFLAGS +=-DCHIP_DEVICE_LAYER_TARGET ESP32
 
@@ -273,7 +273,7 @@ CPPSRC += $(CHIPDIR)/src/platform/SystemTimerSupport.cpp
 
 CPPSRC += $(CHIPDIR)/src/platform/AmebaD/ConfigurationManagerImpl.cpp
 CPPSRC += $(CHIPDIR)/src/platform/AmebaD/ConnectivityManagerImpl.cpp
-#CPPSRC += $(CHIPDIR)/src/platform/AmebaD/AMEBADConfig.cpp
+CPPSRC += $(CHIPDIR)/src/platform/AmebaD/AMEBADConfig.cpp
 #CPPSRC += $(CHIPDIR)/src/platform/AmebaD/AMEBADUtils.cpp
 CPPSRC += $(CHIPDIR)/src/platform/AmebaD/Logging.cpp
 CPPSRC += $(CHIPDIR)/src/platform/AmebaD/PlatformManagerImpl.cpp

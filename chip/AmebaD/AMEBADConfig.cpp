@@ -25,7 +25,7 @@
 /* this file behaves like a config.h, comes first */
 #include <platform/internal/CHIPDeviceLayerInternal.h>
 
-#include <platform/ESP32/ESP32Config.h>
+#include <platform/AmebaD/AMEBADConfig.h>
 
 #include <core/CHIPEncoding.h>
 //#include <platform/ESP32/ESP32Utils.h>
@@ -44,40 +44,44 @@ namespace Internal {
 // *** CAUTION ***: Changing the names or namespaces of these values will *break* existing devices.
 
 // NVS namespaces used to store device configuration information.
-const char ESP32Config::kConfigNamespace_ChipFactory[]  = "chip-factory";
-const char ESP32Config::kConfigNamespace_ChipConfig[]   = "chip-config";
-const char ESP32Config::kConfigNamespace_ChipCounters[] = "chip-counters";
+const char AMEBADConfig::kConfigNamespace_ChipFactory[]  = "chip-factory";
+const char AMEBADConfig::kConfigNamespace_ChipConfig[]   = "chip-config";
+const char AMEBADConfig::kConfigNamespace_ChipCounters[] = "chip-counters";
 
 // Keys stored in the chip-factory namespace
-const ESP32Config::Key ESP32Config::kConfigKey_SerialNum           = { kConfigNamespace_ChipFactory, "serial-num" };
-const ESP32Config::Key ESP32Config::kConfigKey_MfrDeviceId         = { kConfigNamespace_ChipFactory, "device-id" };
-const ESP32Config::Key ESP32Config::kConfigKey_MfrDeviceCert       = { kConfigNamespace_ChipFactory, "device-cert" };
-const ESP32Config::Key ESP32Config::kConfigKey_MfrDeviceICACerts   = { kConfigNamespace_ChipFactory, "device-ca-certs" };
-const ESP32Config::Key ESP32Config::kConfigKey_MfrDevicePrivateKey = { kConfigNamespace_ChipFactory, "device-key" };
-const ESP32Config::Key ESP32Config::kConfigKey_ProductRevision     = { kConfigNamespace_ChipFactory, "product-rev" };
-const ESP32Config::Key ESP32Config::kConfigKey_ManufacturingDate   = { kConfigNamespace_ChipFactory, "mfg-date" };
-const ESP32Config::Key ESP32Config::kConfigKey_SetupPinCode        = { kConfigNamespace_ChipFactory, "pin-code" };
-const ESP32Config::Key ESP32Config::kConfigKey_SetupDiscriminator  = { kConfigNamespace_ChipFactory, "discriminator" };
+const AMEBADConfig::Key AMEBADConfig::kConfigKey_SerialNum           = { kConfigNamespace_ChipFactory, "serial-num" };
+const AMEBADConfig::Key AMEBADConfig::kConfigKey_MfrDeviceId         = { kConfigNamespace_ChipFactory, "device-id" };
+const AMEBADConfig::Key AMEBADConfig::kConfigKey_MfrDeviceCert       = { kConfigNamespace_ChipFactory, "device-cert" };
+const AMEBADConfig::Key AMEBADConfig::kConfigKey_MfrDeviceICACerts   = { kConfigNamespace_ChipFactory, "device-ca-certs" };
+const AMEBADConfig::Key AMEBADConfig::kConfigKey_MfrDevicePrivateKey = { kConfigNamespace_ChipFactory, "device-key" };
+const AMEBADConfig::Key AMEBADConfig::kConfigKey_ProductRevision     = { kConfigNamespace_ChipFactory, "product-rev" };
+const AMEBADConfig::Key AMEBADConfig::kConfigKey_ManufacturingDate   = { kConfigNamespace_ChipFactory, "mfg-date" };
+const AMEBADConfig::Key AMEBADConfig::kConfigKey_SetupPinCode        = { kConfigNamespace_ChipFactory, "pin-code" };
+const AMEBADConfig::Key AMEBADConfig::kConfigKey_SetupDiscriminator  = { kConfigNamespace_ChipFactory, "discriminator" };
 
 // Keys stored in the chip-config namespace
-const ESP32Config::Key ESP32Config::kConfigKey_FabricId                    = { kConfigNamespace_ChipConfig, "fabric-id" };
-const ESP32Config::Key ESP32Config::kConfigKey_ServiceConfig               = { kConfigNamespace_ChipConfig, "service-config" };
-const ESP32Config::Key ESP32Config::kConfigKey_PairedAccountId             = { kConfigNamespace_ChipConfig, "account-id" };
-const ESP32Config::Key ESP32Config::kConfigKey_ServiceId                   = { kConfigNamespace_ChipConfig, "service-id" };
-const ESP32Config::Key ESP32Config::kConfigKey_GroupKeyIndex               = { kConfigNamespace_ChipConfig, "group-key-index" };
-const ESP32Config::Key ESP32Config::kConfigKey_LastUsedEpochKeyId          = { kConfigNamespace_ChipConfig, "last-ek-id" };
-const ESP32Config::Key ESP32Config::kConfigKey_FailSafeArmed               = { kConfigNamespace_ChipConfig, "fail-safe-armed" };
-const ESP32Config::Key ESP32Config::kConfigKey_WiFiStationSecType          = { kConfigNamespace_ChipConfig, "sta-sec-type" };
-const ESP32Config::Key ESP32Config::kConfigKey_OperationalDeviceId         = { kConfigNamespace_ChipConfig, "op-device-id" };
-const ESP32Config::Key ESP32Config::kConfigKey_OperationalDeviceCert       = { kConfigNamespace_ChipConfig, "op-device-cert" };
-const ESP32Config::Key ESP32Config::kConfigKey_OperationalDeviceICACerts   = { kConfigNamespace_ChipConfig, "op-device-ca-certs" };
-const ESP32Config::Key ESP32Config::kConfigKey_OperationalDevicePrivateKey = { kConfigNamespace_ChipConfig, "op-device-key" };
+const AMEBADConfig::Key AMEBADConfig::kConfigKey_FabricId                    = { kConfigNamespace_ChipConfig, "fabric-id" };
+const AMEBADConfig::Key AMEBADConfig::kConfigKey_ServiceConfig               = { kConfigNamespace_ChipConfig, "service-config" };
+const AMEBADConfig::Key AMEBADConfig::kConfigKey_PairedAccountId             = { kConfigNamespace_ChipConfig, "account-id" };
+const AMEBADConfig::Key AMEBADConfig::kConfigKey_ServiceId                   = { kConfigNamespace_ChipConfig, "service-id" };
+const AMEBADConfig::Key AMEBADConfig::kConfigKey_GroupKeyIndex               = { kConfigNamespace_ChipConfig, "group-key-index" };
+const AMEBADConfig::Key AMEBADConfig::kConfigKey_LastUsedEpochKeyId          = { kConfigNamespace_ChipConfig, "last-ek-id" };
+const AMEBADConfig::Key AMEBADConfig::kConfigKey_FailSafeArmed               = { kConfigNamespace_ChipConfig, "fail-safe-armed" };
+const AMEBADConfig::Key AMEBADConfig::kConfigKey_WiFiStationSecType          = { kConfigNamespace_ChipConfig, "sta-sec-type" };
+const AMEBADConfig::Key AMEBADConfig::kConfigKey_OperationalDeviceId         = { kConfigNamespace_ChipConfig, "op-device-id" };
+const AMEBADConfig::Key AMEBADConfig::kConfigKey_OperationalDeviceCert       = { kConfigNamespace_ChipConfig, "op-device-cert" };
+const AMEBADConfig::Key AMEBADConfig::kConfigKey_OperationalDeviceICACerts   = { kConfigNamespace_ChipConfig, "op-device-ca-certs" };
+const AMEBADConfig::Key AMEBADConfig::kConfigKey_OperationalDevicePrivateKey = { kConfigNamespace_ChipConfig, "op-device-key" };
 
 // Prefix used for NVS keys that contain Chip group encryption keys.
-const char ESP32Config::kGroupKeyNamePrefix[] = "gk-";
+const char AMEBADConfig::kGroupKeyNamePrefix[] = "gk-";
 
-CHIP_ERROR ESP32Config::ReadConfigValue(Key key, bool & val)
+CHIP_ERROR AMEBADConfig::ReadConfigValue(Key key, bool & val)
 {
+#if 1
+    // TODO
+    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+#else
     CHIP_ERROR err;
     nvs_handle handle;
     bool needClose = false;
@@ -102,10 +106,15 @@ exit:
         nvs_close(handle);
     }
     return err;
+#endif
 }
 
-CHIP_ERROR ESP32Config::ReadConfigValue(Key key, uint32_t & val)
+CHIP_ERROR AMEBADConfig::ReadConfigValue(Key key, uint32_t & val)
 {
+#if 1
+    // TODO
+    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+#else
     CHIP_ERROR err;
     nvs_handle handle;
     bool needClose = false;
@@ -127,10 +136,15 @@ exit:
         nvs_close(handle);
     }
     return err;
+#endif
 }
 
-CHIP_ERROR ESP32Config::ReadConfigValue(Key key, uint64_t & val)
+CHIP_ERROR AMEBADConfig::ReadConfigValue(Key key, uint64_t & val)
 {
+#if 1
+    // TODO
+    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+#else
     CHIP_ERROR err;
     nvs_handle handle;
     bool needClose = false;
@@ -173,10 +187,15 @@ exit:
         nvs_close(handle);
     }
     return err;
+#endif
 }
 
-CHIP_ERROR ESP32Config::ReadConfigValueStr(Key key, char * buf, size_t bufSize, size_t & outLen)
+CHIP_ERROR AMEBADConfig::ReadConfigValueStr(Key key, char * buf, size_t bufSize, size_t & outLen)
 {
+#if 1
+    // TODO
+    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+#else
     CHIP_ERROR err;
     nvs_handle handle;
     bool needClose = false;
@@ -207,10 +226,15 @@ exit:
     }
 
     return err;
+#endif
 }
 
-CHIP_ERROR ESP32Config::ReadConfigValueBin(Key key, uint8_t * buf, size_t bufSize, size_t & outLen)
+CHIP_ERROR AMEBADConfig::ReadConfigValueBin(Key key, uint8_t * buf, size_t bufSize, size_t & outLen)
 {
+#if 1
+    // TODO
+    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+#else
     CHIP_ERROR err;
     nvs_handle handle;
     bool needClose = false;
@@ -239,10 +263,15 @@ exit:
     }
 
     return err;
+#endif
 }
 
-CHIP_ERROR ESP32Config::WriteConfigValue(Key key, bool val)
+CHIP_ERROR AMEBADConfig::WriteConfigValue(Key key, bool val)
 {
+#if 1
+    // TODO
+    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+#else
     CHIP_ERROR err;
     nvs_handle handle;
     bool needClose = false;
@@ -267,10 +296,15 @@ exit:
     }
 
     return err;
+#endif
 }
 
-CHIP_ERROR ESP32Config::WriteConfigValue(Key key, uint32_t val)
+CHIP_ERROR AMEBADConfig::WriteConfigValue(Key key, uint32_t val)
 {
+#if 1
+    // TODO
+    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+#else
     CHIP_ERROR err;
     nvs_handle handle;
     bool needClose = false;
@@ -295,10 +329,15 @@ exit:
     }
 
     return err;
+#endif
 }
 
-CHIP_ERROR ESP32Config::WriteConfigValue(Key key, uint64_t val)
+CHIP_ERROR AMEBADConfig::WriteConfigValue(Key key, uint64_t val)
 {
+#if 1
+     // TODO
+    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+#else
     CHIP_ERROR err;
     nvs_handle handle;
     bool needClose = false;
@@ -323,10 +362,15 @@ exit:
     }
 
     return err;
+#endif
 }
 
-CHIP_ERROR ESP32Config::WriteConfigValueStr(Key key, const char * str)
+CHIP_ERROR AMEBADConfig::WriteConfigValueStr(Key key, const char * str)
 {
+#if 1
+    // TODO
+    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+#else
     CHIP_ERROR err;
     nvs_handle handle;
     bool needClose = false;
@@ -360,10 +404,15 @@ exit:
     }
 
     return err;
+#endif
 }
 
-CHIP_ERROR ESP32Config::WriteConfigValueStr(Key key, const char * str, size_t strLen)
+CHIP_ERROR AMEBADConfig::WriteConfigValueStr(Key key, const char * str, size_t strLen)
 {
+#if 1
+    // TODO
+    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+#else
     CHIP_ERROR err;
     chip::Platform::ScopedMemoryBuffer<char> strCopy;
 
@@ -373,14 +422,19 @@ CHIP_ERROR ESP32Config::WriteConfigValueStr(Key key, const char * str, size_t st
         VerifyOrExit(strCopy, err = CHIP_ERROR_NO_MEMORY);
         strncpy(strCopy.Get(), str, strLen);
     }
-    err = ESP32Config::WriteConfigValueStr(key, strCopy.Get());
+    err = AMEBADConfig::WriteConfigValueStr(key, strCopy.Get());
 
 exit:
     return err;
+#endif
 }
 
-CHIP_ERROR ESP32Config::WriteConfigValueBin(Key key, const uint8_t * data, size_t dataLen)
+CHIP_ERROR AMEBADConfig::WriteConfigValueBin(Key key, const uint8_t * data, size_t dataLen)
 {
+#if 1
+    // TODO
+    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+#else
     CHIP_ERROR err;
     nvs_handle handle;
     bool needClose = false;
@@ -414,10 +468,15 @@ exit:
     }
 
     return err;
+#endif
 }
 
-CHIP_ERROR ESP32Config::ClearConfigValue(Key key)
+CHIP_ERROR AMEBADConfig::ClearConfigValue(Key key)
 {
+#if 1
+    // TODO
+    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+#else
     CHIP_ERROR err;
     nvs_handle handle;
     bool needClose = false;
@@ -446,10 +505,15 @@ exit:
     }
 
     return err;
+#endif
 }
 
-bool ESP32Config::ConfigValueExists(Key key)
+bool AMEBADConfig::ConfigValueExists(Key key)
 {
+#if 1
+    // TODO
+    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+#else
     CHIP_ERROR err;
     nvs_handle handle;
     bool needClose = false;
@@ -531,10 +595,15 @@ exit:
         nvs_close(handle);
     }
     return err == ESP_OK;
+#endif
 }
 
-CHIP_ERROR ESP32Config::EnsureNamespace(const char * ns)
+CHIP_ERROR AMEBADConfig::EnsureNamespace(const char * ns)
 {
+#if 1
+    // TODO
+    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+#else
     CHIP_ERROR err;
     nvs_handle handle;
     bool needClose = false;
@@ -558,10 +627,15 @@ exit:
         nvs_close(handle);
     }
     return err;
+#endif
 }
 
-CHIP_ERROR ESP32Config::ClearNamespace(const char * ns)
+CHIP_ERROR AMEBADConfig::ClearNamespace(const char * ns)
 {
+#if 1
+    // TODO
+    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+#else
     CHIP_ERROR err;
     nvs_handle handle;
     bool needClose = false;
@@ -582,9 +656,10 @@ exit:
         nvs_close(handle);
     }
     return err;
+#endif
 }
 
-void ESP32Config::RunConfigUnitTest() {}
+void AMEBADConfig::RunConfigUnitTest() {}
 
 } // namespace Internal
 } // namespace DeviceLayer

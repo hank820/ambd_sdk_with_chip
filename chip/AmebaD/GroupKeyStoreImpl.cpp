@@ -25,7 +25,7 @@
 /* this file behaves like a config.h, comes first */
 #include <platform/internal/CHIPDeviceLayerInternal.h>
 
-#include <platform/ESP32/GroupKeyStoreImpl.h>
+#include <platform/AmebaD/GroupKeyStoreImpl.h>
 
 //#include "nvs.h"
 //#include "nvs_flash.h"
@@ -43,7 +43,7 @@ CHIP_ERROR GroupKeyStoreImpl::RetrieveGroupKey(uint32_t keyId, ChipGroupKey & ke
     CHIP_ERROR err;
     size_t keyLen;
     char keyName[kMaxConfigKeyNameLength + 1];
-    ESP32Config::Key configKey{ kConfigNamespace_ChipConfig, keyName };
+    AMEBADConfig::Key configKey{ kConfigNamespace_ChipConfig, keyName };
 
     err = FormKeyName(keyId, keyName, sizeof(keyName));
     SuccessOrExit(err);

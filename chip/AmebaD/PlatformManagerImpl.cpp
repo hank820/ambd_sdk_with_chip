@@ -31,6 +31,9 @@
 
 namespace chip {
 namespace DeviceLayer {
+namespace Internal {
+CHIP_ERROR InitLwIPCoreLock(void);     
+}
 
 PlatformManagerImpl PlatformManagerImpl::sInstance;
 

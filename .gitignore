@@ -53,3 +53,5 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/asdk/image/

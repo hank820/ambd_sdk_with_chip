@@ -6,15 +6,17 @@ include $(MAKE_INCLUDE_GEN)
 #*****************************************************************************#
 #                               VARIABLES	                              #
 #*****************************************************************************#
+CHIPDIR = $(BASEDIR)/../connectedhomeip
+
 DIR = $(SRCDIR)
 
 MODULE_IFLAGS = -I$(DIR)./
-MODULE_IFLAGS += -I/home/chris/git/ambd_sdk/connectedhomeip/src/include/
-MODULE_IFLAGS += -I/home/chris/git/ambd_sdk/connectedhomeip/src/lib/
-MODULE_IFLAGS += -I/home/chris/git/ambd_sdk/connectedhomeip/src/
-MODULE_IFLAGS += -I/home/chris/git/ambd_sdk/connectedhomeip/third_party/nlassert/repo/include/
-MODULE_IFLAGS += -I/home/chris/git/ambd_sdk/connectedhomeip/src/app/util/
-MODULE_IFLAGS += -I/home/chris/git/ambd_sdk/connectedhomeip/src/app/server/
+MODULE_IFLAGS += -I$(CHIPDIR)/src/include/
+MODULE_IFLAGS += -I$(CHIPDIR)/src/lib/
+MODULE_IFLAGS += -I$(CHIPDIR)/src/
+MODULE_IFLAGS += -I$(CHIPDIR)/third_party/nlassert/repo/include/
+MODULE_IFLAGS += -I$(CHIPDIR)/src/app/util/
+MODULE_IFLAGS += -I$(CHIPDIR)/src/app/server/
 
 MODULE_IFLAGS += -DCHIP_SYSTEM_CONFIG_USE_LWIP
 MODULE_IFLAGS += -DCHIP_SYSTEM_CONFIG_FREERTOS_LOCKING=1

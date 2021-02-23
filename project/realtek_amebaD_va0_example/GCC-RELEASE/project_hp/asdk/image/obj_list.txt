@@ -323,5 +323,8 @@ example_dct.o
 /home/chris/git/ambd_sdk/ambd_sdk_with_chip/project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/asdk/make/project/sram/ram_test.o
 /home/chris/git/ambd_sdk/ambd_sdk_with_chip/project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/asdk/make/project/library/lib_user_test.o
 main.o
+chipinterface.o
+DeviceCallbacks.o
+CHIPDeviceManager.o
 xmodem.o
 uart_fw_update.o

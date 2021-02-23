@@ -68,13 +68,13 @@
    9139	      0	      8	   9147	   23bb	(TOTALS)
 =============================================================
    text	   data	    bss	    dec	    hex	filename
-   2272	    128	      0	   2400	    960	atcmd_sys.o
+   2313	    144	      0	   2457	    999	atcmd_sys.o
    9941	    420	    177	  10538	   292a	atcmd_wifi.o
    5612	      8	    288	   5908	   1714	atcmd_lwip.o
    1534	     53	    104	   1691	    69b	log_service.o
     157	     48	      0	    205	     cd	atcmd_mp.o
     522	     36	      0	    558	    22e	atcmd_mp_ext2.o
-  20038	    693	    569	  21300	   5334	(TOTALS)
+  20079	    709	    569	  21357	   536d	(TOTALS)
 =============================================================
    text	   data	    bss	    dec	    hex	filename
     216	      0	      4	    220	     dc	wlan_network.o
@@ -411,7 +411,10 @@
 =============================================================
    text	   data	    bss	    dec	    hex	filename
     744	      0	      0	    744	    2e8	main.o
-    744	      0	      0	    744	    2e8	(TOTALS)
+    179	      4	      8	    191	     bf	chipinterface.o
+    169	      0	      4	    173	     ad	DeviceCallbacks.o
+    484	      0	      8	    492	    1ec	CHIPDeviceManager.o
+   1576	      4	     20	   1600	    640	(TOTALS)
 =============================================================
    text	   data	    bss	    dec	    hex	filename
    1483	      0	      0	   1483	    5cb	xmodem.o

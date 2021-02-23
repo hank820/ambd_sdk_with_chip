@@ -9,6 +9,22 @@ include $(MAKE_INCLUDE_GEN)
 DIR = $(SRCDIR)
 
 MODULE_IFLAGS = -I$(DIR)./
+MODULE_IFLAGS += -I/home/chris/git/ambd_sdk/connectedhomeip/src/include/
+MODULE_IFLAGS += -I/home/chris/git/ambd_sdk/connectedhomeip/src/lib/
+MODULE_IFLAGS += -I/home/chris/git/ambd_sdk/connectedhomeip/src/
+MODULE_IFLAGS += -I/home/chris/git/ambd_sdk/connectedhomeip/third_party/nlassert/repo/include/
+MODULE_IFLAGS += -I/home/chris/git/ambd_sdk/connectedhomeip/src/app/util/
+MODULE_IFLAGS += -I/home/chris/git/ambd_sdk/connectedhomeip/src/app/server/
+
+MODULE_IFLAGS += -DCHIP_SYSTEM_CONFIG_USE_LWIP
+MODULE_IFLAGS += -DCHIP_SYSTEM_CONFIG_FREERTOS_LOCKING=1
+MODULE_IFLAGS += -DCHIP_SYSTEM_CONFIG_POSIX_LOCKING=0
+MODULE_IFLAGS += -DINET_CONFIG_ENABLE_IPV4=1
+MODULE_IFLAGS += -DCHIP_PROJECT
+MODULE_IFLAGS += -DCHIP_DEVICE_LAYER_TARGET=AmebaD
+
+
+
 
 vpath %.c $(DIR)
 #*****************************************************************************#
@@ -16,11 +32,18 @@ vpath %.c $(DIR)
 #*****************************************************************************#
 CSRC = $(DIR)/main.c
 
+CPPSRC = $(DIR)/chipinterface.cpp \
+	$(DIR)/DeviceCallbacks.cpp \
+	$(DIR)/CHIPDeviceManager.cpp \
+
+
+
+
 #*****************************************************************************#
 #                               Object FILE LIST                              #
 #*****************************************************************************#
 OBJS = $(notdir $(CSRC:.c=.o))
-
+OBJS += $(notdir $(CPPSRC:.cpp=.o))
 #*****************************************************************************#
 #                        RULES TO GENERATE TARGETS                            #
 #*****************************************************************************#

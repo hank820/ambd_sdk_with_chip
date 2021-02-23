@@ -921,6 +921,16 @@ void TestBase64(const char * test)
     printf("\n");
 }
 
+extern void ChipTest(void);
+
+void fATchipapp(void *arg)
+{
+	(void) arg;
+
+	printf("Chip Test:\r\n");
+	ChipTest();
+}
+
 void fATSt(void *arg)
 {
 	/* To avoid gcc warnings */
@@ -1677,6 +1687,7 @@ log_item_t at_sys_items[] = {
 	{"ATS@", fATSs,{NULL,NULL}},	// Debug message setting
 	{"ATS!", fATSc,{NULL,NULL}},	// Debug config setting
 	{"ATS#", fATSt,{NULL,NULL}},	// test command
+	{"ATS$", fATchipapp, {NULL, NULL}},
 	{"ATS?", fATSx,{NULL,NULL}},	// Help
 #if WIFI_LOGO_CERTIFICATION_CONFIG
 	{"ATSV", fATSV},				// Write SW version for wifi logo test

@@ -36,14 +36,16 @@ PlatformManagerImpl PlatformManagerImpl::sInstance;
 
 CHIP_ERROR PlatformManagerImpl::_InitChipStack(void)
 {
-#if 0
+
     CHIP_ERROR err;
-    wifi_init_config_t cfg;
+    //wifi_init_config_t cfg;
 
     // Make sure the LwIP core lock has been initialized
     err = Internal::InitLwIPCoreLock();
-    SuccessOrExit(err);
 
+    //SuccessOrExit(err);
+    return err;
+#if 0
     err = esp_netif_init();
     SuccessOrExit(err);
 

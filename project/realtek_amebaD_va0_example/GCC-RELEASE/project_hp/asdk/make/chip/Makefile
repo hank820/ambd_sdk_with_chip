@@ -281,6 +281,7 @@ CPPSRC += $(CHIPDIR)/src/platform/AmebaD/PlatformManagerImpl.cpp
 #CPPSRC += $(CHIPDIR)/src/platform/AmebaD/BLEManagerImpl.cpp
 #CPPSRC += $(CHIPDIR)/src/platform/AmebaD/BLEManagerImpl.cpp
 CPPSRC += $(CHIPDIR)/src/platform/AmebaD/SystemTimeSupport.cpp
+CPPSRC += $(CHIPDIR)/src/platform/AmebaD/LwIPCoreLock.cpp
 
 CPPSRC += $(CHIPDIR)/src/setup_payload/Base41.cpp
 CPPSRC += $(CHIPDIR)/src/setup_payload/ManualSetupPayloadGenerator.cpp

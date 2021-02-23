@@ -46,28 +46,28 @@ CHIP_ERROR PlatformManagerImpl::_InitChipStack(void)
     // Make sure the LwIP core lock has been initialized
     err = Internal::InitLwIPCoreLock();
 
-    //SuccessOrExit(err);
-    return err;
-#if 0
-    err = esp_netif_init();
     SuccessOrExit(err);
+ 
+
+    // TODO Wi-Fi Initialzation currently done through the example app needs to be moved into here.
+    // for now we will let this happen that way and assume all is OK
+
+
+    // err = esp_netif_init();
+    // SuccessOrExit(err);
 
     // Arrange for the ESP event loop to deliver events into the CHIP Device layer.
-    err = esp_event_loop_create_default();
-    SuccessOrExit(err);
+    // err = esp_event_loop_create_default();
+    // SuccessOrExit(err);
 
-    esp_netif_create_default_wifi_ap();
-    esp_netif_create_default_wifi_sta();
+    // esp_netif_create_default_wifi_ap();
+    // esp_netif_create_default_wifi_sta();
 
-    esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, PlatformManagerImpl::HandleESPSystemEvent, NULL);
-    SuccessOrExit(err);
-    esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, PlatformManagerImpl::HandleESPSystemEvent, NULL);
-    SuccessOrExit(err);
+    // esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, PlatformManagerImpl::HandleESPSystemEvent, NULL);
+    // SuccessOrExit(err);
+    // esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, PlatformManagerImpl::HandleESPSystemEvent, NULL);
+    // SuccessOrExit(err);
 
-    // Initialize the ESP WiFi layer.
-    cfg = WIFI_INIT_CONFIG_DEFAULT();
-    err = esp_wifi_init(&cfg);
-    SuccessOrExit(err);
 
     // Call _InitChipStack() on the generic implementation base class
     // to finish the initialization process.
@@ -76,10 +76,8 @@ CHIP_ERROR PlatformManagerImpl::_InitChipStack(void)
 
 exit:
     return err;
-#else
-    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
-#endif
+
 }
 
 } // namespace DeviceLayer
-} // namespace chip
+} // namespace chip+ 

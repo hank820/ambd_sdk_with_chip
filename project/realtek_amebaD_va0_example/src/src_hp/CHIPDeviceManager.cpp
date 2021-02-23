@@ -44,6 +44,7 @@ void CHIPDeviceManager::CommonDeviceEventHandler(const ChipDeviceEvent * event, 
     CHIPDeviceManagerCallbacks * cb = reinterpret_cast<CHIPDeviceManagerCallbacks *>(arg);
     if (cb != nullptr)
     {
+        printf("Common EventHandler hit!");
         cb->DeviceEventCallback(event, reinterpret_cast<intptr_t>(cb));
     }
 }
@@ -58,15 +59,6 @@ CHIP_ERROR CHIPDeviceManager::Init(CHIPDeviceManagerCallbacks * cb)
 
     // Initialize the CHIP stack.
     err = PlatformMgr().InitChipStack();
-    if (err != CHIP_NO_ERROR)
-    {
-        printf("InitChipStack() - ERROR!\r\n");
-    }
-    else
-    {
-        printf("InitChipStack() - OK\r\n");
-    }
-
     SuccessOrExit(err);
 
     // switch (static_cast<RendezvousInformationFlags>(CONFIG_RENDEZVOUS_MODE))
@@ -91,22 +83,14 @@ CHIP_ERROR CHIPDeviceManager::Init(CHIPDeviceManagerCallbacks * cb)
     // }
 
     err = Platform::MemoryInit();
-    if (err != CHIP_NO_ERROR)
-    {
-        printf("MemoryInit() - ERROR!\r\n");
-    }
-    else
-    {
-        printf("MemoryInit() - OK\r\n");
-    }
     
     SuccessOrExit(err);
 
-    // Register a function to receive events from the CHIP device layer.  Note that calls to
-    // this function will happen on the CHIP event loop thread, not the app_main thread.
+    // // Register a function to receive events from the CHIP device layer.  Note that calls to
+    // // this function will happen on the CHIP event loop thread, not the app_main thread.
     PlatformMgr().AddEventHandler(CHIPDeviceManager::CommonDeviceEventHandler, reinterpret_cast<intptr_t>(cb));
 
-    // Start a task to run the CHIP Device event loop.
+    // // Start a task to run the CHIP Device event loop.
     err = PlatformMgr().StartEventLoopTask();
     if (err != CHIP_NO_ERROR)
     {
@@ -117,7 +101,7 @@ CHIP_ERROR CHIPDeviceManager::Init(CHIPDeviceManagerCallbacks * cb)
         printf("StartEventLoopTask() - OK\r\n");
     }
 
-    SuccessOrExit(err);
+    // SuccessOrExit(err);
 
  exit:
      return err;

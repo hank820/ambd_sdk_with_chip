@@ -20,7 +20,7 @@
 /**
  *    @file
  *          Provides implementations for the CHIP logging functions
- *          on the ESP32 platform.
+ *          on the AmebaD platform.
  */
 /* this file behaves like a config.h, comes first */
 #include <platform/internal/CHIPDeviceLayerInternal.h>
@@ -75,15 +75,15 @@ void LogV(uint8_t module, uint8_t category, const char * msg, va_list v)
         switch (category)
         {
         case kLogCategory_Error:
-            //ESP_LOGE(tag, "%s", formattedMsg);
+            printf(tag, "%s", formattedMsg);
             break;
         case kLogCategory_Progress:
         case kLogCategory_Retain:
         default:
-            //ESP_LOGI(tag, "%s", formattedMsg);
+            printf(tag, "%s", formattedMsg);
             break;
         case kLogCategory_Detail:
-            //ESP_LOGV(tag, "%s", formattedMsg);
+            printf(tag, "%s", formattedMsg);
             break;
         }
     }

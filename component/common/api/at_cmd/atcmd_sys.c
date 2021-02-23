@@ -939,7 +939,7 @@ void fATSt(void *arg)
     TestCHIPErrorStr();
     TestReferenceCounted();
     TestCHIPCallback();
-    //TestCHIPTLV();            // TLVReaderFuzzTest failed
+    TestCHIPTLV();
 
     TestInetErrorStr();
     TestInetAddress();

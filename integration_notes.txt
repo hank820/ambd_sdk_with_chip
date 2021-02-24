@@ -3,8 +3,10 @@
 Implement AMEBADUtils.cpp basic function.
 1. Implement basic funtion, without AP mode.
 2. Need to revise behavior to match ConnectivityManagerImpl.cpp
-
 TODO(Hank) : Add ConnectivityManagerImpl.cpp
+
+Set $CHIPDIR in Makefile.include.gen, change repo path from here if needed.
+
 
 
 2021-02-23

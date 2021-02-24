@@ -6,7 +6,6 @@ include $(MAKE_INCLUDE_GEN)
 #*****************************************************************************#
 #                               VARIABLES	                              #
 #*****************************************************************************#
-CHIPDIR = $(BASEDIR)/../connectedhomeip
 
 DIR = $(CHIPDIR)/src/app
 DIR += $(CHIPDIR)/src/ble

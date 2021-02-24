@@ -936,43 +936,43 @@ void fATSt(void *arg)
 	/* To avoid gcc warnings */
 	( void ) arg;
 
-    TestCHIPErrorStr();
-    TestReferenceCounted();
-    TestCHIPCallback();
-    TestCHIPTLV();
+    //TestCHIPErrorStr();
+    //TestReferenceCounted();
+    //TestCHIPCallback();
+    //TestCHIPTLV();
 
-    TestInetErrorStr();
-    TestInetAddress();
+    //TestInetErrorStr();
+    //TestInetAddress();
     //TestInetEndPoint();       // compile error(TestInetCommon.cpp)
 
-    TestSystemErrorStr();
-    TestSystemObject();
-    TestSystemPacketBuffer();
-    TestSystemTimer();
-    TestSystemWakeEvent();
-    TestTimeSource();
+    //TestSystemErrorStr();
+    //TestSystemObject();
+    //TestSystemPacketBuffer();
+    //TestSystemTimer();
+    //TestSystemWakeEvent();
+    //TestTimeSource();
 
-    TestSafeInt();
-    TestScopedBuffer();
-    TestCHIPCounter();
-    TestMemAlloc();
+    _Z11TestSafeIntv();
+    //TestScopedBuffer();
+    //TestCHIPCounter();
+    //TestMemAlloc();
     //TestCHIPArgParser();      // ABORT: chip::Platform::MemoryAlloc() called before chip::Platform::MemoryInit()
-    TestPersistedCounter();
-    printf("TestErrorStr: ");
-    TestErrorStr();
-    printf("TestTimeUtils: ");
-    TestTimeUtils();
+    //TestPersistedCounter();
+    //printf("TestErrorStr: ");
+    //TestErrorStr();
+    //printf("TestTimeUtils: ");
+    //TestTimeUtils();
 
-    TestCHIPCryptoPAL();
+    //TestCHIPCryptoPAL();
 
-    TestPeerConnectionsFn();
-    TestSecurePairingSession();
-    TestSecureSession();
+    //TestPeerConnectionsFn();
+    //TestSecurePairingSession();
+    //TestSecureSession();
     //TestSecureSessionMgr();   // compile error(TestInetCommon.cpp)
 
     //TestTCP();                // compile error(TestInetCommon.cpp)
     //TestUDP();                // compile error(TestInetCommon.cpp)
-    TestMessageHeader();
+    //TestMessageHeader();
 
 	AT_PRINTK("[ATS#]: _AT_SYSTEM_TEST_");
 }

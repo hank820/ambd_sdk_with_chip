@@ -159,6 +159,7 @@ GLOBAL_CFLAGS += -fpermissive
 #*****************************************************************************#
 
 IFLAGS += -I$(CHIPDIR)/src
+IFLAGS += -I$(CHIPDIR)/src/app
 IFLAGS += -I$(CHIPDIR)/src/include
 IFLAGS += -I$(CHIPDIR)/src/inet
 IFLAGS += -I$(CHIPDIR)/src/crypto
@@ -250,7 +251,7 @@ CPPSRC += $(CHIPDIR)/src/lib/support/ErrorStr.cpp
 CPPSRC += $(CHIPDIR)/src/lib/support/FibonacciUtils.cpp
 CPPSRC += $(CHIPDIR)/src/lib/support/PersistedCounter.cpp
 CPPSRC += $(CHIPDIR)/src/lib/support/RandUtils.cpp
-CPPSRC += $(CHIPDIR)/src/lib/support/TestUtils.cpp
+CPPSRC += $(CHIPDIR)/src/lib/support/UnitTestRegistration.cpp
 CPPSRC += $(CHIPDIR)/src/lib/support/TimeUtils.cpp
 CPPSRC += $(CHIPDIR)/src/lib/support/CHIPLogging.cpp
 CPPSRC += $(CHIPDIR)/src/lib/support/CHIPLoggingLogV.cpp
@@ -266,7 +267,7 @@ CPPSRC += $(CHIPDIR)/src/lib/support/CHIPMem.cpp
 CPPSRC += $(CHIPDIR)/src/messaging/ErrorCategory.cpp
 CPPSRC += $(CHIPDIR)/src/messaging/ExchangeContext.cpp
 CPPSRC += $(CHIPDIR)/src/messaging/ReliableMessageContext.cpp
-CPPSRC += $(CHIPDIR)/src/messaging/ReliableMessageManager.cpp
+CPPSRC += $(CHIPDIR)/src/messaging/ReliableMessageMgr.cpp
 
 #need implement src/platform/AmebaD/*.cpp
 CPPSRC += $(CHIPDIR)/src/platform/GeneralUtils.cpp
@@ -279,7 +280,7 @@ CPPSRC += $(CHIPDIR)/src/platform/AmebaD/ConfigurationManagerImpl.cpp
 CPPSRC += $(CHIPDIR)/src/platform/AmebaD/ConnectivityManagerImpl.cpp
 CPPSRC += $(CHIPDIR)/src/platform/AmebaD/AMEBADConfig.cpp
 CPPSRC += $(CHIPDIR)/src/platform/AmebaD/AMEBADUtils.cpp
-CPPSRC += $(CHIPDIR)/src/platform/AmebaD/Entropy.cpp
+#CPPSRC += $(CHIPDIR)/src/platform/AmebaD/Entropy.cpp
 CPPSRC += $(CHIPDIR)/src/platform/AmebaD/Logging.cpp
 CPPSRC += $(CHIPDIR)/src/platform/AmebaD/PlatformManagerImpl.cpp
 #CPPSRC += $(CHIPDIR)/src/platform/AmebaD/SystemTimeSupport.cpp
@@ -309,7 +310,7 @@ CPPSRC += $(CHIPDIR)/src/system/SystemWakeEvent.cpp
 
 CPPSRC += $(CHIPDIR)/src/transport/NetworkProvisioning.cpp
 CPPSRC += $(CHIPDIR)/src/transport/RendezvousSession.cpp
-CPPSRC += $(CHIPDIR)/src/transport/SecurePairingSession.cpp
+CPPSRC += $(CHIPDIR)/src/transport/PASESession.cpp
 CPPSRC += $(CHIPDIR)/src/transport/SecureSession.cpp
 CPPSRC += $(CHIPDIR)/src/transport/SecureSessionMgr.cpp
 #BLE.cpp:51:34: error: 'const class chip::RendezvousParameters' has no member named 'GetBleLayer'
@@ -334,19 +335,19 @@ CSRC += $(CHIPDIR)/third_party/nlunit-test/repo/src/nlunit-test.c
 #system test
 CPPSRC += $(CHIPDIR)/src/system/tests/TestSystemErrorStr.cpp
 CPPSRC += $(CHIPDIR)/src/system/tests/TestSystemObject.cpp
-CPPSRC += $(CHIPDIR)/src/system/tests/TestSystemPacketBuffer.cpp
-CPPSRC += $(CHIPDIR)/src/system/tests/TestSystemTimer.cpp
+#CPPSRC += $(CHIPDIR)/src/system/tests/TestSystemPacketBuffer.cpp
+#CPPSRC += $(CHIPDIR)/src/system/tests/TestSystemTimer.cpp
 CPPSRC += $(CHIPDIR)/src/system/tests/TestSystemWakeEvent.cpp
 CPPSRC += $(CHIPDIR)/src/system/tests/TestTimeSource.cpp
 
 #lib/core test
 CPPSRC += $(CHIPDIR)/src/lib/core/tests/TestCHIPCallback.cpp
 CPPSRC += $(CHIPDIR)/src/lib/core/tests/TestCHIPErrorStr.cpp
-CPPSRC += $(CHIPDIR)/src/lib/core/tests/TestCHIPTLV.cpp
+#CPPSRC += $(CHIPDIR)/src/lib/core/tests/TestCHIPTLV.cpp
 CPPSRC += $(CHIPDIR)/src/lib/core/tests/TestReferenceCounted.cpp
 
 #lib/support test
-CPPSRC += $(CHIPDIR)/src/lib/support/tests/TestBufBound.cpp
+#CPPSRC += $(CHIPDIR)/src/lib/support/tests/TestBufBound.cpp
 CPPSRC += $(CHIPDIR)/src/lib/support/tests/TestCHIPArgParser.cpp
 CPPSRC += $(CHIPDIR)/src/lib/support/tests/TestCHIPCounter.cpp
 CPPSRC += $(CHIPDIR)/src/lib/support/tests/TestCHIPMem.cpp
@@ -367,7 +368,7 @@ CPPSRC += $(CHIPDIR)/src/crypto/tests/CHIPCryptoPALTest.cpp
 
 #transport test
 CPPSRC += $(CHIPDIR)/src/transport/tests/TestPeerConnections.cpp
-CPPSRC += $(CHIPDIR)/src/transport/tests/TestSecurePairingSession.cpp
+CPPSRC += $(CHIPDIR)/src/transport/tests/TestPASESession.cpp
 CPPSRC += $(CHIPDIR)/src/transport/tests/TestSecureSession.cpp
 ###CPPSRC += $(CHIPDIR)/src/transport/tests/TestSecureSessionMgr.cpp
 

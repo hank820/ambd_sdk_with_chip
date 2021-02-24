@@ -26,7 +26,7 @@ namespace chip {
 namespace DeviceLayer {
 namespace Internal {
 
-class ESP32Utils
+class AMEBADUtils
 {
 public:
     static CHIP_ERROR IsAPEnabled(bool & apEnabled);
@@ -36,7 +36,7 @@ public:
     static CHIP_ERROR EnableStationMode(void);
     static CHIP_ERROR SetAPMode(bool enabled);
     static int OrderScanResultsByRSSI(const void * _res1, const void * _res2);
-    static const char * WiFiModeToStr(wifi_mode_t wifiMode);
+    static const char * WiFiModeToStr(int wifiMode);
     static struct netif * GetNetif(const char * ifKey);
     static struct netif * GetStationNetif(void);
     static bool IsInterfaceUp(const char * ifKey);

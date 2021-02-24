@@ -1,3 +1,12 @@
+2021-02-24
+
+Implement AMEBADUtils.cpp basic function.
+1. Implement basic funtion, without AP mode.
+2. Need to revise behavior to match ConnectivityManagerImpl.cpp
+
+TODO(Hank) : Add ConnectivityManagerImpl.cpp
+
+
 2021-02-23
 @Hank the patches Pass TestSystemTimer and TestSystemObject, and TestCHIPTLV : replace time by xTaskGetTickCount
 will not work in general for chip.  We need to be only making changes withing the src/platform/AmdbaD directory. 

@@ -19,159 +19,138 @@
 
 /**
  *    @file
- *          General utility methods for the ESP32 platform.
+ *          General utility methods for the AmebaD platform.
  */
 /* this file behaves like a config.h, comes first */
 #include <platform/internal/CHIPDeviceLayerInternal.h>
 
-#include <platform/ESP32/ESP32Utils.h>
+#include <platform/AmebaD/AMEBADUtils.h>
 #include <support/CodeUtils.h>
 #include <support/ErrorStr.h>
 #include <support/logging/CHIPLogging.h>
 
-#include "esp_event.h"
-#include "esp_netif.h"
-#include "esp_netif_net_stack.h"
-#include "esp_wifi.h"
+#include "wifi_conf.h"
+#include "wlan_intf.h"
+#include "wifi_constants.h"
+#include "lwip_netconf.h"
+#include <wifi/wifi_conf.h>
+#include <wifi/wifi_util.h>
+#include <device_lock.h>
 
 using namespace ::chip::DeviceLayer::Internal;
 using chip::DeviceLayer::Internal::DeviceNetworkInfo;
 
-CHIP_ERROR ESP32Utils::IsAPEnabled(bool & apEnabled)
+CHIP_ERROR AMEBADUtils::IsAPEnabled(bool & apEnabled)
 {
-    CHIP_ERROR err;
-    wifi_mode_t curWiFiMode;
+    int mode = 0;
+    char *ifname = "wlan0";
 
-    err = esp_wifi_get_mode(&curWiFiMode);
-    if (err != ESP_OK)
-    {
-        ChipLogError(DeviceLayer, "esp_wifi_get_mode() failed: %s", chip::ErrorStr(err));
-        return err;
+    if(wext_get_mode(ifname, &mode) < 0)
+        return;
+
+    switch(mode) {
+        case IW_MODE_MASTER:
+            apEnabled = 1;  // RTW_MODE_AP;
+            break;
+        case IW_MODE_INFRA:
+        default:
+            apEnabled = 0; // RTW_MODE_STA;
+            break;
     }
-
-    apEnabled = (curWiFiMode == WIFI_MODE_AP || curWiFiMode == WIFI_MODE_APSTA);
-
     return CHIP_NO_ERROR;
 }
 
-bool ESP32Utils::IsStationProvisioned(void)
+bool AMEBADUtils::IsStationProvisioned(void)
 {
-    wifi_config_t stationConfig;
-    return (esp_wifi_get_config(ESP_IF_WIFI_STA, &stationConfig) == ERR_OK && stationConfig.sta.ssid[0] != 0);
+    char *ifname[2] = {(u8*)WLAN0_NAME,(u8*)WLAN1_NAME};
+    rtw_wifi_setting_t setting;
+    return (0 == wifi_get_setting((const char*)ifname[0],&setting) && setting.ssid[0] != 0);
 }
 
-CHIP_ERROR ESP32Utils::IsStationConnected(bool & connected)
+CHIP_ERROR AMEBADUtils::IsStationConnected(bool & connected)
 {
-    wifi_ap_record_t apInfo;
-    connected = (esp_wifi_sta_get_ap_info(&apInfo) == ESP_OK);
+    connected = (wifi_is_connected_to_ap() == RTW_SUCCESS);
     return CHIP_NO_ERROR;
 }
 
-CHIP_ERROR ESP32Utils::StartWiFiLayer(void)
+CHIP_ERROR AMEBADUtils::StartWiFiLayer(void)
 {
-    CHIP_ERROR err;
-    int8_t ignored;
     bool wifiStarted;
 
-    // There appears to be no direct way to ask the ESP WiFi layer if esp_wifi_start()
-    // has been called.  So use the ESP_ERR_WIFI_NOT_STARTED error returned by
-    // esp_wifi_get_max_tx_power() to detect this.
-    err = esp_wifi_get_max_tx_power(&ignored);
-    switch (err)
+    device_mutex_lock(RT_DEV_LOCK_WLAN);
+    if(rltk_wlan_running(WLAN0_IDX))
     {
-    case ESP_OK:
         wifiStarted = true;
-        break;
-    case ESP_ERR_WIFI_NOT_STARTED:
-        wifiStarted = false;
-        err         = ESP_OK;
-        break;
-    default:
-        ExitNow();
     }
+    else
+    {
+        wifiStarted = false;
+    }
+    device_mutex_unlock(RT_DEV_LOCK_WLAN);
 
     if (!wifiStarted)
     {
-        ChipLogProgress(DeviceLayer, "Starting ESP WiFi layer");
-
-        err = esp_wifi_start();
-        if (err != ESP_OK)
+        printf("Starting Ameba WiFi layer");
+        // TODO : need to match behavior with ConfigurationManagerImpl.cpp,
+        //        maybe no need to call wifi_on here.
+        if (wifi_on(RTW_MODE_STA) < 0)
         {
-            ChipLogError(DeviceLayer, "esp_wifi_start() failed: %s", chip::ErrorStr(err));
+            printf("wifi_on() failed\n");
         }
     }
-
-exit:
-    return err;
+    return CHIP_NO_ERROR;
 }
 
-CHIP_ERROR ESP32Utils::EnableStationMode(void)
+CHIP_ERROR AMEBADUtils::EnableStationMode(void)
 {
-    CHIP_ERROR err;
-    wifi_mode_t curWiFiMode;
+    int curWiFiMode;
+    char *ifname = "wlan0";
 
-    // Get the current ESP WiFI mode.
-    err = esp_wifi_get_mode(&curWiFiMode);
-    if (err != ESP_OK)
+    if(wext_get_mode(ifname, &curWiFiMode) < 0)
+        return;
+
+    if (curWiFiMode == RTW_MODE_AP)
     {
-        ChipLogError(DeviceLayer, "esp_wifi_get_mode() failed: %s", chip::ErrorStr(err));
-    }
-    SuccessOrExit(err);
+        ChipLogProgress(DeviceLayer, "Changing WiFi mode: %s -> %s", WiFiModeToStr(RTW_MODE_AP),
+                        WiFiModeToStr(RTW_MODE_STA));
 
-    // If station mode is not already enabled (implying the current mode is WIFI_MODE_AP), change
-    // the mode to WIFI_MODE_APSTA.
-    if (curWiFiMode == WIFI_MODE_AP)
-    {
-        ChipLogProgress(DeviceLayer, "Changing ESP WiFi mode: %s -> %s", WiFiModeToStr(WIFI_MODE_AP),
-                        WiFiModeToStr(WIFI_MODE_APSTA));
-
-        err = esp_wifi_set_mode(WIFI_MODE_APSTA);
-        if (err != ESP_OK)
+        if(wifi_set_mode(RTW_MODE_STA) < 0)
         {
-            ChipLogError(DeviceLayer, "esp_wifi_set_mode() failed: %s", chip::ErrorStr(err));
+            printf("wifi_set_mode() failed\n");
         }
-        SuccessOrExit(err);
     }
-
-exit:
-    return err;
+    return CHIP_NO_ERROR;
 }
 
-CHIP_ERROR ESP32Utils::SetAPMode(bool enabled)
+CHIP_ERROR AMEBADUtils::SetAPMode(bool enabled)
 {
-    CHIP_ERROR err;
-    wifi_mode_t curWiFiMode, targetWiFiMode;
+    int curWiFiMode, targetWiFiMode;
+    char *ifname = "wlan0";
 
-    targetWiFiMode = (enabled) ? WIFI_MODE_APSTA : WIFI_MODE_STA;
+    targetWiFiMode = (enabled) ? RTW_MODE_AP : RTW_MODE_STA;
 
-    // Get the current ESP WiFI mode.
-    err = esp_wifi_get_mode(&curWiFiMode);
-    if (err != ESP_OK)
-    {
-        ChipLogError(DeviceLayer, "esp_wifi_get_mode() failed: %s", chip::ErrorStr(err));
-    }
-    SuccessOrExit(err);
+    if(wext_get_mode(ifname, &curWiFiMode) < 0)
+        return;
 
-    // If station mode is not already enabled (implying the current mode is WIFI_MODE_AP), change
-    // the mode to WIFI_MODE_APSTA.
     if (curWiFiMode != targetWiFiMode)
     {
-        ChipLogProgress(DeviceLayer, "Changing ESP WiFi mode: %s -> %s", WiFiModeToStr(curWiFiMode), WiFiModeToStr(targetWiFiMode));
+        ChipLogProgress(DeviceLayer, "Changing WiFi mode: %s -> %s", WiFiModeToStr(curWiFiMode),
+                        WiFiModeToStr(targetWiFiMode));
 
-        err = esp_wifi_set_mode(targetWiFiMode);
-        if (err != ESP_OK)
+        if(wifi_set_mode(targetWiFiMode) < 0)
         {
-            ChipLogError(DeviceLayer, "esp_wifi_set_mode() failed: %s", chip::ErrorStr(err));
+            printf("wifi_set_mode() failed\n");
         }
-        SuccessOrExit(err);
     }
-
-exit:
-    return err;
+    return CHIP_NO_ERROR;
 }
 
-int ESP32Utils::OrderScanResultsByRSSI(const void * _res1, const void * _res2)
+int AMEBADUtils::OrderScanResultsByRSSI(const void * _res1, const void * _res2)
 {
+#if 1
+    // TODO
+    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+#else
     const wifi_ap_record_t * res1 = (const wifi_ap_record_t *) _res1;
     const wifi_ap_record_t * res2 = (const wifi_ap_record_t *) _res2;
 
@@ -184,53 +163,78 @@ int ESP32Utils::OrderScanResultsByRSSI(const void * _res1, const void * _res2)
         return 1;
     }
     return 0;
+#endif
 }
 
-const char * ESP32Utils::WiFiModeToStr(wifi_mode_t wifiMode)
+const char * AMEBADUtils::WiFiModeToStr(int wifiMode)
 {
     switch (wifiMode)
     {
-    case WIFI_MODE_NULL:
-        return "NULL";
-    case WIFI_MODE_STA:
+    case RTW_MODE_NONE:
+        return "NONE";
+    case RTW_MODE_STA:
         return "STA";
-    case WIFI_MODE_AP:
+    case RTW_MODE_AP:
         return "AP";
-    case WIFI_MODE_APSTA:
+    case RTW_MODE_STA_AP:
         return "STA+AP";
     default:
         return "(unknown)";
     }
 }
 
-struct netif * ESP32Utils::GetStationNetif(void)
+struct netif * AMEBADUtils::GetStationNetif(void)
 {
+#if 1
+    // TODO
+    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+#else
     return GetNetif("WIFI_STA_DEF");
+#endif
 }
 
-struct netif * ESP32Utils::GetNetif(const char * ifKey)
+struct netif * AMEBADUtils::GetNetif(const char * ifKey)
 {
+#if 1
+    // TODO
+    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+#else
     struct netif * netif       = NULL;
     esp_netif_t * netif_handle = NULL;
     netif_handle               = esp_netif_get_handle_from_ifkey(ifKey);
     netif                      = (struct netif *) esp_netif_get_netif_impl(netif_handle);
     return netif;
+#endif
 }
 
-bool ESP32Utils::IsInterfaceUp(const char * ifKey)
+bool AMEBADUtils::IsInterfaceUp(const char * ifKey)
 {
+#if 1
+    // TODO
+    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+#else
     struct netif * netif = GetNetif(ifKey);
     return netif != NULL && netif_is_up(netif);
+#endif
 }
 
-bool ESP32Utils::HasIPv6LinkLocalAddress(const char * ifKey)
+bool AMEBADUtils::HasIPv6LinkLocalAddress(const char * ifKey)
 {
+#if 1
+    // TODO
+    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+#else
     struct esp_ip6_addr if_ip6_unused;
     return esp_netif_get_ip6_linklocal(esp_netif_get_handle_from_ifkey(ifKey), &if_ip6_unused) == ESP_OK;
+#endif
 }
 
-CHIP_ERROR ESP32Utils::GetWiFiStationProvision(Internal::DeviceNetworkInfo & netInfo, bool includeCredentials)
+CHIP_ERROR AMEBADUtils::GetWiFiStationProvision(Internal::DeviceNetworkInfo & netInfo, bool includeCredentials)
 {
+#if 1
+    // TODO
+    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+#else
     CHIP_ERROR err = CHIP_NO_ERROR;
     wifi_config_t stationConfig;
 
@@ -256,10 +260,15 @@ CHIP_ERROR ESP32Utils::GetWiFiStationProvision(Internal::DeviceNetworkInfo & net
 
 exit:
     return err;
+#endif
 }
 
-CHIP_ERROR ESP32Utils::SetWiFiStationProvision(const Internal::DeviceNetworkInfo & netInfo)
+CHIP_ERROR AMEBADUtils::SetWiFiStationProvision(const Internal::DeviceNetworkInfo & netInfo)
 {
+#if 1
+    // TODO
+    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+#else
     CHIP_ERROR err = CHIP_NO_ERROR;
     wifi_config_t wifiConfig;
 
@@ -268,7 +277,7 @@ CHIP_ERROR ESP32Utils::SetWiFiStationProvision(const Internal::DeviceNetworkInfo
 
     // Ensure that ESP station mode is enabled.  This is required before esp_wifi_set_config(ESP_IF_WIFI_STA,...)
     // can be called.
-    err = ESP32Utils::EnableStationMode();
+    err = AMEBADUtils::EnableStationMode();
     SuccessOrExit(err);
 
     // Enforce that wifiSSID is null terminated before copying it
@@ -301,10 +310,15 @@ CHIP_ERROR ESP32Utils::SetWiFiStationProvision(const Internal::DeviceNetworkInfo
 
 exit:
     return err;
+#endif
 }
 
-CHIP_ERROR ESP32Utils::ClearWiFiStationProvision(void)
+CHIP_ERROR AMEBADUtils::ClearWiFiStationProvision(void)
 {
+#if 1
+    // TODO
+    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+#else
     CHIP_ERROR err = CHIP_NO_ERROR;
     wifi_config_t stationConfig;
 
@@ -313,4 +327,5 @@ CHIP_ERROR ESP32Utils::ClearWiFiStationProvision(void)
     esp_wifi_set_config(ESP_IF_WIFI_STA, &stationConfig);
 
     return err;
+#endif
 }

@@ -38,12 +38,12 @@ static DeviceCallbacks EchoCallbacks;
 extern "C" void ChipTest(void)
 {
     printf("In ChipTest()\r\n");
-    CHIP_ERROR err = CHIP_NO_ERROR;  
-  
-    
+    CHIP_ERROR err = CHIP_NO_ERROR;
+
+
     CHIPDeviceManager &deviceMgr = CHIPDeviceManager::GetInstance();
 
-   
+
     err = deviceMgr.Init(&EchoCallbacks);
 
     if (err != CHIP_NO_ERROR)

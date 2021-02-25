@@ -1,3 +1,13 @@
+2021-02-25
+1. 
+Update toolchain from 6.4.1 to 9.3.0.
+
+2. 
+I found the file which cause _EXFUN macro problem. It come from “component/soc/realtek/amebad/swlib/string/strproc.h”
+I commented codes which cause the problem. Will confirm with my colleague why define these.
+
+
+
 2021-02-24
 
 Implement AMEBADUtils.cpp basic function.

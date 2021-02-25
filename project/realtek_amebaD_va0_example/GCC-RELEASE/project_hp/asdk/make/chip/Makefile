@@ -334,7 +334,7 @@ CSRC += $(CHIPDIR)/third_party/nlunit-test/repo/src/nlunit-test.c
 
 #system test
 CPPSRC += $(CHIPDIR)/src/system/tests/TestSystemErrorStr.cpp
-CPPSRC += $(CHIPDIR)/src/system/tests/TestSystemObject.cpp
+#CPPSRC += $(CHIPDIR)/src/system/tests/TestSystemObject.cpp
 #CPPSRC += $(CHIPDIR)/src/system/tests/TestSystemPacketBuffer.cpp
 #CPPSRC += $(CHIPDIR)/src/system/tests/TestSystemTimer.cpp
 CPPSRC += $(CHIPDIR)/src/system/tests/TestSystemWakeEvent.cpp

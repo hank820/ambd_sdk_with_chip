@@ -1,8 +1,9 @@
 #include <platform_stdlib.h>
+#include <ctype.h>
 
 #include "CHIPDeviceManager.h"
 #include "DeviceCallbacks.h"
-// #include "Server.h"
+#include "Server.h"
 
 #include <platform/CHIPDeviceLayer.h>
 #include <support/CHIPMem.h>
@@ -13,24 +14,24 @@ using namespace ::chip;
 using namespace ::chip::DeviceManager;
 using namespace ::chip::DeviceLayer;
 
-// namespace
-// {
-//     void SetupPretendDevices(void)
-//     {
-//         //TODO
-//     }
+namespace
+{
+    void SetupPretendDevices(void)
+    {
+        //TODO
+    }
 
-//     class AppCallbacks : public AppDelegate
-//     {
-//     public:
-//         void OnReceiveError() override { };
-//         void OnRendezvousStarted() override {  };
-//         void OnRendezvousStopped() override {};
-//         void OnPairingWindowOpened() override { };
-//         void OnPairingWindowClosed() override { };
-//     };
+    class AppCallbacks : public AppDelegate
+    {
+    public:
+        void OnReceiveError() override { };
+        void OnRendezvousStarted() override {  };
+        void OnRendezvousStopped() override {};
+        void OnPairingWindowOpened() override { };
+        void OnPairingWindowClosed() override { };
+    };
 
-// } // namespace
+} // namespace
 
 static DeviceCallbacks EchoCallbacks;
 
@@ -54,8 +55,8 @@ extern "C" void ChipTest(void)
         printf("DeviceManagerInit() - OK\r\n");
     }
 
-    // SetupPretendDevices();
+    SetupPretendDevices();
 
-    // AppCallbacks callbacks;
-    // InitServer(&callbacks);
+    AppCallbacks callbacks;
+    InitServer(&callbacks);
 }

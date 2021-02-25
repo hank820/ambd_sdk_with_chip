@@ -15,6 +15,8 @@ DIR += $(CHIPDIR)/src/inet
 DIR += $(CHIPDIR)/src/setup_payload
 DIR += $(CHIPDIR)/src/system
 DIR += $(CHIPDIR)/src/lib/core
+DIR += $(CHIPDIR)/src/lib/mdns
+DIR += $(CHIPDIR)/src/lib/mdns/minimal
 DIR += $(CHIPDIR)/src/lib/support
 DIR += $(CHIPDIR)/src/messaging
 DIR += $(CHIPDIR)/src/platform
@@ -45,6 +47,10 @@ DIR +=$(CHIPDIR)/src/crypto/tests
 #transport test
 DIR +=$(CHIPDIR)/src/transport/tests
 DIR +=$(CHIPDIR)/src/transport/raw/tests
+
+#application
+DIR +=$(SRCDIR)
+DIR +=$(SRCDIR)/gen
 
 vpath %.cpp $(DIR) $(shell find $(DIR) -type d)
 vpath %.c $(DIR) $(shell find $(DIR) -type d)
@@ -164,6 +170,8 @@ IFLAGS += -I$(CHIPDIR)/src/include
 IFLAGS += -I$(CHIPDIR)/src/inet
 IFLAGS += -I$(CHIPDIR)/src/crypto
 IFLAGS += -I$(CHIPDIR)/src/lib
+IFLAGS += -I$(CHIPDIR)/src/lib/mdns
+IFLAGS += -I$(CHIPDIR)/src/lib/mdns/minimal
 IFLAGS += -I$(CHIPDIR)/src/lib/core
 IFLAGS += -I$(CHIPDIR)/src/messaging
 IFLAGS += -I$(CHIPDIR)/src/platform
@@ -213,6 +221,7 @@ CPPSRC += $(CHIPDIR)/src/ble/BleLayer.cpp
 CPPSRC += $(CHIPDIR)/src/ble/BleUUID.cpp
 CPPSRC += $(CHIPDIR)/src/ble/BtpEngine.cpp
 
+CPPSRC += $(CHIPDIR)/src/controller/CHIPDevice.cpp
 CPPSRC += $(CHIPDIR)/src/controller/CHIPDeviceController.cpp
 
 CPPSRC += $(CHIPDIR)/src/crypto/CHIPCryptoPAL.cpp
@@ -243,7 +252,14 @@ CPPSRC += $(CHIPDIR)/src/lib/core/CHIPTLVUpdater.cpp
 CPPSRC += $(CHIPDIR)/src/lib/core/CHIPTLVUtilities.cpp
 CPPSRC += $(CHIPDIR)/src/lib/core/CHIPTLVWriter.cpp
 
+
+CPPSRC += $(CHIPDIR)/src/lib/mdns/lib/mdns/Advertiser_ImplNone.cpp
+#CPPSRC += $(CHIPDIR)/src/lib/mdns/Advertiser_ImplMinimalMdns.cpp
+CPPSRC += $(CHIPDIR)/src/lib/mdns/minimal/Parser.cpp
+
 CPPSRC += $(CHIPDIR)/src/lib/support/Base64.cpp
+CPPSRC += $(CHIPDIR)/src/lib/support/BufferReader.cpp
+CPPSRC += $(CHIPDIR)/src/lib/support/BufferWriter.cpp
 CPPSRC += $(CHIPDIR)/src/lib/support/CHIPArgParser.cpp
 CPPSRC += $(CHIPDIR)/src/lib/support/CHIPCounter.cpp
 CPPSRC += $(CHIPDIR)/src/lib/support/CHIPPlatformMemory.cpp
@@ -306,6 +322,7 @@ CPPSRC += $(CHIPDIR)/src/system/SystemPacketBuffer.cpp
 CPPSRC += $(CHIPDIR)/src/system/SystemStats.cpp
 CPPSRC += $(CHIPDIR)/src/system/SystemTimer.cpp
 CPPSRC += $(CHIPDIR)/src/system/SystemWakeEvent.cpp
+CPPSRC += $(CHIPDIR)/src/system/TLVPacketBufferBackingStore.cpp
 ###CPPSRC += $(CHIPDIR)/src/system/SystemFaultInjection.cpp
 
 CPPSRC += $(CHIPDIR)/src/transport/NetworkProvisioning.cpp
@@ -313,6 +330,7 @@ CPPSRC += $(CHIPDIR)/src/transport/RendezvousSession.cpp
 CPPSRC += $(CHIPDIR)/src/transport/PASESession.cpp
 CPPSRC += $(CHIPDIR)/src/transport/SecureSession.cpp
 CPPSRC += $(CHIPDIR)/src/transport/SecureSessionMgr.cpp
+CPPSRC += $(CHIPDIR)/src/transport/TransportMgrBase.cpp
 #BLE.cpp:51:34: error: 'const class chip::RendezvousParameters' has no member named 'GetBleLayer'
 #CPPSRC += $(CHIPDIR)/src/transport/BLE.cpp
 CPPSRC += $(CHIPDIR)/src/transport/raw/MessageHeader.cpp
@@ -378,6 +396,30 @@ CPPSRC += $(CHIPDIR)/src/transport/raw/tests/TestMessageHeader.cpp
 CPPSRC += $(CHIPDIR)/src/transport/raw/tests/NetworkTestHelpers.cpp
 ###CPPSRC += $(CHIPDIR)/src/transport/raw/tests/TestTCP.cpp
 ###CPPSRC += $(CHIPDIR)/src/transport/raw/tests/TestUDP.cpp
+
+
+#*****************************************************************************#
+#                               Application File List                         #
+#*****************************************************************************#
+MODULE_IFLAGS += -I$(SRCDIR)/
+MODULE_IFLAGS += -I$(CHIPDIR)/src/include/
+MODULE_IFLAGS += -I$(CHIPDIR)/src/lib/
+MODULE_IFLAGS += -I$(CHIPDIR)/src/
+MODULE_IFLAGS += -I$(CHIPDIR)/third_party/nlassert/repo/include/
+MODULE_IFLAGS += -I$(CHIPDIR)/src/app/util/
+MODULE_IFLAGS += -I$(CHIPDIR)/src/app/server/
+
+#src_hp
+CPPSRC += $(SRCDIR)/chipinterface.cpp
+CPPSRC += $(SRCDIR)/DeviceCallbacks.cpp
+CPPSRC += $(SRCDIR)/CHIPDeviceManager.cpp
+#CSRC += $(SRCDIR)/gen/callback-stub.c
+
+#connectedhomeip
+CPPSRC += $(CHIPDIR)/src/app/server/Server.cpp
+CPPSRC += $(CHIPDIR)/src/app/server/DataModelHandler.cpp
+CPPSRC += $(CHIPDIR)/src/app/server/RendezvousServer.cpp
+#CPPSRC += $(CHIPDIR)/src/app/util/attribute-storage.cpp
 
 #*****************************************************************************#
 #                               Object FILE LIST                              #

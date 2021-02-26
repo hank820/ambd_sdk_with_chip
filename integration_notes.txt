@@ -1,4 +1,27 @@
 2021-02-25
+I moved the application files back to the project_hp/Makefile.  When building the library it was trying to build everything.
+I kept the CPP options flags in place in case they are needed for building the library.  But this keeps building the library independant of the application. 
+
+in src/lib/mdns/minimal/Query.h  setting the private member mClass = to QClass::IN fails.  
+very strange because setting it to any of the other enumerated values works
+maybe a namespace thing but would seem odd since it seems to be properly namespaced. 
+Can you have a look at this further. 
+
+I got side tracked by the other side of the project for most of the afternoon:
+I solved the start if InitServer()  I got rid of 1 unresolved symbol, Yeah, but now have 5 new ones.  
+I had planned to keep going on that but got side tracked. 
+
+I think that we should put in our backlog, and maybe sooner rather than later to have all the chip #defines in a seperate part of the make file. 
+I think we may be running into issues where the app has one configuration and the library another. 
+I do think that we need to keep the build of the library and the application independant. 
+
+It's still broken but some good progress today. 
+
+
+
+
+
+2021-02-25
 1. 
 Update toolchain from 6.4.1 to 9.3.0.
 

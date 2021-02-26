@@ -8,6 +8,7 @@ include $(MAKE_INCLUDE_GEN)
 #*****************************************************************************#
 
 DIR = $(CHIPDIR)/src/app
+DIR += $(CHIPDIR)/src/app/server
 DIR += $(CHIPDIR)/src/ble
 DIR += $(CHIPDIR)/src/crypto
 DIR += $(CHIPDIR)/src/controller
@@ -215,6 +216,11 @@ IFLAGS += -I$(CHIPDIR)/src/transport/raw/tests
 CPPSRC += $(CHIPDIR)/src/app/decoder.cpp
 CPPSRC += $(CHIPDIR)/src/app/encoder.cpp
 
+CPPSRC += $(CHIPDIR)/src/app/server/Server.cpp
+CPPSRC += $(CHIPDIR)/src/app/server/DataModelHandler.cpp
+CPPSRC += $(CHIPDIR)/src/app/server/RendezvousServer.cpp
+#CPPSRC += $(CHIPDIR)/src/app/util/attribute-storage.cpp
+
 CPPSRC += $(CHIPDIR)/src/ble/BLEEndPoint.cpp
 CPPSRC += $(CHIPDIR)/src/ble/BleError.cpp
 CPPSRC += $(CHIPDIR)/src/ble/BleLayer.cpp
@@ -398,28 +404,7 @@ CPPSRC += $(CHIPDIR)/src/transport/raw/tests/NetworkTestHelpers.cpp
 ###CPPSRC += $(CHIPDIR)/src/transport/raw/tests/TestUDP.cpp
 
 
-#*****************************************************************************#
-#                               Application File List                         #
-#*****************************************************************************#
-MODULE_IFLAGS += -I$(SRCDIR)/
-MODULE_IFLAGS += -I$(CHIPDIR)/src/include/
-MODULE_IFLAGS += -I$(CHIPDIR)/src/lib/
-MODULE_IFLAGS += -I$(CHIPDIR)/src/
-MODULE_IFLAGS += -I$(CHIPDIR)/third_party/nlassert/repo/include/
-MODULE_IFLAGS += -I$(CHIPDIR)/src/app/util/
-MODULE_IFLAGS += -I$(CHIPDIR)/src/app/server/
 
-#src_hp
-CPPSRC += $(SRCDIR)/chipinterface.cpp
-CPPSRC += $(SRCDIR)/DeviceCallbacks.cpp
-CPPSRC += $(SRCDIR)/CHIPDeviceManager.cpp
-#CSRC += $(SRCDIR)/gen/callback-stub.c
-
-#connectedhomeip
-CPPSRC += $(CHIPDIR)/src/app/server/Server.cpp
-CPPSRC += $(CHIPDIR)/src/app/server/DataModelHandler.cpp
-CPPSRC += $(CHIPDIR)/src/app/server/RendezvousServer.cpp
-#CPPSRC += $(CHIPDIR)/src/app/util/attribute-storage.cpp
 
 #*****************************************************************************#
 #                               Object FILE LIST                              #

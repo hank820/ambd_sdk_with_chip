@@ -215,7 +215,6 @@ IFLAGS += -I$(CHIPDIR)/src/transport/raw/tests
 
 CPPSRC += $(CHIPDIR)/src/app/decoder.cpp
 CPPSRC += $(CHIPDIR)/src/app/encoder.cpp
-
 CPPSRC += $(CHIPDIR)/src/app/server/Server.cpp
 CPPSRC += $(CHIPDIR)/src/app/server/DataModelHandler.cpp
 CPPSRC += $(CHIPDIR)/src/app/server/RendezvousServer.cpp
@@ -298,18 +297,20 @@ CPPSRC += $(CHIPDIR)/src/platform/PersistedStorage.cpp
 CPPSRC += $(CHIPDIR)/src/platform/SystemEventSupport.cpp
 CPPSRC += $(CHIPDIR)/src/platform/SystemTimerSupport.cpp
 
-CPPSRC += $(CHIPDIR)/src/platform/AmebaD/ConfigurationManagerImpl.cpp
-CPPSRC += $(CHIPDIR)/src/platform/AmebaD/ConnectivityManagerImpl.cpp
 CPPSRC += $(CHIPDIR)/src/platform/AmebaD/AMEBADConfig.cpp
 CPPSRC += $(CHIPDIR)/src/platform/AmebaD/AMEBADUtils.cpp
+#CPPSRC += $(CHIPDIR)/src/platform/AmebaD/BLEManagerImpl.cpp
+CPPSRC += $(CHIPDIR)/src/platform/AmebaD/ConfigurationManagerImpl.cpp
+CPPSRC += $(CHIPDIR)/src/platform/AmebaD/ConnectivityManagerImpl.cpp
+CPPSRC += $(CHIPDIR)/src/platform/AmebaD/DeviceNetworkProvisioningDelegateImpl.cpp
 #CPPSRC += $(CHIPDIR)/src/platform/AmebaD/Entropy.cpp
+#CPPSRC += $(CHIPDIR)/src/platform/AmebaD/GroupKeyStoreImpl.cpp
 CPPSRC += $(CHIPDIR)/src/platform/AmebaD/Logging.cpp
-CPPSRC += $(CHIPDIR)/src/platform/AmebaD/PlatformManagerImpl.cpp
-#CPPSRC += $(CHIPDIR)/src/platform/AmebaD/SystemTimeSupport.cpp
-#CPPSRC += $(CHIPDIR)/src/platform/AmebaD/BLEManagerImpl.cpp
-#CPPSRC += $(CHIPDIR)/src/platform/AmebaD/BLEManagerImpl.cpp
-CPPSRC += $(CHIPDIR)/src/platform/AmebaD/SystemTimeSupport.cpp
 CPPSRC += $(CHIPDIR)/src/platform/AmebaD/LwIPCoreLock.cpp
+CPPSRC += $(CHIPDIR)/src/platform/AmebaD/PlatformManagerImpl.cpp
+CPPSRC += $(CHIPDIR)/src/platform/AmebaD/ServiceProvisioning.cpp
+CPPSRC += $(CHIPDIR)/src/platform/AmebaD/SystemTimeSupport.cpp
+CPPSRC += $(CHIPDIR)/src/platform/AmebaD/SystemTimeSupport.cpp
 
 CPPSRC += $(CHIPDIR)/src/setup_payload/Base41.cpp
 CPPSRC += $(CHIPDIR)/src/setup_payload/ManualSetupPayloadGenerator.cpp
@@ -331,9 +332,11 @@ CPPSRC += $(CHIPDIR)/src/system/SystemWakeEvent.cpp
 CPPSRC += $(CHIPDIR)/src/system/TLVPacketBufferBackingStore.cpp
 ###CPPSRC += $(CHIPDIR)/src/system/SystemFaultInjection.cpp
 
+CPPSRC += $(CHIPDIR)/src/transport/CASESession.cpp
 CPPSRC += $(CHIPDIR)/src/transport/NetworkProvisioning.cpp
-CPPSRC += $(CHIPDIR)/src/transport/RendezvousSession.cpp
 CPPSRC += $(CHIPDIR)/src/transport/PASESession.cpp
+CPPSRC += $(CHIPDIR)/src/transport/RendezvousSession.cpp
+CPPSRC += $(CHIPDIR)/src/transport/SecureMessageCodec.cpp
 CPPSRC += $(CHIPDIR)/src/transport/SecureSession.cpp
 CPPSRC += $(CHIPDIR)/src/transport/SecureSessionMgr.cpp
 CPPSRC += $(CHIPDIR)/src/transport/TransportMgrBase.cpp

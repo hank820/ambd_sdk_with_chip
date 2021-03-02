@@ -148,6 +148,9 @@ GLOBAL_CFLAGS +=-DCHIP_DEVICE_CONFIG_LOG_PROVISIONING_HASH=0
 GLOBAL_CFLAGS +=-DCHIP_BYPASS_RENDEZVOUS
 GLOBAL_CFLAGS += -DUSE_ZAP_CONFIG
 
+#logging
+GLOBAL_CFLAGS += -DCHIP_DEVICE_CONFIG_LOG_MESSAGE_MAX_SIZE=128
+
 
 
 #CHIPPlatformConfig.h
@@ -286,7 +289,7 @@ CPPSRC += $(CHIPDIR)/src/lib/support/RandUtils.cpp
 CPPSRC += $(CHIPDIR)/src/lib/support/UnitTestRegistration.cpp
 CPPSRC += $(CHIPDIR)/src/lib/support/TimeUtils.cpp
 CPPSRC += $(CHIPDIR)/src/lib/support/CHIPLogging.cpp
-CPPSRC += $(CHIPDIR)/src/lib/support/CHIPLoggingLogV.cpp
+#CPPSRC += $(CHIPDIR)/src/lib/support/CHIPLoggingLogV.cpp
 CPPSRC += $(CHIPDIR)/src/lib/support/Verhoeff.cpp
 CPPSRC += $(CHIPDIR)/src/lib/support/Verhoeff10.cpp
 CPPSRC += $(CHIPDIR)/src/lib/support/Verhoeff16.cpp

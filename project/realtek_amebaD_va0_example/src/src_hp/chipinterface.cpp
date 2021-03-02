@@ -58,4 +58,7 @@ extern "C" void ChipTest(void)
 
     AppCallbacks callbacks;
     InitServer(&callbacks);
+
+    while(true)
+        vTaskDelay( pdMS_TO_TICKS(50) );
 }

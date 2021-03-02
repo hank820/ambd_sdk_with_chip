@@ -25,6 +25,7 @@ DIR += $(CHIPDIR)/src/platform/AmebaD
 DIR += $(CHIPDIR)/src/transport
 DIR += $(CHIPDIR)/src/transport/raw
 
+
 #inet test
 DIR += $(CHIPDIR)/src/inet/tests
 DIR += $(CHIPDIR)/third_party/nlunit-test/repo/src
@@ -144,6 +145,10 @@ GLOBAL_CFLAGS +=-DHAVE_LWIP_RAW_BIND_NETIF=1
 #Platform
 GLOBAL_CFLAGS +=-DCHIP_DEVICE_LAYER_TARGET=AmebaD
 GLOBAL_CFLAGS +=-DCHIP_DEVICE_CONFIG_LOG_PROVISIONING_HASH=0
+GLOBAL_CFLAGS +=-DCHIP_BYPASS_RENDEZVOUS
+GLOBAL_CFLAGS += -DUSE_ZAP_CONFIG
+
+
 
 #CHIPPlatformConfig.h
 GLOBAL_CFLAGS +=-DCHIP_CONFIG_USE_OPENSSL_ECC=0
@@ -167,6 +172,7 @@ GLOBAL_CFLAGS += -fpermissive
 
 IFLAGS += -I$(CHIPDIR)/src
 IFLAGS += -I$(CHIPDIR)/src/app
+IFLAGS += -I$(CHIPDIR)/src/app/util
 IFLAGS += -I$(CHIPDIR)/src/include
 IFLAGS += -I$(CHIPDIR)/src/inet
 IFLAGS += -I$(CHIPDIR)/src/crypto
@@ -209,6 +215,10 @@ IFLAGS += -I$(CHIPDIR)/src/crypto/tests
 IFLAGS += -I$(CHIPDIR)/src/transport/tests
 IFLAGS += -I$(CHIPDIR)/src/transport/raw/tests
 
+#application
+IFLAGS +=-I$(SRCDIR)
+IFLAGS +=-I$(SRCDIR)/gen
+
 #*****************************************************************************#
 #                               Source FILE LIST                              #
 #*****************************************************************************#
@@ -218,7 +228,8 @@ CPPSRC += $(CHIPDIR)/src/app/encoder.cpp
 CPPSRC += $(CHIPDIR)/src/app/server/Server.cpp
 CPPSRC += $(CHIPDIR)/src/app/server/DataModelHandler.cpp
 CPPSRC += $(CHIPDIR)/src/app/server/RendezvousServer.cpp
-#CPPSRC += $(CHIPDIR)/src/app/util/attribute-storage.cpp
+CPPSRC += $(CHIPDIR)/src/app/util/attribute-storage.cpp
+CPPSRC += $(CHIPDIR)/src/app/util/util.cpp
 
 CPPSRC += $(CHIPDIR)/src/ble/BLEEndPoint.cpp
 CPPSRC += $(CHIPDIR)/src/ble/BleError.cpp

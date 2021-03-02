@@ -62,14 +62,14 @@ void LogV(uint8_t module, uint8_t category, const char * msg, va_list v)
         switch (category)
         {
         case kLogCategory_Error:
-            printf(tag, "%s", formattedMsg);
+            printf("%s %s\r\n", tag, formattedMsg);
             break;
         case kLogCategory_Progress:
         default:
-            printf(tag, "%s", formattedMsg);
+            printf("%s %s\r\n", tag, formattedMsg);
             break;
         case kLogCategory_Detail:
-            printf(tag, "%s", formattedMsg);
+            printf("%s %s\r\n", tag, formattedMsg);
             break;
         }
     }

@@ -10,19 +10,19 @@
 
 _BEGIN_STD_C
 
-int _EXFUN(isalnum, (int __c));;
-int _EXFUN(isalpha, (int __c));;
-int _EXFUN(iscntrl, (int __c));;
-int _EXFUN(isdigit, (int __c));;
-int _EXFUN(isgraph, (int __c));;
-int _EXFUN(islower, (int __c));;
-int _EXFUN(isprint, (int __c));;
-int _EXFUN(ispunct, (int __c));;
-int _EXFUN(isspace, (int __c));;
-int _EXFUN(isupper, (int __c));;
-int _EXFUN(isxdigit,(int __c));;
-int _EXFUN(tolower, (int __c));;
-int _EXFUN(toupper, (int __c));;
+int _EXFUN(isalnum, (int __c));
+int _EXFUN(isalpha, (int __c));
+int _EXFUN(iscntrl, (int __c));
+int _EXFUN(isdigit, (int __c));
+int _EXFUN(isgraph, (int __c));
+int _EXFUN(islower, (int __c));
+int _EXFUN(isprint, (int __c));
+int _EXFUN(ispunct, (int __c));
+int _EXFUN(isspace, (int __c));
+int _EXFUN(isupper, (int __c));
+int _EXFUN(isxdigit,(int __c));
+int _EXFUN(tolower, (int __c));
+int _EXFUN(toupper, (int __c));
 
 #if __ISO_C_VISIBLE >= 1999
 int _EXFUN(isblank, (int __c));

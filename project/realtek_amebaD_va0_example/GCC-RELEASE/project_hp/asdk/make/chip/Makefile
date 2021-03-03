@@ -234,6 +234,51 @@ CPPSRC += $(CHIPDIR)/src/app/server/RendezvousServer.cpp
 CPPSRC += $(CHIPDIR)/src/app/util/attribute-storage.cpp
 CPPSRC += $(CHIPDIR)/src/app/util/util.cpp
 
+#clusters
+CPPSRC += ${CHIPDIR}/src/app/clusters/barrier-control-server/barrier-control-server.cpp
+CPPSRC += ${CHIPDIR}/src/app/clusters/basic/basic.cpp
+CPPSRC += ${CHIPDIR}/src/app/clusters/bindings/bindings.cpp
+CPPSRC += ${CHIPDIR}/src/app/clusters/color-control-server/color-control-server.cpp
+CPPSRC += ${CHIPDIR}/src/app/clusters/content-launch-server/content-launch-server.cpp
+CPPSRC += ${CHIPDIR}/src/app/clusters/door-lock-server/door-lock-server-core.cpp
+CPPSRC += ${CHIPDIR}/src/app/clusters/door-lock-server/door-lock-server-logging.cpp
+CPPSRC += ${CHIPDIR}/src/app/clusters/door-lock-server/door-lock-server-schedule.cpp
+CPPSRC += ${CHIPDIR}/src/app/clusters/door-lock-server/door-lock-server-user.cpp
+CPPSRC += ${CHIPDIR}/src/app/clusters/general-commissioning-server/general-commissioning-server.cpp
+CPPSRC += ${CHIPDIR}/src/app/clusters/groups-server/groups-server.cpp
+CPPSRC += ${CHIPDIR}/src/app/clusters/ias-zone-server/ias-zone-server.cpp
+CPPSRC += ${CHIPDIR}/src/app/clusters/identify/identify.cpp
+CPPSRC += ${CHIPDIR}/src/app/clusters/level-control/level-control.cpp
+CPPSRC += ${CHIPDIR}/src/app/clusters/media-playback-server/media-playback-server.cpp
+CPPSRC += ${CHIPDIR}/src/app/clusters/on-off-server/on-off.cpp
+CPPSRC += ${CHIPDIR}/src/app/clusters/on-off-server/on-off.cpp
+CPPSRC += ${CHIPDIR}/src/app/clusters/on-off-server/on-off.cpp
+CPPSRC += ${CHIPDIR}/src/app/clusters/on-off-server/on-off.cpp
+CPPSRC += ${CHIPDIR}/src/app/clusters/on-off-server/on-off.cpp
+CPPSRC += ${CHIPDIR}/src/app/clusters/on-off-server/on-off.cpp
+CPPSRC += ${CHCPPSRC}/src/app/clusters/scenes/scenes.cpp
+CPPSRC += ${CHIPDIR}/src/app/clusters/temperature-measurement-server/temperature-measurement-server.cpp
+CPPSRC += ${CHIPDIR}/src/app/reporting/reporting-default-configuration.cpp
+CPPSRC += ${CHIPDIR}/src/app/reporting/reporting.cpp
+CPPSRC += ${CHIPDIR}/src/app/server/DataModelHandler.cpp
+CPPSRC += ${CHIPDIR}/src/app/util/af-event.cpp
+CPPSRC += ${CHIPDIR}/src/app/util/af-main-common.cpp
+CPPSRC += ${CHIPDIR}/src/app/util/attribute-size.cpp
+CPPSRC += ${CHIPDIR}/src/app/util/attribute-storage.cpp
+CPPSRC += ${CHIPDIR}/src/app/util/attribute-table.cpp
+CPPSRC += ${CHIPDIR}/src/app/util/binding-table.cpp
+CPPSRC += ${CHIPDIR}/src/app/util/chip-message-send.cpp
+CPPSRC += ${CHIPDIR}/src/app/util/client-api.cpp
+CPPSRC += ${CHIPDIR}/src/app/util/ember-print.cpp
+CPPSRC += ${CHIPDIR}/src/app/util/message.cpp
+CPPSRC += ${CHIPDIR}/src/app/util/process-cluster-message.cpp
+CPPSRC += ${CHIPDIR}/src/app/util/process-global-message.cpp
+CPPSRC += ${CHIPDIR}/src/app/util/util.cpp
+CPPSRC += ${CHIPDIR}/src/app/util/CHIPDeviceCallbacksMgr.cpp
+
+
+
+
 CPPSRC += $(CHIPDIR)/src/ble/BLEEndPoint.cpp
 CPPSRC += $(CHIPDIR)/src/ble/BleError.cpp
 CPPSRC += $(CHIPDIR)/src/ble/BleLayer.cpp
@@ -359,8 +404,8 @@ CPPSRC += $(CHIPDIR)/src/transport/TransportMgrBase.cpp
 CPPSRC += $(CHIPDIR)/src/transport/raw/MessageHeader.cpp
 CPPSRC += $(CHIPDIR)/src/transport/raw/TCP.cpp
 CPPSRC += $(CHIPDIR)/src/transport/raw/UDP.cpp
-
-
+CPPSRC += $(CHIPDIR)/src/transport/AdminPairingTable.cpp
+CPPSRC += $(CHIPDIR)/src/transport/StorablePeerConnection.cpp
 
 #inet test
 CPPSRC += $(CHIPDIR)/src/inet/tests/TestInetAddress.cpp

@@ -25,6 +25,7 @@
 #include "DeviceCallbacks.h"
 
 #include "CHIPDeviceManager.h"
+#include "af.h"
 //#include "Globals.h"
 //#include "LEDWidget.h"
 //#include "WiFiWidget.h"
@@ -141,17 +142,17 @@ void DeviceCallbacks::PostAttributeChangeCallback(EndpointId endpointId, Cluster
 // //     return;
 // }
 
-// void IdentifyTimerHandler(Layer * systemLayer, void * appState, Error error)
-// {
-//     // statusLED1.Animate();
+void IdentifyTimerHandler(Layer * systemLayer, void * appState, Error error)
+{
+    // statusLED1.Animate();
 
-//     // if (identifyTimerCount)
-//     // {
-//     //     SystemLayer.StartTimer(kIdentifyTimerDelayMS, IdentifyTimerHandler, appState);
-//     //     // Decrement the timer count.
-//     //     identifyTimerCount--;
-//     // }
-// }
+    // if (identifyTimerCount)
+    // {
+    //     SystemLayer.StartTimer(kIdentifyTimerDelayMS, IdentifyTimerHandler, appState);
+    //     // Decrement the timer count.
+    //     identifyTimerCount--;
+    // }
+}
 
 // void DeviceCallbacks::OnIdentifyPostAttributeChangeCallback(EndpointId endpointId, AttributeId attributeId, uint8_t * value)
 // {
@@ -172,8 +173,8 @@ void DeviceCallbacks::PostAttributeChangeCallback(EndpointId endpointId, Cluster
 // //     return;
 // }
 
-// bool emberAfBasicClusterMfgSpecificPingCallback(void)
-// {
-//     // emberAfSendDefaultResponse(emberAfCurrentCommand(), EMBER_ZCL_STATUS_SUCCESS);
-//     // return true;
-// }
+bool emberAfBasicClusterMfgSpecificPingCallback(void)
+{
+    emberAfSendDefaultResponse(emberAfCurrentCommand(), EMBER_ZCL_STATUS_SUCCESS);
+    return true;
+}

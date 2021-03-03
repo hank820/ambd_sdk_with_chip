@@ -320,6 +320,7 @@ CPPSRC += $(CHIPDIR)/src/lib/core/CHIPTLVWriter.cpp
 CPPSRC += $(CHIPDIR)/src/lib/mdns/lib/mdns/Advertiser_ImplNone.cpp
 #CPPSRC += $(CHIPDIR)/src/lib/mdns/Advertiser_ImplMinimalMdns.cpp
 CPPSRC += $(CHIPDIR)/src/lib/mdns/minimal/Parser.cpp
+CPPSRC += $(CHIPDIR)/src/app/server/Mdns.cpp
 
 CPPSRC += $(CHIPDIR)/src/lib/support/Base64.cpp
 CPPSRC += $(CHIPDIR)/src/lib/support/BufferReader.cpp

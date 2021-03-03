@@ -401,9 +401,9 @@ CPPSRC += $(CHIPDIR)/src/transport/AdminPairingTable.cpp
 CPPSRC += $(CHIPDIR)/src/transport/StorablePeerConnection.cpp
 
 #inet test
-CPPSRC += $(CHIPDIR)/src/inet/tests/TestInetAddress.cpp
-CPPSRC += $(CHIPDIR)/src/inet/tests/TestInetErrorStr.cpp
-CSRC += $(CHIPDIR)/third_party/nlunit-test/repo/src/nlunit-test.c
+#CPPSRC += $(CHIPDIR)/src/inet/tests/TestInetAddress.cpp
+#CPPSRC += $(CHIPDIR)/src/inet/tests/TestInetErrorStr.cpp
+#CSRC += $(CHIPDIR)/third_party/nlunit-test/repo/src/nlunit-test.c
 ###CPPSRC += $(CHIPDIR)/src/inet/tests/TestInetCommon.cpp
 ###CPPSRC += $(CHIPDIR)/src/inet/tests/TestInetCommonOptions.cpp
 ###CPPSRC += $(CHIPDIR)/src/inet/tests/TestInetEndPoint.cpp
@@ -412,30 +412,30 @@ CSRC += $(CHIPDIR)/third_party/nlunit-test/repo/src/nlunit-test.c
 ###CPPSRC += $(CHIPDIR)/third_party/nlfaultinjection/repo/src/nlfaultinjection.cpp
 
 #system test
-CPPSRC += $(CHIPDIR)/src/system/tests/TestSystemErrorStr.cpp
+#CPPSRC += $(CHIPDIR)/src/system/tests/TestSystemErrorStr.cpp
 #CPPSRC += $(CHIPDIR)/src/system/tests/TestSystemObject.cpp
 #CPPSRC += $(CHIPDIR)/src/system/tests/TestSystemPacketBuffer.cpp
 #CPPSRC += $(CHIPDIR)/src/system/tests/TestSystemTimer.cpp
-CPPSRC += $(CHIPDIR)/src/system/tests/TestSystemWakeEvent.cpp
-CPPSRC += $(CHIPDIR)/src/system/tests/TestTimeSource.cpp
+#CPPSRC += $(CHIPDIR)/src/system/tests/TestSystemWakeEvent.cpp
+#CPPSRC += $(CHIPDIR)/src/system/tests/TestTimeSource.cpp
 
 #lib/core test
-CPPSRC += $(CHIPDIR)/src/lib/core/tests/TestCHIPCallback.cpp
-CPPSRC += $(CHIPDIR)/src/lib/core/tests/TestCHIPErrorStr.cpp
+#CPPSRC += $(CHIPDIR)/src/lib/core/tests/TestCHIPCallback.cpp
+#CPPSRC += $(CHIPDIR)/src/lib/core/tests/TestCHIPErrorStr.cpp
 #CPPSRC += $(CHIPDIR)/src/lib/core/tests/TestCHIPTLV.cpp
-CPPSRC += $(CHIPDIR)/src/lib/core/tests/TestReferenceCounted.cpp
+#CPPSRC += $(CHIPDIR)/src/lib/core/tests/TestReferenceCounted.cpp
 
 #lib/support test
 #CPPSRC += $(CHIPDIR)/src/lib/support/tests/TestBufBound.cpp
-CPPSRC += $(CHIPDIR)/src/lib/support/tests/TestCHIPArgParser.cpp
-CPPSRC += $(CHIPDIR)/src/lib/support/tests/TestCHIPCounter.cpp
-CPPSRC += $(CHIPDIR)/src/lib/support/tests/TestCHIPMem.cpp
-CPPSRC += $(CHIPDIR)/src/lib/support/tests/TestErrorStr.cpp
-CPPSRC += $(CHIPDIR)/src/lib/support/tests/TestPersistedCounter.cpp
-CPPSRC += $(CHIPDIR)/src/lib/support/tests/TestPersistedStorageImplementation.cpp
-CPPSRC += $(CHIPDIR)/src/lib/support/tests/TestSafeInt.cpp
-CPPSRC += $(CHIPDIR)/src/lib/support/tests/TestScopedBuffer.cpp
-CPPSRC += $(CHIPDIR)/src/lib/support/tests/TestTimeUtils.cpp
+#CPPSRC += $(CHIPDIR)/src/lib/support/tests/TestCHIPArgParser.cpp
+#CPPSRC += $(CHIPDIR)/src/lib/support/tests/TestCHIPCounter.cpp
+#CPPSRC += $(CHIPDIR)/src/lib/support/tests/TestCHIPMem.cpp
+#CPPSRC += $(CHIPDIR)/src/lib/support/tests/TestErrorStr.cpp
+#CPPSRC += $(CHIPDIR)/src/lib/support/tests/TestPersistedCounter.cpp
+#CPPSRC += $(CHIPDIR)/src/lib/support/tests/TestPersistedStorageImplementation.cpp
+#CPPSRC += $(CHIPDIR)/src/lib/support/tests/TestSafeInt.cpp
+#CPPSRC += $(CHIPDIR)/src/lib/support/tests/TestScopedBuffer.cpp
+#CPPSRC += $(CHIPDIR)/src/lib/support/tests/TestTimeUtils.cpp
 
 #messageing test
 ###CPPSRC += $(CHIPDIR)/src/messageing/tests/TestExchangeMgr.cpp
@@ -443,18 +443,18 @@ CPPSRC += $(CHIPDIR)/src/lib/support/tests/TestTimeUtils.cpp
 #CPPSRC += $(CHIPDIR)/src/messageing/tests/TestReliableMessageProtocol.cpp
 
 #crypto test
-CPPSRC += $(CHIPDIR)/src/crypto/tests/CHIPCryptoPALTest.cpp
+#CPPSRC += $(CHIPDIR)/src/crypto/tests/CHIPCryptoPALTest.cpp
 
 #transport test
-CPPSRC += $(CHIPDIR)/src/transport/tests/TestPeerConnections.cpp
-CPPSRC += $(CHIPDIR)/src/transport/tests/TestPASESession.cpp
-CPPSRC += $(CHIPDIR)/src/transport/tests/TestSecureSession.cpp
+#CPPSRC += $(CHIPDIR)/src/transport/tests/TestPeerConnections.cpp
+#CPPSRC += $(CHIPDIR)/src/transport/tests/TestPASESession.cpp
+#CPPSRC += $(CHIPDIR)/src/transport/tests/TestSecureSession.cpp
 ###CPPSRC += $(CHIPDIR)/src/transport/tests/TestSecureSessionMgr.cpp
 
 
 #transport raw test
-CPPSRC += $(CHIPDIR)/src/transport/raw/tests/TestMessageHeader.cpp
-CPPSRC += $(CHIPDIR)/src/transport/raw/tests/NetworkTestHelpers.cpp
+#CPPSRC += $(CHIPDIR)/src/transport/raw/tests/TestMessageHeader.cpp
+#CPPSRC += $(CHIPDIR)/src/transport/raw/tests/NetworkTestHelpers.cpp
 ###CPPSRC += $(CHIPDIR)/src/transport/raw/tests/TestTCP.cpp
 ###CPPSRC += $(CHIPDIR)/src/transport/raw/tests/TestUDP.cpp
 

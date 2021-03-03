@@ -952,7 +952,7 @@ void fATSt(void *arg)
     //TestSystemWakeEvent();
     //TestTimeSource();
 
-    _Z11TestSafeIntv();
+    //_Z11TestSafeIntv();
     //TestScopedBuffer();
     //TestCHIPCounter();
     //TestMemAlloc();

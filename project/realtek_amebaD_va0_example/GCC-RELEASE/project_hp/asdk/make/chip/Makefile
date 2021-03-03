@@ -231,8 +231,7 @@ CPPSRC += $(CHIPDIR)/src/app/encoder.cpp
 CPPSRC += $(CHIPDIR)/src/app/server/Server.cpp
 CPPSRC += $(CHIPDIR)/src/app/server/DataModelHandler.cpp
 CPPSRC += $(CHIPDIR)/src/app/server/RendezvousServer.cpp
-CPPSRC += $(CHIPDIR)/src/app/util/attribute-storage.cpp
-CPPSRC += $(CHIPDIR)/src/app/util/util.cpp
+CPPSRC += $(CHIPDIR)/src/app/server/Mdns.cpp
 
 #clusters
 CPPSRC += ${CHIPDIR}/src/app/clusters/barrier-control-server/barrier-control-server.cpp
@@ -251,16 +250,10 @@ CPPSRC += ${CHIPDIR}/src/app/clusters/identify/identify.cpp
 CPPSRC += ${CHIPDIR}/src/app/clusters/level-control/level-control.cpp
 CPPSRC += ${CHIPDIR}/src/app/clusters/media-playback-server/media-playback-server.cpp
 CPPSRC += ${CHIPDIR}/src/app/clusters/on-off-server/on-off.cpp
-CPPSRC += ${CHIPDIR}/src/app/clusters/on-off-server/on-off.cpp
-CPPSRC += ${CHIPDIR}/src/app/clusters/on-off-server/on-off.cpp
-CPPSRC += ${CHIPDIR}/src/app/clusters/on-off-server/on-off.cpp
-CPPSRC += ${CHIPDIR}/src/app/clusters/on-off-server/on-off.cpp
-CPPSRC += ${CHIPDIR}/src/app/clusters/on-off-server/on-off.cpp
-CPPSRC += ${CHCPPSRC}/src/app/clusters/scenes/scenes.cpp
+CPPSRC += ${CHIPDIR}/src/app/clusters/scenes/scenes.cpp
 CPPSRC += ${CHIPDIR}/src/app/clusters/temperature-measurement-server/temperature-measurement-server.cpp
 CPPSRC += ${CHIPDIR}/src/app/reporting/reporting-default-configuration.cpp
 CPPSRC += ${CHIPDIR}/src/app/reporting/reporting.cpp
-CPPSRC += ${CHIPDIR}/src/app/server/DataModelHandler.cpp
 CPPSRC += ${CHIPDIR}/src/app/util/af-event.cpp
 CPPSRC += ${CHIPDIR}/src/app/util/af-main-common.cpp
 CPPSRC += ${CHIPDIR}/src/app/util/attribute-size.cpp

@@ -39,7 +39,7 @@ namespace chip {
 namespace Logging {
 namespace Platform {
 
-void LogV(uint8_t module, uint8_t category, const char * msg, va_list v)
+void LogV(const char * module, uint8_t category, const char * msg, va_list v)
 {
     // if (IsCategoryEnabled(category))
     // {

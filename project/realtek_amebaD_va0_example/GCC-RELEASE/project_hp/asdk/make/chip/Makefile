@@ -268,6 +268,7 @@ CPPSRC += ${CHIPDIR}/src/app/util/process-cluster-message.cpp
 CPPSRC += ${CHIPDIR}/src/app/util/process-global-message.cpp
 CPPSRC += ${CHIPDIR}/src/app/util/util.cpp
 CPPSRC += ${CHIPDIR}/src/app/util/CHIPDeviceCallbacksMgr.cpp
+CPPSRC += ${CHIPDIR}/src/app/clusters/thermostat-server/thermostat.cpp
 
 
 

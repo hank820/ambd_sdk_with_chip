@@ -384,6 +384,14 @@
 #define ZCL_KEEPALIVE_BASE_ATTRIBUTE_ID (0x0000)
 #define ZCL_KEEPALIVE_JITTER_ATTRIBUTE_ID (0x0001)
 
+// Attribute ids for cluster: General Commissioning
+
+// Client attributes
+
+// Server attributes
+#define ZCL_FABRIC_ID_ATTRIBUTE_ID (0x0000)
+#define ZCL_BREADCRUMB_ATTRIBUTE_ID (0x0001)
+
 // Attribute ids for cluster: Shade Configuration
 
 // Client attributes
@@ -4151,3 +4159,4 @@
 #define ZCL_SL_PENDING_NETWORK_UPDATE_CHANNEL_ATTRIBUTE_ID (0x0011)
 #define ZCL_SL_PENDING_NETWORK_UPDATE_PANID_ATTRIBUTE_ID (0x0012)
 #define ZCL_SL_OTA_MAX_OFFLINE_DURATION_ATTRIBUTE_ID (0x0013)
+

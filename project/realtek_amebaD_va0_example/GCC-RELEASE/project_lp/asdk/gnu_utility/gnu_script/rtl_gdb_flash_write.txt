@@ -137,7 +137,7 @@ set $XIPBootSize =4444
 set FlashAddrForWrite =0x00000
 flash_write $IMAGE_BOOT $XIPBootSize
 
-set $FlashFileSize =827392
+set $FlashFileSize =888832
 set FlashAddrForWrite =0x06000
 flash_write $IMAGE_IMG2 $FlashFileSize
 

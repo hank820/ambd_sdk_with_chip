@@ -25,6 +25,9 @@ DIR += $(CHIPDIR)/src/platform/AmebaD
 DIR += $(CHIPDIR)/src/transport
 DIR += $(CHIPDIR)/src/transport/raw
 
+#application
+DIR +=$(SRCDIR)
+DIR +=$(SRCDIR)/gen
 
 #inet test
 DIR += $(CHIPDIR)/src/inet/tests
@@ -50,10 +53,6 @@ DIR +=$(CHIPDIR)/src/crypto/tests
 DIR +=$(CHIPDIR)/src/transport/tests
 DIR +=$(CHIPDIR)/src/transport/raw/tests
 
-#application
-DIR +=$(SRCDIR)
-DIR +=$(SRCDIR)/gen
-
 vpath %.cpp $(DIR) $(shell find $(DIR) -type d)
 vpath %.c $(DIR) $(shell find $(DIR) -type d)
 #*****************************************************************************#
@@ -61,63 +60,44 @@ vpath %.c $(DIR) $(shell find $(DIR) -type d)
 #*****************************************************************************#
 
 GLOBAL_CFLAGS +=-DCHIP_PROJECT
+GLOBAL_CFLAGS +=-DCHIP_DEVICE_LAYER_TARGET=AmebaD
+GLOBAL_CFLAGS +=-DCHIP_DEVICE_CONFIG_LOG_PROVISIONING_HASH=0
+GLOBAL_CFLAGS +=-DCHIP_BYPASS_RENDEZVOUS=1
+GLOBAL_CFLAGS +=-DSTD_PRINTF=1
+GLOBAL_CFLAGS +=-DLWIP_IPV6=1
 
+GLOBAL_CFLAGS +=-DCHIP_PLATFORM_CONFIG_INCLUDE="<platform/AmebaD/CHIPPlatformConfig.h>"
+GLOBAL_CFLAGS +=-DSYSTEM_PLATFORM_CONFIG_INCLUDE="<platform/AmebaD/SystemPlatformConfig.h>"
+GLOBAL_CPPFLAGS +=-DSYSTEM_PLATFORM_CONFIG_INCLUDE="<platform/AmebaD/SystemPlatformConfig.h>"
 
 #SystemBuildConfig.h
 GLOBAL_CFLAGS +=-DCONFIG_DEVICE_LAYER=1
-GLOBAL_CFLAGS +=-DCHIP_SYSTEM_CONFIG_TEST=1
 GLOBAL_CFLAGS +=-DCHIP_WITH_NLFAULTINJECTION=0
 GLOBAL_CFLAGS +=-DCHIP_SYSTEM_CONFIG_USE_LWIP=1
 GLOBAL_CFLAGS +=-DCHIP_SYSTEM_CONFIG_USE_SOCKETS=0
 GLOBAL_CFLAGS +=-DCHIP_SYSTEM_CONFIG_USE_NETWORK_FRAMEWORK=0
-GLOBAL_CFLAGS +=-DCHIP_SYSTEM_CONFIG_POSIX_LOCKING=0
-GLOBAL_CFLAGS +=-DCHIP_SYSTEM_CONFIG_FREERTOS_LOCKING=0
-GLOBAL_CFLAGS +=-DCHIP_SYSTEM_CONFIG_NO_LOCKING=1
 GLOBAL_CFLAGS +=-DCHIP_SYSTEM_CONFIG_PROVIDE_STATISTICS=1
 GLOBAL_CFLAGS +=-DHAVE_CLOCK_GETTIME=1
 GLOBAL_CFLAGS +=-DHAVE_CLOCK_SETTIME=1
 GLOBAL_CFLAGS +=-DHAVE_GETTIMEOFDAY=1
 GLOBAL_CFLAGS +=-DHAVE_SYS_TIME_H=1
-#GLOBAL_CFLAGS +=-DHAVE_NETINET_ICMP6_H=1
-#GLOBAL_CFLAGS +=-DHAVE_ICMP6_FILTER=1
-#GLOBAL_CFLAGS +=-DCONFIG_HAVE_VCBPRINTF=0
-#GLOBAL_CFLAGS +=-DCONFIG_HAVE_VSNPRINTF_EX=0
-#GLOBAL_CFLAGS +=-DHAVE_SYS_SOCKET_H=0
-#GLOBAL_CPPFLAGS +=-DCHIP_PLATFORM_CONFIG_INCLUDE <platform/AmebaD/CHIPPlatformConfig.h>
-#GLOBAL_CPPFLAGS +=-DSYSTEM_PLATFORM_CONFIG_INCLUDE="<SystemPlatformConfig.h>"
-GLOBAL_CFLAGS +=-DSYSTEM_PLATFORM_CONFIG_INCLUDE="<platform/AmebaD/SystemPlatformConfig.h>"
-GLOBAL_CPPFLAGS +=-DSYSTEM_PLATFORM_CONFIG_INCLUDE="<platform/AmebaD/SystemPlatformConfig.h>"
 
 #CHIPDeviceBuildConfig.h
-GLOBAL_CFLAGS +=-DCHIP_DEVICE_CONFIG_ENABLE_WPA=0
+GLOBAL_CFLAGS +=-DCHIP_DEVICE_CONFIG_ENABLE_WPA=1
 GLOBAL_CFLAGS +=-DCHIP_ENABLE_OPENTHREAD=0
 GLOBAL_CFLAGS +=-DCHIP_WITH_GIO=0
-GLOBAL_CFLAGS +=-DOPENTHREAD_CONFIG_ENABLE_TOBLE-0
-#GLOBAL_CFLAGS +=-DCHIP_DEVICE_PLATFORM_CONFIG_INCLUDE <platform/AmebaD/CHIPDevicePlatformConfig.h>
-#GLOBAL_CFLAGS +=-DCHIP_DEVICE_LAYER_TARGET_ESP32=1
-#GLOBAL_CFLAGS +=-DCHIP_DEVICE_LAYER_TARGET ESP32
+GLOBAL_CFLAGS +=-DOPENTHREAD_CONFIG_ENABLE_TOBLE=0
 
 #BleBuildConfig.h
 GLOBAL_CFLAGS +=-DCONFIG_NETWORK_LAYER_BLE=0
 GLOBAL_CFLAGS +=-DCHIP_ENABLE_CHIPOBLE_TEST=0
-#GLOBAL_CFLAGS +=-DBLE_PLATFORM_CONFIG_INCLUDE <platform/ESP32/BlePlatformConfig.h>
+#GLOBAL_CFLAGS +=-DBLE_PLATFORM_CONFIG_INCLUDE="<platform/AmebaD/BlePlatformConfig.h>"
 
 #CHIPBuildConfig.h
 GLOBAL_CFLAGS +=-DCHIP_FUZZING_ENABLED=0
-GLOBAL_CFLAGS +=-DCHIP_CONFIG_TEST=0
-GLOBAL_CFLAGS +=-DCHIP_ERROR_LOGGING=1
-GLOBAL_CFLAGS +=-DCHIP_PROGRESS_LOGGING=1
-GLOBAL_CFLAGS +=-DCHIP_DETAIL_LOGGING=1
-GLOBAL_CFLAGS +=-DCHIP_CONFIG_SHORT_ERROR_STR=0
 GLOBAL_CFLAGS +=-DCHIP_CONFIG_ENABLE_ARG_PARSER=1
 GLOBAL_CFLAGS +=-DCHIP_TARGET_STYLE_UNIX=0
 GLOBAL_CFLAGS +=-DCHIP_TARGET_STYLE_EMBEDDED=1
-GLOBAL_CFLAGS +=-DCHIP_LOGGING_STYLE_ANDROID=0
-GLOBAL_CFLAGS +=-DCHIP_LOGGING_STYLE_DARWIN=0
-GLOBAL_CFLAGS +=-DCHIP_LOGGING_STYLE_EXTERNAL=1
-GLOBAL_CFLAGS +=-DCHIP_LOGGING_STYLE_STDIO=0
-GLOBAL_CFLAGS +=-DCHIP_LOGGING_STYLE_STDIO_WEAK=0
-GLOBAL_CFLAGS +=-DCHIP_LOGGING_STYLE_STDIO_WITH_TIMESTAMPS=0
 GLOBAL_CFLAGS +=-DCHIP_CONFIG_MEMORY_MGMT_MALLOC=1
 GLOBAL_CFLAGS +=-DHAVE_MALLOC=1
 GLOBAL_CFLAGS +=-DHAVE_FREE=1
@@ -140,34 +120,7 @@ GLOBAL_CFLAGS +=-DINET_CONFIG_ENABLE_RAW_ENDPOINT=1
 GLOBAL_CFLAGS +=-DINET_CONFIG_ENABLE_TCP_ENDPOINT=1
 GLOBAL_CFLAGS +=-DINET_CONFIG_ENABLE_UDP_ENDPOINT=1
 GLOBAL_CFLAGS +=-DHAVE_LWIP_RAW_BIND_NETIF=1
-#GLOBAL_CFLAGS +=-DINET_PLATFORM_CONFIG_INCLUDE <platform/ESP32/InetPlatformConfig.h>
-
-#Platform
-GLOBAL_CFLAGS +=-DCHIP_DEVICE_LAYER_TARGET=AmebaD
-GLOBAL_CFLAGS +=-DCHIP_DEVICE_CONFIG_LOG_PROVISIONING_HASH=0
-GLOBAL_CFLAGS +=-DCHIP_BYPASS_RENDEZVOUS
-GLOBAL_CFLAGS += -DUSE_ZAP_CONFIG
-
-#logging
-GLOBAL_CFLAGS += -DCHIP_DEVICE_CONFIG_LOG_MESSAGE_MAX_SIZE=128
-
-
-
-#CHIPPlatformConfig.h
-GLOBAL_CFLAGS +=-DCHIP_CONFIG_USE_OPENSSL_ECC=0
-GLOBAL_CFLAGS +=-DCHIP_CONFIG_AES_IMPLEMENTATION_OPENSSL=0
-GLOBAL_CFLAGS +=-DCHIP_CONFIG_AES_IMPLEMENTATION_AESNI=0
-GLOBAL_CFLAGS +=-DCHIP_CONFIG_AES_IMPLEMENTATION_PLATFORM=1
-
-#********************************************************#
-#                          Temp                          #
-#********************************************************#
-#Fixed : error: '_rtl_vsnprintf' is not a member of 'std'
-GLOBAL_CFLAGS += -DSTD_PRINTF=1
-GLOBAL_CFLAGS += -DLWIP_IPV6=1
-
-#need to check
-GLOBAL_CFLAGS += -fpermissive
+GLOBAL_CFLAGS +=-DINET_PLATFORM_CONFIG_INCLUDE="<platform/AmebaD/InetPlatformConfig.h>"
 
 #*****************************************************************************#
 #                               Include FILE LIST                             #
@@ -192,6 +145,9 @@ IFLAGS += -I$(BASEDIR)/component/common/network/ssl/mbedtls-2.4.0/include
 IFLAGS += -I$(CHIPDIR)/third_party/mbedtls/repo/include
 IFLAGS += -I$(CHIPDIR)/src/lib/message
 
+#application
+IFLAGS +=-I$(SRCDIR)
+IFLAGS +=-I$(SRCDIR)/gen
 
 #inet test
 IFLAGS += -I$(CHIPDIR)/src/inet/tests
@@ -218,14 +174,11 @@ IFLAGS += -I$(CHIPDIR)/src/crypto/tests
 IFLAGS += -I$(CHIPDIR)/src/transport/tests
 IFLAGS += -I$(CHIPDIR)/src/transport/raw/tests
 
-#application
-IFLAGS +=-I$(SRCDIR)
-IFLAGS +=-I$(SRCDIR)/gen
-
 #*****************************************************************************#
 #                               Source FILE LIST                              #
 #*****************************************************************************#
 
+#chip app
 CPPSRC += $(CHIPDIR)/src/app/decoder.cpp
 CPPSRC += $(CHIPDIR)/src/app/encoder.cpp
 CPPSRC += $(CHIPDIR)/src/app/server/Server.cpp
@@ -270,9 +223,7 @@ CPPSRC += ${CHIPDIR}/src/app/util/util.cpp
 CPPSRC += ${CHIPDIR}/src/app/util/CHIPDeviceCallbacksMgr.cpp
 CPPSRC += ${CHIPDIR}/src/app/clusters/thermostat-server/thermostat.cpp
 
-
-
-
+#chip interface
 CPPSRC += $(CHIPDIR)/src/ble/BLEEndPoint.cpp
 CPPSRC += $(CHIPDIR)/src/ble/BleError.cpp
 CPPSRC += $(CHIPDIR)/src/ble/BleLayer.cpp
@@ -310,11 +261,9 @@ CPPSRC += $(CHIPDIR)/src/lib/core/CHIPTLVUpdater.cpp
 CPPSRC += $(CHIPDIR)/src/lib/core/CHIPTLVUtilities.cpp
 CPPSRC += $(CHIPDIR)/src/lib/core/CHIPTLVWriter.cpp
 
-
 CPPSRC += $(CHIPDIR)/src/lib/mdns/lib/mdns/Advertiser_ImplNone.cpp
 #CPPSRC += $(CHIPDIR)/src/lib/mdns/Advertiser_ImplMinimalMdns.cpp
 CPPSRC += $(CHIPDIR)/src/lib/mdns/minimal/Parser.cpp
-CPPSRC += $(CHIPDIR)/src/app/server/Mdns.cpp
 
 CPPSRC += $(CHIPDIR)/src/lib/support/Base64.cpp
 CPPSRC += $(CHIPDIR)/src/lib/support/BufferReader.cpp
@@ -402,6 +351,7 @@ CPPSRC += $(CHIPDIR)/src/transport/raw/UDP.cpp
 CPPSRC += $(CHIPDIR)/src/transport/AdminPairingTable.cpp
 CPPSRC += $(CHIPDIR)/src/transport/StorablePeerConnection.cpp
 
+#chip unit test
 #inet test
 #CPPSRC += $(CHIPDIR)/src/inet/tests/TestInetAddress.cpp
 #CPPSRC += $(CHIPDIR)/src/inet/tests/TestInetErrorStr.cpp
@@ -453,15 +403,11 @@ CPPSRC += $(CHIPDIR)/src/transport/StorablePeerConnection.cpp
 #CPPSRC += $(CHIPDIR)/src/transport/tests/TestSecureSession.cpp
 ###CPPSRC += $(CHIPDIR)/src/transport/tests/TestSecureSessionMgr.cpp
 
-
 #transport raw test
 #CPPSRC += $(CHIPDIR)/src/transport/raw/tests/TestMessageHeader.cpp
 #CPPSRC += $(CHIPDIR)/src/transport/raw/tests/NetworkTestHelpers.cpp
 ###CPPSRC += $(CHIPDIR)/src/transport/raw/tests/TestTCP.cpp
 ###CPPSRC += $(CHIPDIR)/src/transport/raw/tests/TestUDP.cpp
-
-
-
 
 #*****************************************************************************#
 #                               Object FILE LIST                              #

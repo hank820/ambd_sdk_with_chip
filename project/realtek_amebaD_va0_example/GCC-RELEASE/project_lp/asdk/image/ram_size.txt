@@ -1,0 +1,70 @@
+
+=============================================================
+      0	      0	      0	      0	      0	(TOTALS)
+=============================================================
+   text	   data	    bss	    dec	    hex	filename
+   5613	      0	    380	   5993	   1769	tasks.o
+    140	      0	      0	    140	     8c	list.o
+    816	      0	    128	    944	    3b0	croutine.o
+   2904	      0	      0	   2904	    b58	queue.o
+   1408	      0	     60	   1468	    5bc	timers.o
+    692	      0	      0	    692	    2b4	event_groups.o
+   1416	      0	      0	   1416	    588	stream_buffer.o
+     56	      0	      0	     56	     38	freertos_backtrace_ext.o
+     16	  20504	      0	  20520	   5028	freertos_heap5_config.o
+    545	      4	      0	    549	    225	port.o
+    684	      0	     24	    708	    2c4	heap_5.o
+  14290	  20508	    592	  35390	   8a3e	(TOTALS)
+=============================================================
+   text	   data	    bss	    dec	    hex	filename
+   4856	      0	      0	   4856	   12f8	monitor_lp.o
+    687	      0	      4	    691	    2b3	shell_ram.o
+     52	   3596	      0	   3648	    e40	rtl_trace.o
+    116	      4	      0	    120	     78	low_level_io.o
+   5711	   3600	      4	   9315	   2463	(TOTALS)
+=============================================================
+   text	   data	    bss	    dec	    hex	filename
+    388	      0	      0	    388	    184	rtl8721dlp_pinmap.o
+   1557	      0	      0	   1557	    615	rtl8721dlp_clk.o
+   4523	      0	    388	   4911	   132f	rtl8721dlp_pmc.o
+      0	      0	      0	      0	      0	rtl8721dlp_cpft.o
+    112	      4	      0	    116	     74	rtl8721dlp_system.o
+   1874	     20	      4	   1898	    76a	rtl8721dlp_app_start.o
+      0	      0	      0	      0	      0	rtl8721dlp_startup.o
+   1444	      0	      4	   1448	    5a8	rtl8721dlp_pmc_ram.o
+   1416	   1172	      4	   2592	    a20	rtl8721dlp_km4.o
+    178	      0	      4	    182	     b6	rtl8721dlp_simulation.o
+   2076	     28	      5	   2109	    83d	rtl8721dlp_flashclk.o
+   1300	      0	      0	   1300	    514	rtl8721dlp_pinmapcfg.o
+      0	      0	     16	     16	     10	rtl8721dlp_intfcfg.o
+      0	   1040	      0	   1040	    410	rtl8721dlp_sleepcfg.o
+    380	      0	      0	    380	    17c	rtl8721dlp_flashcfg.o
+    396	      0	      0	    396	    18c	rtl8721d_ipccfg.o
+      0	     16	      0	     16	     10	rtl8721d_wificfg.o
+   1772	      0	      0	   1772	    6ec	rtl8721d_uart.o
+      0	      0	      0	      0	      0	rtl8721d_efuse.o
+   2065	      0	      4	   2069	    815	rtl8721d_flash_ram.o
+   4612	      0	      0	   4612	   1204	rtl8721d_i2c.o
+   3634	      0	      0	   3634	    e32	rtl8721d_rtc.o
+    312	      0	      0	    312	    138	rtl8721d_wdg.o
+   1066	      0	      0	   1066	    42a	rtl8721d_keyscan.o
+   4135	      0	      0	   4135	   1027	rtl8721d_sgpio.o
+   2797	    192	      0	   2989	    bad	rtl8721d_tim.o
+   2974	      0	      0	   2974	    b9e	rtl8721d_qdec.o
+   4477	      0	      0	   4477	   117d	rtl8721d_captouch.o
+    884	      0	      0	    884	    374	rtl8721d_pll.o
+    369	      0	    128	    497	    1f1	rtl8721d_ipc_api.o
+   1515	      0	      0	   1515	    5eb	rtl8721d_adc.o
+    544	      0	      0	    544	    220	rtl8721d_comparator.o
+    313	      0	      0	    313	    139	rtl8721d_bor.o
+  47113	   2472	    557	  50142	   c3de	(TOTALS)
+=============================================================
+   text	   data	    bss	    dec	    hex	filename
+   1189	     12	     28	   1229	    4cd	rtl8721d_freertos_pmu.o
+   1189	     12	     28	   1229	    4cd	(TOTALS)
+=============================================================
+      0	      0	      0	      0	      0	(TOTALS)
+=============================================================
+   text	   data	    bss	    dec	    hex	filename
+   1104	      0	      0	   1104	    450	main.o
+   1104	      0	      0	   1104	    450	(TOTALS)

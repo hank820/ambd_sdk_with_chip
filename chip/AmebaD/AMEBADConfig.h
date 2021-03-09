@@ -1,6 +1,9 @@
 /*
  *
  *    Copyright (c) 2020 Project CHIP Authors
+ *    Copyright (c) 2019-2020 Google LLC.
+ *    Copyright (c) 2018 Nest Labs, Inc.
+ *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,94 +20,65 @@
 
 /**
  *    @file
- *          Utilities for accessing persisted device configuration on
- *          platforms based on the Qorvo QPG6100 SDK.
+ *          Utilities for interacting with the the ESP32 "NVS" key-value store.
  */
 
 #pragma once
 
 #include <platform/internal/CHIPDeviceLayerInternal.h>
 
-#include "FreeRTOS.h"
-
-#include <functional>
+#include <string.h>
 
 namespace chip {
 namespace DeviceLayer {
 namespace Internal {
 
-/* Base for the category calculation when determining the key IDs */
-#define CATEGORY_BASE 0x01
-
-constexpr inline uint16_t QorvoConfigKey(uint8_t categoryId, uint8_t id)
-{
-    return static_cast<uint16_t>(((categoryId) << 6) | (id & 0x3F));
-}
-
 /**
- * This implementation uses the Qorvo NVM component as the underlying storage layer.
+ * Provides functions and definitions for accessing device configuration information on the ESP32.
  *
- * NOTE: This class is designed to be mixed-in to the concrete subclass of the
- * GenericConfigurationManagerImpl<> template.  When used this way, the class
- * naturally provides implementations for the delegated members referenced by
- * the template class (e.g. the ReadConfigValue() method).
+ * This class is designed to be mixed-in to concrete implementation classes as a means to
+ * provide access to configuration information to generic base classes.
  */
-class QPG6100Config
+class AMEBADConfig
 {
 public:
-    // Category ids used by the CHIP Device Layer
-    static constexpr uint8_t kFileId_ChipFactory = CATEGORY_BASE;    /**< Category containing persistent config values set at
-                                                                      * manufacturing    time. Retained during factory reset. */
-    static constexpr uint8_t kFileId_ChipConfig = CATEGORY_BASE + 1; /**< Catyegory containing dynamic config values set at runtime.
-                                                                      *   Cleared during factory reset. */
-    static constexpr uint8_t kFileId_ChipCounter = CATEGORY_BASE + 2; /**< Category containing dynamic counter values set at
-                                                                       * runtime. Retained during factory reset. */
+    struct Key;
 
-    using Key = uint16_t;
+    // Maximum length of an NVS key name, as specified in the ESP-IDF documentation.
+    static constexpr size_t kMaxConfigKeyNameLength = 15;
 
-    // Key definitions for well-known configuration values.
-    static constexpr Key kConfigKey_SerialNum           = QorvoConfigKey(kFileId_ChipFactory, 0x00);
-    static constexpr Key kConfigKey_MfrDeviceId         = QorvoConfigKey(kFileId_ChipFactory, 0x01);
-    static constexpr Key kConfigKey_MfrDeviceCert       = QorvoConfigKey(kFileId_ChipFactory, 0x02);
-    static constexpr Key kConfigKey_MfrDevicePrivateKey = QorvoConfigKey(kFileId_ChipFactory, 0x03);
-    static constexpr Key kConfigKey_ManufacturingDate   = QorvoConfigKey(kFileId_ChipFactory, 0x04);
-    static constexpr Key kConfigKey_SetupPinCode        = QorvoConfigKey(kFileId_ChipFactory, 0x05);
-    static constexpr Key kConfigKey_MfrDeviceICACerts   = QorvoConfigKey(kFileId_ChipFactory, 0x06);
-    static constexpr Key kConfigKey_SetupDiscriminator  = QorvoConfigKey(kFileId_ChipFactory, 0x07);
+    // NVS namespaces used to store device configuration information.
+    static const char kConfigNamespace_ChipFactory[];
+    static const char kConfigNamespace_ChipConfig[];
+    static const char kConfigNamespace_ChipCounters[];
 
-    static constexpr Key kConfigKey_FabricId                    = QorvoConfigKey(kFileId_ChipConfig, 0x00);
-    static constexpr Key kConfigKey_ServiceConfig               = QorvoConfigKey(kFileId_ChipConfig, 0x01);
-    static constexpr Key kConfigKey_PairedAccountId             = QorvoConfigKey(kFileId_ChipConfig, 0x02);
-    static constexpr Key kConfigKey_ServiceId                   = QorvoConfigKey(kFileId_ChipConfig, 0x03);
-    static constexpr Key kConfigKey_FabricSecret                = QorvoConfigKey(kFileId_ChipConfig, 0x04);
-    static constexpr Key kConfigKey_LastUsedEpochKeyId          = QorvoConfigKey(kFileId_ChipConfig, 0x05);
-    static constexpr Key kConfigKey_FailSafeArmed               = QorvoConfigKey(kFileId_ChipConfig, 0x06);
-    static constexpr Key kConfigKey_GroupKey                    = QorvoConfigKey(kFileId_ChipConfig, 0x07);
-    static constexpr Key kConfigKey_ProductRevision             = QorvoConfigKey(kFileId_ChipConfig, 0x08);
-    static constexpr Key kConfigKey_OperationalDeviceId         = QorvoConfigKey(kFileId_ChipConfig, 0x09);
-    static constexpr Key kConfigKey_OperationalDeviceCert       = QorvoConfigKey(kFileId_ChipConfig, 0x0A);
-    static constexpr Key kConfigKey_OperationalDeviceICACerts   = QorvoConfigKey(kFileId_ChipConfig, 0x0B);
-    static constexpr Key kConfigKey_OperationalDevicePrivateKey = QorvoConfigKey(kFileId_ChipConfig, 0x0C);
+    // Key definitions for well-known keys.
+    static const Key kConfigKey_SerialNum;
+    static const Key kConfigKey_MfrDeviceId;
+    static const Key kConfigKey_MfrDeviceCert;
+    static const Key kConfigKey_MfrDeviceICACerts;
+    static const Key kConfigKey_MfrDevicePrivateKey;
+    static const Key kConfigKey_ProductRevision;
+    static const Key kConfigKey_ManufacturingDate;
+    static const Key kConfigKey_SetupPinCode;
+    static const Key kConfigKey_FabricId;
+    static const Key kConfigKey_ServiceConfig;
+    static const Key kConfigKey_PairedAccountId;
+    static const Key kConfigKey_ServiceId;
+    static const Key kConfigKey_FabricSecret;
+    static const Key kConfigKey_GroupKeyIndex;
+    static const Key kConfigKey_LastUsedEpochKeyId;
+    static const Key kConfigKey_FailSafeArmed;
+    static const Key kConfigKey_WiFiStationSecType;
+    static const Key kConfigKey_OperationalDeviceId;
+    static const Key kConfigKey_OperationalDeviceCert;
+    static const Key kConfigKey_OperationalDeviceICACerts;
+    static const Key kConfigKey_OperationalDevicePrivateKey;
+    static const Key kConfigKey_SetupDiscriminator;
 
-    static constexpr Key kConfigKey_GroupKeyBase = QorvoConfigKey(kFileId_ChipConfig, 0x0D);
-    static constexpr Key kConfigKey_GroupKeyMax  = QorvoConfigKey(kFileId_ChipConfig, 0x1C); // Allows 16 Group Keys to be created.
+    static const char kGroupKeyNamePrefix[];
 
-    static constexpr Key kConfigKey_CounterKeyBase = QorvoConfigKey(kFileId_ChipCounter, 0x00);
-    static constexpr Key kConfigKey_CounterKeyMax =
-        QorvoConfigKey(kFileId_ChipCounter, 0x1F); // Allows 32 Counter Keys to be created.
-
-    // Set key id limits for each group.
-    static constexpr Key kMinConfigKey_ChipFactory = kConfigKey_SerialNum;
-    static constexpr Key kMaxConfigKey_ChipFactory = kConfigKey_SetupDiscriminator;
-    static constexpr Key kMinConfigKey_ChipConfig  = kConfigKey_FabricId;
-    static constexpr Key kMaxConfigKey_ChipConfig  = kConfigKey_GroupKeyMax;
-    static constexpr Key kMinConfigKey_ChipCounter = kConfigKey_CounterKeyBase;
-    static constexpr Key kMaxConfigKey_ChipCounter = kConfigKey_CounterKeyMax; // Allows 32 Counters to be created.
-
-    static CHIP_ERROR Init(void);
-
-    // Configuration methods used by the GenericConfigurationManagerImpl<> template.
-    static uint16_t GetSettingsMaxValueLength(uint16_t Key);
+    // Config value accessors.
     static CHIP_ERROR ReadConfigValue(Key key, bool & val);
     static CHIP_ERROR ReadConfigValue(Key key, uint32_t & val);
     static CHIP_ERROR ReadConfigValue(Key key, uint64_t & val);
@@ -118,16 +92,26 @@ public:
     static CHIP_ERROR WriteConfigValueBin(Key key, const uint8_t * data, size_t dataLen);
     static CHIP_ERROR ClearConfigValue(Key key);
     static bool ConfigValueExists(Key key);
-    static CHIP_ERROR FactoryResetConfig(void);
+
+    // NVS Namespace helper functions.
+    static CHIP_ERROR EnsureNamespace(const char * ns);
+    static CHIP_ERROR ClearNamespace(const char * ns);
 
     static void RunConfigUnitTest(void);
-
-protected:
-    using ForEachRecordFunct = std::function<CHIP_ERROR(const Key & key, const size_t & length)>;
-    static CHIP_ERROR ForEachRecord(uint16_t fileId, uint16_t recordKey, bool addNewRecord, ForEachRecordFunct funct);
-
-private:
 };
+
+struct AMEBADConfig::Key
+{
+    const char * Namespace;
+    const char * Name;
+
+    bool operator==(const Key & other) const;
+};
+
+inline bool AMEBADConfig::Key::operator==(const Key & other) const
+{
+    return strcmp(Namespace, other.Namespace) == 0 && strcmp(Name, other.Name) == 0;
+}
 
 } // namespace Internal
 } // namespace DeviceLayer

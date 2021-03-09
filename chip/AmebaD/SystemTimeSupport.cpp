@@ -29,6 +29,17 @@
 #include <support/logging/CHIPLogging.h>
 
 //#include <esp_timer.h>
+#include <time.h>
+#include "task.h"
+//#include "rtc_api.h"
+extern void rtc_init(void);
+extern time_t rtc_read(void);
+extern void rtc_write(time_t t);
+
+struct rtkTimeVal {
+    uint32_t    tv_sec;     /* seconds */
+    uint32_t    tv_usec;    /* microseconds */
+};
 
 namespace chip {
 namespace System {
@@ -37,65 +48,70 @@ namespace Layer {
 
 uint64_t GetClock_Monotonic(void)
 {
-	//return (uint64_t)::esp_timer_get_time();
-	return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+    return xTaskGetTickCount()*1000;
 }
 
 uint64_t GetClock_MonotonicMS(void)
 {
-    //return (uint64_t)::esp_timer_get_time() / 1000;
-    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+    return xTaskGetTickCount();
 }
 
 uint64_t GetClock_MonotonicHiRes(void)
 {
-    //return (uint64_t)::esp_timer_get_time();
-    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+    return xTaskGetTickCount()*1000;
 }
 
 Error GetClock_RealTime(uint64_t & curTime)
 {
-#if 0
-    struct timeval tv;
-    int res = gettimeofday(&tv, NULL);
-    if (res != 0)
-    {
-        return MapErrorPOSIX(errno);
-    }
+    time_t seconds;
+    struct tm *timeinfo;
+    struct rtkTimeVal tv;
+
+    seconds = rtc_read();
+    //timeinfo = localtime(&seconds);
+
+    tv.tv_sec = seconds;
+    tv.tv_usec = 0;
+
     if (tv.tv_sec < CHIP_SYSTEM_CONFIG_VALID_REAL_TIME_THRESHOLD)
     {
         return CHIP_SYSTEM_ERROR_REAL_TIME_NOT_SYNCED;
     }
     curTime = (tv.tv_sec * UINT64_C(1000000)) + tv.tv_usec;
+
     return CHIP_SYSTEM_NO_ERROR;
-#else
-    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
-#endif
 }
 
 Error GetClock_RealTimeMS(uint64_t & curTime)
 {
-#if 0
-    struct timeval tv;
-    int res = gettimeofday(&tv, NULL);
-    if (res != 0)
-    {
-        return MapErrorPOSIX(errno);
-    }
+    time_t seconds;
+    struct tm *timeinfo;
+    struct rtkTimeVal tv;
+
+    seconds = rtc_read();
+    //timeinfo = localtime(&seconds);
+
+    tv.tv_sec = seconds;
+    tv.tv_usec = 0;
+
     if (tv.tv_sec < CHIP_SYSTEM_CONFIG_VALID_REAL_TIME_THRESHOLD)
     {
         return CHIP_SYSTEM_ERROR_REAL_TIME_NOT_SYNCED;
     }
-    curTime = (tv.tv_sec * UINT64_C(1000)) + (tv.tv_usec / 1000);
+
+    curTime = (tv.tv_sec * UINT64_C(1000)) + (tv.tv_usec/1000);
+
     return CHIP_SYSTEM_NO_ERROR;
-#else
-    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
-#endif
 }
 
 Error SetClock_RealTime(uint64_t newCurTime)
 {
-#if 0
+#if 1
+    rtc_init();
+    rtc_write(newCurTime);
+
+    return CHIP_SYSTEM_NO_ERROR;
+#else // for reference
     struct timeval tv;
     tv.tv_sec  = static_cast<time_t>(newCurTime / UINT64_C(1000000));
     tv.tv_usec = static_cast<long>(newCurTime % UINT64_C(1000000));
@@ -116,8 +132,6 @@ Error SetClock_RealTime(uint64_t newCurTime)
     }
 #endif // CHIP_PROGRESS_LOGGING
     return CHIP_SYSTEM_NO_ERROR;
-#else
-    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
 #endif
 }
 

@@ -20,75 +20,70 @@
 /**
  *    @file
  *          Provides implementations for the CHIP logging functions
- *          on the ESP32 platform.
+ *          on the AmebaD platform.
  */
 /* this file behaves like a config.h, comes first */
-#include <platform/internal/CHIPDeviceLayerInternal.h>
+#include <platform/logging/LogV.h>
 
-#include <support/logging/CHIPLogging.h>
+#include <core/CHIPConfig.h>
+#include <support/logging/Constants.h>
 
-//#include "esp_log.h"
+#include <stdio.h>
 
-using namespace ::chip;
-using namespace ::chip::DeviceLayer::Internal;
-
-namespace {
-
-void GetModuleName(char * buf, uint8_t module)
-{
-    if (module == ::chip::Logging::kLogModule_DeviceLayer)
-    {
-        memcpy(buf, "DL", 3);
-    }
-    else
-    {
-        ::chip::Logging::GetModuleName(buf, module);
-    }
-}
-
-} // unnamed namespace
+#ifdef LOG_LOCAL_LEVEL
+#undef LOG_LOCAL_LEVEL
+#endif
+#define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 
 namespace chip {
 namespace Logging {
+namespace Platform {
 
-void LogV(uint8_t module, uint8_t category, const char * msg, va_list v)
+void LogV(const char * module, uint8_t category, const char * msg, va_list v)
 {
-    if (IsCategoryEnabled(category))
-    {
-        enum
-        {
-            kMaxTagLen = 7 + ChipLoggingModuleNameLen
-        };
-        char tag[kMaxTagLen + 1];
-        size_t tagLen;
-        char formattedMsg[CHIP_DEVICE_CONFIG_LOG_MESSAGE_MAX_SIZE];
+    // if (IsCategoryEnabled(category))
+    // {
+    //     enum
+    //     {
+    //         kMaxTagLen = 7 + chip::Logging::kMaxModuleNameLen
+    //     };
+    //     char tag[kMaxTagLen + 1];
+    //     size_t tagLen;
+    //     char formattedMsg[CHIP_DEVICE_CONFIG_LOG_MESSAGE_MAX_SIZE];
 
-        strcpy(tag, "chip[");
-        tagLen = strlen(tag);
-        ::GetModuleName(tag + tagLen, module);
-        tagLen        = strlen(tag);
-        tag[tagLen++] = ']';
-        tag[tagLen]   = 0;
+    //     strcpy(tag, "chip[");
+    //     tagLen = strlen(tag);
+    //     GetModuleName(tag + tagLen, chip::Logging::kMaxModuleNameLen + 1, module);
+    //     tagLen        = strlen(tag);
+    //     tag[tagLen++] = ']';
+    //     tag[tagLen]   = 0;
+    //
+    //    vsnprintf(formattedMsg, sizeof(formattedMsg), msg, v);
+        char tag[11];
 
+        snprintf(tag, sizeof(tag), "chip[%s]", module);
+        tag[sizeof(tag) - 1] = 0;
+
+        char formattedMsg[CHIP_CONFIG_LOG_MESSAGE_MAX_SIZE];
         vsnprintf(formattedMsg, sizeof(formattedMsg), msg, v);
 
         switch (category)
         {
         case kLogCategory_Error:
-            //ESP_LOGE(tag, "%s", formattedMsg);
+            printf("%s %s\r\n", tag, formattedMsg);
             break;
         case kLogCategory_Progress:
-        case kLogCategory_Retain:
         default:
-            //ESP_LOGI(tag, "%s", formattedMsg);
+            printf("%s %s\r\n", tag, formattedMsg);
             break;
         case kLogCategory_Detail:
-            //ESP_LOGV(tag, "%s", formattedMsg);
+            printf("%s %s\r\n", tag, formattedMsg);
             break;
         }
-    }
+    //}
 }
 
+} // namespace Platform
 } // namespace Logging
 
 } // namespace chip

@@ -51,7 +51,9 @@
 	#undef strpbrk
 	#undef strtoul
 	#undef strtol
+#ifndef __cplusplus
 	#undef rand
+#endif
 #ifndef STD_PRINTF
 	#define printf						_rtl_printf
 	#define sprintf						_rtl_sprintf
@@ -84,7 +86,9 @@
 	#define atol(str)					_strtol(str,NULL,10)
 	#define atoi(str)					_stratoi(str)	
 	#define strpbrk(cs, ct)			_strpbrk(cs, ct)		// for B-cut ROM
+#ifndef __cplusplus
 	#define rand						Rand
+#endif
 	#define srand				
 	
 	//extern int _sscanf_patch(const char *buf, const char *fmt, ...);

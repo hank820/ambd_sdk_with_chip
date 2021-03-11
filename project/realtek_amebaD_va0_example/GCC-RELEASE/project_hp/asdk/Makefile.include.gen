@@ -356,7 +356,7 @@ CPPFLAGS = $(GLOBAL_CFLAGS)
 CPPFLAGS += -std=gnu++11
 CPPFLAGS += -std=c++14
 CPPFLAGS += -fpermissive
-
+CPPFLAGS += -fno-rtti
 
 
 ifeq (${BUILD_TYPE},MFG)

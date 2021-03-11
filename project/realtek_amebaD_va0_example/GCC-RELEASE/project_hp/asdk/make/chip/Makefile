@@ -55,8 +55,6 @@ GLOBAL_CFLAGS += -I$(CHIPDIR)/src
 GLOBAL_CFLAGS += -I$(CHIPDIR)/src/system
 GLOBAL_CFLAGS += -I$(CHIPDIR)/src/app
 GLOBAL_CFLAGS += -I$(CHIPDIR)/third_party/nlassert/repo/include
-GLOBAL_CFLAGS += -I$(CHIPDIR)/examples/all-clusters-app/ambd/build/include
-GLOBAL_CFLAGS += -I$(CHIPDIR)/examples/all-clusters-app/ambd/build/chip/src/include
 
 #*****************************************************************************#
 #                        RULES TO GENERATE TARGETS                            #

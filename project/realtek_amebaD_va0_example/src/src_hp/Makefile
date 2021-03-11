@@ -9,22 +9,24 @@ include $(MAKE_INCLUDE_GEN)
 DIR = $(SRCDIR)
 DIR += $(CHIPDIR)/src/app
 DIR += $(CHIPDIR)/src/app/server
+DIR += $(CHIPDIR)/examples/all-clusters-app/all-clusters-common/gen
+DIR += $(CHIPDIR)/examples/all-clusters-app/ambd/main
+
 
 #IFLAGS = -I$(DIR)./
-IFLAGS += -I$(CHIPDIR)/src/include/
-IFLAGS += -I$(CHIPDIR)/src/lib/
-IFLAGS += -I$(CHIPDIR)/src/
-IFLAGS += -I$(CHIPDIR)/third_party/nlassert/repo/include/
-IFLAGS += -I$(CHIPDIR)/src/app/
-IFLAGS += -I$(CHIPDIR)/src/app/util/
-IFLAGS += -I$(CHIPDIR)/src/app/server/
-IFLAGS += -I$(CHIPDIR)/third_party/nlio/repo/include/
+IFLAGS += -I$(CHIPDIR)/src
+IFLAGS += -I$(CHIPDIR)/src/lib
+IFLAGS += -I$(CHIPDIR)/src/include
+IFLAGS += -I$(CHIPDIR)/third_party/nlassert/repo/include
+IFLAGS += -I$(CHIPDIR)/src/app
+IFLAGS += -I$(CHIPDIR)/src/app/util
+IFLAGS += -I$(CHIPDIR)/src/app/server
+IFLAGS += -I$(CHIPDIR)/third_party/nlio/repo/include
 IFLAGS += -I$(CHIPDIR)/examples/all-clusters-app/ambd/build/chip/gen/include
 
 #application
-IFLAGS +=-I$(SRCDIR)
-IFLAGS +=-I$(SRCDIR)/gen
-
+IFLAGS +=-I$(CHIPDIR)/examples/all-clusters-app/all-clusters-common
+IFLAGS +=-I$(CHIPDIR)/examples/all-clusters-app/all-clusters-common/gen
 
 
 MODULE_IFLAGS += -DCHIP_SYSTEM_CONFIG_USE_LWIP=1
@@ -102,14 +104,16 @@ CPPSRC += $(CHIPDIR)/src/app/clusters/general-commissioning-server/general-commi
 CPPSRC += $(CHIPDIR)/src/app/reporting/reporting-default-configuration.cpp
 CPPSRC += $(CHIPDIR)/src/app/reporting/reporting.cpp
 
+CPPSRC += $(CHIPDIR)/examples/all-clusters-app/all-clusters-common/gen/CHIPClientCallbacks.cpp
+CPPSRC += $(CHIPDIR)/examples/all-clusters-app/all-clusters-common/gen/call-command-handler.cpp
+CPPSRC += $(CHIPDIR)/examples/all-clusters-app/all-clusters-common/gen/callback-stub.cpp
+
 
 # src_hp
-CPPSRC += $(SRCDIR)/chipinterface.cpp
-CPPSRC += $(SRCDIR)/DeviceCallbacks.cpp
-CPPSRC += $(SRCDIR)/CHIPDeviceManager.cpp
-CPPSRC += $(SRCDIR)/gen/call-command-handler.cpp
-CPPSRC += $(SRCDIR)/gen/callback-stub.cpp
-CPPSRC += $(SRCDIR)/gen/CHIPClientCallbacks.cpp
+CPPSRC += $(CHIPDIR)/examples/all-clusters-app/all-clusters-app/ambd/main/chipinterface.cpp
+CPPSRC += $(CHIPDIR)/examples/all-clusters-app/all-clusters-app/ambd/main/DeviceCallbacks.cpp
+CPPSRC += $(CHIPDIR)/examples/all-clusters-app/all-clusters-app/ambd/main/CHIPDeviceManager.cpp
+
 
 #*****************************************************************************#
 #                               Object FILE LIST                              #

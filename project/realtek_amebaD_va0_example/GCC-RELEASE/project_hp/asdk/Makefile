@@ -140,6 +140,7 @@ image2_ns:LINK_APP_LIB += $(ROOTDIR)/lib/application/lib_wlan.a $(ROOTDIR)/lib/a
 mp_image2_ns:LINK_APP_LIB += $(ROOTDIR)/lib/application/lib_wlan_mp.a $(ROOTDIR)/lib/application/lib_wps.a
 endif
 
+LINK_APP_LIB += $(ROOTDIR)/lib/application/lib_main.a
 LINK_APP_LIB += $(ROOTDIR)/lib/application/lib_chip.a
 
 ifeq ($(CONFIG_LINKKIT_AWSS), y)
@@ -239,6 +240,7 @@ make_subdirs_lib:
 	#@make -C make/file_system/dct all
 	#@make -C make/network/libcoap all
 	make -C make/chip all
+	make -C make/chip_main all
 #	MMF LIBRARY
 # 	@make -C make/audio/g711 all
 # 	@make -C make/audio/faac all

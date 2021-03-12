@@ -215,6 +215,8 @@ IFLAGS               += -I$(BASEDIR)/component/common/network/ssl/ssl_ram_map/ro
 #MBEDTLS
 IFLAGS               += -I$(CHIPDIR)/third_party/mbedtls/repo/include
 IFLAGS               += -I$(CHIPDIR)/third_party/mbedtls/repo/include/mbedtls
+#mbedtlc_config
+IFLAGS               += -I$(CHIPDIR)/config/ambd
 IFLAGS               += -I$(BASEDIR)/component/common/network/ssl/mbedtls_ram_map/rom
 IFLAGS               += -I$(BASEDIR)/component/common/application/amazon/amazon-freertos/lib/include/private
 
@@ -254,8 +256,6 @@ include  $(ABS_ROOTDIR)/Makefile.include.bt.gen
 endif 
 #BT config
 IFLAGS               += -I$(BASEDIR)/component/common/bluetooth/realtek/sdk/example/bt_config
-
-IFLAGS               += -I$(BASEDIR)/chip
 
 #*****************************************************************************#
 #                             ARM ASSEMBLER FLAGS

@@ -57,9 +57,10 @@ IFLAGS += -I$(CHIPDIR)/src/app/
 IFLAGS += -I$(CHIPDIR)/src/app/util/
 IFLAGS += -I$(CHIPDIR)/src/app/server/
 IFLAGS += -I$(CHIPDIR)/third_party/nlio/repo/include/
-IFLAGS += -I$(CHIPDIR)/examples/all-clusters-app/ambd/build/chip/gen/include
 IFLAGS += -I$(CHIPDIR)/examples/all-clusters-app/all-clusters-common
 IFLAGS += -I$(CHIPDIR)/examples/all-clusters-app/all-clusters-common/gen
+IFLAGS += -I$(CHIPDIR)/examples/all-clusters-app/ambd/main/include
+IFLAGS += -I$(CHIPDIR)/examples/all-clusters-app/ambd/build/chip/gen/include
 
 #*****************************************************************************#
 #                               Source FILE LIST                              #
